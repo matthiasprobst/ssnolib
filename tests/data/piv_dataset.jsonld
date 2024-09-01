@@ -1,0 +1,40 @@
+{
+  "@context": {
+    "@import": "https://raw.githubusercontent.com/matthiasprobst/pivmeta/main/pivmeta_context.jsonld"
+  },
+  "@graph": [
+    {
+      "@id": "https://www.pivchallenge.org/pub/index.html#a",
+      "@type": "dcat:Dataset",
+      "label": "Challenge1A",
+      "dct:description": "Strong vortex (provided by Kaehler) < real > [1280 x 1024]",
+      "dcat:landingPage": "https://www.pivchallenge.org/pub/index.html#a",
+      "dcterms:title": "Loss of seeding in the core of a tip vortex",
+      "dcterms:modified": "2000-10-26",
+      "dcterms:creator": {
+        "@id": "https://orcid.org/0000-0001-9336-2091",
+        "@type": "prov:Person",
+        "prov:hadRole": "contact person",
+        "personal mailbox": "christian.kaehler@dlr.de",
+        "has ORCID ID": "https://orcid.org/0000-0001-9336-2091"
+      },
+      "dcat:distribution": [
+        {
+          "@id": "https://www.pivchallenge.org/pub/A/A.zip",
+          "@type": "dcat:Distribution",
+          "dct:description": "PIV image data",
+          "download URL": "https://www.pivchallenge.org/pub/A/A.zip",
+          "dcat:mediaType": "https://www.iana.org/assignments/media-types/application/zip",
+          "pivm:pivDataSource": "pivm:Experimental"
+        },
+        {
+          "@id": "https://www.pivchallenge.org/pub/A/readmeA.txt",
+          "@type": "dcat:Distribution",
+          "dct:description": "Readme file",
+          "download URL": "https://www.pivchallenge.org/pub/A/readmeA.txt",
+          "dcat:mediaType": "https://www.iana.org/assignments/media-types/text/markdown"
+        }
+      ]
+    }
+  ]
+}

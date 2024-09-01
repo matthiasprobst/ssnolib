@@ -1,0 +1,1 @@
+SSNO = "https://raw.githubusercontent.com/matthiasprobst/ssno/main/ssno_context.jsonld"

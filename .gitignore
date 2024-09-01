@@ -1,0 +1,17 @@
+.idea/*
+
+*.bak
+
+
+docs/*.jsonld
+
+*.pyc
+__pycache__/*
+*/.ipynb_checkpoints/*
+
+# build
+*.egg*
+build/
+dist/
+docs/class_structure_pub.svg
+.coverage

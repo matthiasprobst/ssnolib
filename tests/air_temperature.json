@@ -1,0 +1,14 @@
+{
+    "@context": {
+        "owl": "http://www.w3.org/2002/07/owl#",
+        "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+        "skos": "http://www.w3.org/2004/02/skos/core#",
+        "ssno": "https://matthiasprobst.github.io/ssno#",
+        "dcat": "http://www.w3.org/ns/dcat#"
+    },
+    "@type": "ssno:StandardName",
+    "ssno:canonicalUnits": "http://qudt.org/vocab/unit/K",
+    "ssno:standardName": "air_temperature",
+    "ssno:description": "Air temperature is the bulk temperature of the air, not the surface (skin) temperature.",
+    "@id": "_:Na2f927e9bd5e4a92b6cb56db8391b454"
+}
