@@ -4,7 +4,7 @@ import rdflib
 
 
 class ClassTest(unittest.TestCase):
-    test_jsonld_filename = 'https://raw.githubusercontent.com/matthiasprobst/SSNOlib/dev/tests/data/piv_dataset.jsonld'
+    test_jsonld_filename = 'https://raw.githubusercontent.com/matthiasprobst/ssnolib/main/tests/data/piv_dataset.jsonld'
 
     def setUp(self):
         self.maxDiff = None
