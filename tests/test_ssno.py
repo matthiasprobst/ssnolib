@@ -316,9 +316,16 @@ class TestSSNO(unittest.TestCase):
 
     def test_transformation(self):
         # taken from https://cfconventions.org/Data/cf-standard-names/docs/guidelines.html#process
-        ssnolib.Transformation(name="derivative_of_X_wrt_Y",
+        t = ssnolib.Transformation(name="derivative_of_X_wrt_Y",
                                altersUnit="[X]/[Y]",
                                description="dX/dY (keeping any other independent variables constant, i.e. the partial derivative if appropriate).")
+        snt = StandardNameTable(name = 'CF Rebuilt')
+        snt.usesTransformation = [t]
+        self.assertEqual(t.altersUnit, "[X]/[Y]")
+        self.assertEqual(t.description, "dX/dY (keeping any other independent variables constant, i.e. the partial derivative if appropriate).")
+        self.assertEqual(t.name, "derivative_of_X_wrt_Y")
+        self.assertEqual(t.name, snt.usesTransformation[0].name)
+
 
     def test_hdf5_accessor(self):
         # noinspection PyUnresolvedReferences
