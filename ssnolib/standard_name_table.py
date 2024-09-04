@@ -1,29 +1,82 @@
 import pathlib
 from typing import List, Union, Dict, Optional
 
+import rdflib
 from ontolutils import namespaces, urirefs, Thing
 from pydantic import field_validator, Field
 
-from . import plugins
 from ssnolib.dcat import Dataset, Distribution
 from ssnolib.prov import Person, Organization
+from . import plugins
+from .namespace import SSNO
 from .standard_name import StandardName
 
 
 @namespaces(ssno="https://matthiasprobst.github.io/ssno#",
             schema="http://schema.org/",
             dcterms="http://purl.org/dc/terms/")
-@urirefs(Qualification='ssno:Qualification',
+@urirefs(StandardNameModification='ssno:StandardNameModification',
          name='schema:name',
          description='dcterms:description')
-class Qualification(Thing):
-    """Implementation of ssno:Qualification"""
+class StandardNameModification(Thing):
+    """Implementation of ssno:StandardNameModification"""
 
     name: str  # schema:name
     description: str  # dcterms:description
 
     def __str__(self) -> str:
         return f'{self.__class__.__name__}("{self.name}")'
+
+
+@namespaces(ssno="https://matthiasprobst.github.io/ssno#")
+@urirefs(Qualification='ssno:Qualification',
+         before='ssno:before',
+         after='ssno:after',
+         hasPreposition='ssno:hasPreposition',
+         hasValidValues='ssno:hasValidValues')
+class Qualification(StandardNameModification):
+    """Implementation of ssno:Qualification"""
+    before: Optional[Union[str, "Qualification"]] = None  # ssno:before
+    after: Optional[Union[str, "Qualification"]] = None  # ssno:after
+    hasPreposition: Optional[str] = None  # ssno:hasPreposition
+    hasValidValues: Optional[List[str]] = None  # ssno:hasValidValues
+
+    @field_validator('before')
+    @classmethod
+    def _before(cls, before: Union[str, "Qualification"]) -> Union[str, "Qualification"]:
+        if isinstance(before, str):
+            if not before.startswith("_:") and not before.startswith("http"):
+                raise ValueError(f'Expected a URIRef or Qualification, got {before}')
+            return before
+        if isinstance(before, rdflib.URIRef):
+            return str(before)
+        if not isinstance(before, Qualification) and before != SSNO.AnyStandardName and before != str(
+                SSNO.AnyStandardName):
+            raise TypeError(f'Expected a AnyStandardName or Qualification, got {type(before)}')
+        return before
+
+    @field_validator('after')
+    @classmethod
+    def _after(cls, after: Union[str, "Qualification"]) -> Union[str, "Qualification"]:
+        if isinstance(after, str):
+            if not after.startswith("_:") and not after.startswith("http"):
+                raise ValueError(f'Expected a URIRef or Qualification, got {after}')
+            return after
+        if isinstance(after, rdflib.URIRef):
+            return str(after)
+        if not isinstance(after, Qualification) and after != SSNO.AnyStandardName and after != str(
+                SSNO.AnyStandardName):
+            raise TypeError(f'Expected a AnyStandardName or Qualification, got {type(after)}')
+        return after
+
+
+@namespaces(ssno="https://matthiasprobst.github.io/ssno#")
+@urirefs(Transformation='ssno:Transformation',
+         altersUnit='ssno:altersUnit')
+class Transformation(StandardNameModification):
+    """Implementation of ssno:Transformation"""
+
+    altersUnit: Optional[str] = None  # ssno:altersUnit
 
 
 @namespaces(ssno="https://matthiasprobst.github.io/ssno#")
@@ -87,11 +140,13 @@ class ReferenceFrame(Qualification):
 @urirefs(StandardNameTable='ssno:StandardNameTable',
          creator='dcterms:creator',
          standard_names='ssno:standardNames',
-         locations='ssno:locations',
-         devices='ssno:devices',
-         media='ssno:media',
-         conditions='ssno:conditions',
-         reference_frames='ssno:referenceFrames',
+         # locations='ssno:locations',
+         # devices='ssno:devices',
+         # media='ssno:media',
+         # conditions='ssno:conditions',
+         # reference_frames='ssno:referenceFrames',
+         usesQualification='ssno:usesQualification',
+         usesTransformation='ssno:usesTransformation'
          )
 class StandardNameTable(Dataset):
     """Implementation of ssno:StandardNameTable
@@ -110,16 +165,16 @@ class StandardNameTable(Dataset):
         Identifier of the Standard Name Table, e.g. the DOI (dcterms:identifier)
     standard_names: List[StandardName]
         List of Standard Names (ssno:standardNames)
-    locations: List[Location]
-        List of Locations (ssno:locations)
-    devices: List[Device]
-        List of Devices (ssno:devices)
-    media: List[Medium]
-        List of Media (ssno:media)
-    conditions: List[Condition]
-        List of Conditions (ssno:conditions)
-    reference_frames: List[ReferenceFrame]
-        List of Reference Frames (ssno:referenceFrames)
+    # locations: List[Location]
+    #     List of Locations (ssno:locations)
+    # devices: List[Device]
+    #     List of Devices (ssno:devices)
+    # media: List[Medium]
+    #     List of Media (ssno:media)
+    # conditions: List[Condition]
+    #     List of Conditions (ssno:conditions)
+    # reference_frames: List[ReferenceFrame]
+    #     List of Reference Frames (ssno:referenceFrames)
 
     """
     title: Optional[str] = None
@@ -128,11 +183,13 @@ class StandardNameTable(Dataset):
     identifier: Optional[str] = None
     creator: Optional[Union[Person, List[Person], Organization, List[Organization]]] = None
     standard_names: List[StandardName] = Field(default=None, alias="standardNames")  # ssno:standardNames
-    locations: List[Location] = None
-    devices: List[Device] = None
-    media: List[Medium] = None
-    conditions: List[Condition] = None
-    reference_frames: List[ReferenceFrame] = None
+    # locations: List[Location] = None
+    # devices: List[Device] = None
+    # media: List[Medium] = None
+    # conditions: List[Condition] = None
+    # reference_frames: List[ReferenceFrame] = None
+    usesQualification: List[Qualification] = None
+    usesTransformation: List[Transformation] = None
 
     def __str__(self) -> str:
         if self.identifier:
@@ -167,7 +224,28 @@ class StandardNameTable(Dataset):
 
         return cls(**data)
 
-    @field_validator('standard_names')
+    @field_validator('usesQualification', mode='before')
+    @classmethod
+    def _usesQualification(cls, qualifications: List[Qualification]) -> List[Qualification]:
+        # assign IDs to the qualifications including the ones behind after/before so that no duplicates exist!
+        pyid_lookup = {}
+        for q in qualifications:
+            q.id = rdflib.URIRef(f"_:{rdflib.BNode()}")
+            pyid_lookup[id(q)] = q
+        for q in qualifications:
+            if q.before:
+                if isinstance(q.before, Qualification):
+                    q.before = pyid_lookup[id(q.before)].id
+                elif isinstance(q.before, str):
+                    assert str(q.before) == str(SSNO.AnyStandardName)
+            if q.after:
+                if isinstance(q.after, Qualification):
+                    q.after = pyid_lookup[id(q.after)].id
+                elif isinstance(q.after, str):
+                    assert str(q.after) == str(SSNO.AnyStandardName)
+        return qualifications
+
+    @field_validator('standard_names', mode='before')
     @classmethod
     def _standard_names(cls, standard_names: Union[StandardName, List[StandardName]]) -> List[StandardName]:
         if not isinstance(standard_names, list):
@@ -222,9 +300,8 @@ class StandardNameTable(Dataset):
                 return pathlib.Path(filename)
             raise ValueError(f'File {filename} exists and overwrite is False.')
 
-        assert pathlib.Path(filename).suffix == '.yaml', 'Filename must have suffix .yaml'
-
-        suffix = pathlib.Path(filename).suffix[1:].lower()
+        suffix = pathlib.Path(filename).suffix
+        assert suffix in ('.yaml', '.yml'), f'Expected a YAML file, got {suffix}'
 
         yaml_data = {}
         with open(filename, 'w') as f:
@@ -258,26 +335,88 @@ class StandardNameTable(Dataset):
                     yaml_data['standard_names'][sn.standard_name] = {'canonical_units': sn.canonical_units,
                                                                      'description': sn.description}
 
-            if self.locations:
-                for loc in self.locations:
-                    yaml_data['locations'] = {loc.name: loc.description}
-
-            if self.media:
-                for med in self.media:
-                    yaml_data['media'] = {med.name: med.description}
-
-            if self.conditions:
-                for cond in self.conditions:
-                    yaml_data['conditions'] = {cond.name: cond.description}
-
-            if self.reference_frames:
-                for ref in self.reference_frames:
-                    yaml_data['reference_frames'] = {ref.name: ref.description}
+            # if self.locations:
+            #     for loc in self.locations:
+            #         yaml_data['locations'] = {loc.name: loc.description}
+            #
+            # if self.media:
+            #     for med in self.media:
+            #         yaml_data['media'] = {med.name: med.description}
+            #
+            # if self.conditions:
+            #     for cond in self.conditions:
+            #         yaml_data['conditions'] = {cond.name: cond.description}
+            #
+            # if self.reference_frames:
+            #     for ref in self.reference_frames:
+            #         yaml_data['reference_frames'] = {ref.name: ref.description}
 
             yaml.dump(yaml_data, f, sort_keys=False)
 
         # yaml_data = {'description': self.description if self.description,
         #              'identifier': }
-        print(self.model_dump())
+        # print(self.model_dump())
 
         return pathlib.Path(filename)
+
+    def get_qualification_rule_as_string(self) -> str:
+        """Returns the qualification rule similar to the CF standard name table documentation
+        (https://cfconventions.org/Data/cf-standard-names/docs/guidelines.html#process)."""
+        # get all qualifications:
+        g = rdflib.Graph()
+        g.parse(data=self.model_dump_jsonld(),
+                format='json-ld')
+
+        query = """
+                PREFIX ssno: <https://matthiasprobst.github.io/ssno#>
+                PREFIX schema: <http://schema.org/>
+
+                SELECT ?qualification ?name ?before ?after ?preposition
+                WHERE {
+                    ?qualification a ssno:Qualification ;
+                                   schema:name ?name .
+                    OPTIONAL { ?qualification ssno:before ?before }
+                    OPTIONAL { ?qualification ssno:after ?after }
+                    OPTIONAL { ?qualification ssno:hasPreposition ?preposition }
+                }
+                ORDER BY ?before
+                """
+        # Execute the query
+        results = g.query(query)
+
+        # Print the results
+        qres = {}
+        for row in results:
+            if row.qualification not in qres:
+                qres[str(row.qualification).strip("_:")] = {'name': str(row.name) if row.name else None,
+                                                            'before': str(row.before).strip(
+                                                                "_:") if row.before else None,
+                                                            'after': str(row.after).strip("_:") if row.after else None,
+                                                            'preposition': str(
+                                                                row.preposition) if row.preposition else None}
+
+        sorted_list = ['https://matthiasprobst.github.io/ssno#AnyStandardName', ]
+        qres_orig = qres.copy()
+        while len(qres) > 0:
+            for k, v in qres.copy().items():
+                if v["before"] in sorted_list:
+                    # find the element corresponding to v["before"]:
+                    i = sorted_list.index(v["before"])
+                    sorted_list.insert(i, k)
+                    qres.pop(k)
+                elif v["after"] in sorted_list:
+                    i = sorted_list.index(v["after"])
+                    sorted_list.insert(i + 1, k)
+                    qres.pop(k)
+
+        qualifications_output = []
+        for e in sorted_list:
+            if e in qres_orig:
+                q = qres_orig[e]
+                if q["preposition"]:
+                    qualifications_output.append(f'[{q["preposition"]}_{q["name"]}]')
+                else:
+                    qualifications_output.append(f'[{qres_orig[e]["name"]}]')
+            else:
+                qualifications_output.append("standard_name")
+        return " ".join(qualifications_output)

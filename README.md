@@ -1,8 +1,9 @@
-# sSNOlib
+# ssnolib: Library for the simple standard name ontology SSNO
 
 ![Tests](https://github.com/matthiasprobst/SSNOlib/actions/workflows/tests.yml/badge.svg)
 ![DOCS](https://codecov.io/gh/matthiasprobst/SSNOlib/branch/main/graph/badge.svg)
 ![pyvers](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue)
+![ssno](https://img.shields.io/badge/ssno-1.3.0-orange)
 
 A Python library to work with the [SSNO ontology](https://matthiasprobst.github.io/ssno/). It provides Python classes
 for the ontology classes and facilitates the creation of JSON-LD files. JSON-LD files are both human- and machine-readable 

@@ -9,13 +9,14 @@ __this_dir__ = pathlib.Path(__file__).parent
 
 
 def generate_namespace_file():
-    """Generate M4I_NAMESPACE.py file from m4i_context.jsonld"""
+    """Generate namespace.py file from ssno_context.jsonld"""
 
     namespace = 'ssno'
 
     context_file = CACHE_DIR / 'ssno_context.jsonld'
     context_file.unlink(missing_ok=True)  # force download
     if not context_file.exists():
+        context_url = "https://raw.githubusercontent.com/matthiasprobst/ssno/dev131/ssno_context.jsonld"
         context_file = download_file(context_url, context_file)
 
     # read context file:
@@ -40,8 +41,8 @@ def generate_namespace_file():
         f.write('from rdflib.namespace import DefinedNamespace, Namespace\n')
         f.write('from rdflib.term import URIRef\n')
         f.write(f'\n\nclass {namespace.upper()}(DefinedNamespace):')
-        f.write('\n    # uri = "https://w3id.org/nfdi4ing/metadata4ing#"')
-        f.write('\n    # Generated with h5rdmtoolbox.data.m4i.generate_namespace_file()')
+        f.write('\n    # uri = "https://matthiasprobst.github.io/ssno/#"')
+        f.write('\n    # Generated with ssnolib')
         for k, v in iris.items():
             f.write(f'\n    {k}: URIRef  # {v["keys"]}')
 

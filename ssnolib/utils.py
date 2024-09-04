@@ -5,6 +5,8 @@ from typing import Optional, Union
 import appdirs
 import requests
 
+import ssnolib
+
 
 def get_cache_dir() -> pathlib.Path:
     """Get the cache directory and create it if it does not exist"""
