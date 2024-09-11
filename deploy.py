@@ -16,7 +16,7 @@ def generate_namespace_file():
     context_file = CACHE_DIR / 'ssno_context.jsonld'
     context_file.unlink(missing_ok=True)  # force download
     if not context_file.exists():
-        context_url = "https://raw.githubusercontent.com/matthiasprobst/ssno/dev131/ssno_context.jsonld"
+        context_url = "https://raw.githubusercontent.com/matthiasprobst/ssno/main/ssno_context.jsonld"
         context_file = download_file(context_url, context_file)
 
     # read context file:

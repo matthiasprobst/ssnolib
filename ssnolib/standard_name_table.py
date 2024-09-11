@@ -140,13 +140,7 @@ class ReferenceFrame(Qualification):
 @urirefs(StandardNameTable='ssno:StandardNameTable',
          creator='dcterms:creator',
          standard_names='ssno:standardNames',
-         # locations='ssno:locations',
-         # devices='ssno:devices',
-         # media='ssno:media',
-         # conditions='ssno:conditions',
-         # reference_frames='ssno:referenceFrames',
-         usesQualification='ssno:usesQualification',
-         usesTransformation='ssno:usesTransformation'
+         definesStandardNameModification='ssno:definesStandardNameModification'
          )
 class StandardNameTable(Dataset):
     """Implementation of ssno:StandardNameTable
@@ -183,13 +177,7 @@ class StandardNameTable(Dataset):
     identifier: Optional[str] = None
     creator: Optional[Union[Person, List[Person], Organization, List[Organization]]] = None
     standard_names: List[StandardName] = Field(default=None, alias="standardNames")  # ssno:standardNames
-    # locations: List[Location] = None
-    # devices: List[Device] = None
-    # media: List[Medium] = None
-    # conditions: List[Condition] = None
-    # reference_frames: List[ReferenceFrame] = None
-    usesQualification: List[Qualification] = None
-    usesTransformation: List[Transformation] = None
+    definesStandardNameModification: List[Union[Qualification, Transformation]] = None
 
     def __str__(self) -> str:
         if self.identifier:
@@ -224,26 +212,31 @@ class StandardNameTable(Dataset):
 
         return cls(**data)
 
-    @field_validator('usesQualification', mode='before')
+    @field_validator('definesStandardNameModification', mode='before')
     @classmethod
-    def _usesQualification(cls, qualifications: List[Qualification]) -> List[Qualification]:
-        # assign IDs to the qualifications including the ones behind after/before so that no duplicates exist!
-        pyid_lookup = {}
-        for q in qualifications:
-            q.id = rdflib.URIRef(f"_:{rdflib.BNode()}")
-            pyid_lookup[id(q)] = q
-        for q in qualifications:
-            if q.before:
-                if isinstance(q.before, Qualification):
-                    q.before = pyid_lookup[id(q.before)].id
-                elif isinstance(q.before, str):
-                    assert str(q.before) == str(SSNO.AnyStandardName)
-            if q.after:
-                if isinstance(q.after, Qualification):
-                    q.after = pyid_lookup[id(q.after)].id
-                elif isinstance(q.after, str):
-                    assert str(q.after) == str(SSNO.AnyStandardName)
-        return qualifications
+    def _defines_standard_name_modification(cls, modifications: List[Union[Qualification, Transformation]]) -> List[
+        Qualification]:
+        if all(isinstance(m, Qualification) for m in modifications):
+            # assign IDs to the qualifications including the ones behind after/before so that no duplicates exist!
+            pyid_lookup = {}
+            for q in modifications:
+                q.id = rdflib.URIRef(f"_:{rdflib.BNode()}")
+                pyid_lookup[id(q)] = q
+            for q in modifications:
+                if q.before:
+                    if isinstance(q.before, Qualification):
+                        q.before = pyid_lookup[id(q.before)].id
+                    elif isinstance(q.before, str):
+                        assert str(q.before) == str(SSNO.AnyStandardName)
+                if q.after:
+                    if isinstance(q.after, Qualification):
+                        q.after = pyid_lookup[id(q.after)].id
+                    elif isinstance(q.after, str):
+                        assert str(q.after) == str(SSNO.AnyStandardName)
+            return modifications
+        if all(isinstance(m, Transformation) for m in modifications):
+            return modifications
+        raise ValueError('Expected a list of either Qualifications or Transformations')
 
     @field_validator('standard_names', mode='before')
     @classmethod

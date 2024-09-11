@@ -307,7 +307,7 @@ class TestSSNO(unittest.TestCase):
         condition.after = process
 
         snt = StandardNameTable(name='CF Rebuilt')
-        snt.usesQualification = [surface, component, at_surface, medium, process, condition]
+        snt.definesStandardNameModification = [surface, component, at_surface, medium, process, condition]
 
         self.assertEqual(
             "[surface] [component] standard_name [at_surface] [in_medium] [due_to_process] [assuming_process]",
@@ -320,11 +320,11 @@ class TestSSNO(unittest.TestCase):
                                altersUnit="[X]/[Y]",
                                description="dX/dY (keeping any other independent variables constant, i.e. the partial derivative if appropriate).")
         snt = StandardNameTable(name = 'CF Rebuilt')
-        snt.usesTransformation = [t]
+        snt.definesStandardNameModification = [t]
         self.assertEqual(t.altersUnit, "[X]/[Y]")
         self.assertEqual(t.description, "dX/dY (keeping any other independent variables constant, i.e. the partial derivative if appropriate).")
         self.assertEqual(t.name, "derivative_of_X_wrt_Y")
-        self.assertEqual(t.name, snt.usesTransformation[0].name)
+        self.assertEqual(t.name, snt.definesStandardNameModification[0].name)
 
 
     def test_hdf5_accessor(self):
