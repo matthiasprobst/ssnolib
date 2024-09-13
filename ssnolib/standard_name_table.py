@@ -69,6 +69,10 @@ class Qualification(StandardNameModification):
             raise TypeError(f'Expected a AnyStandardName or Qualification, got {type(after)}')
         return after
 
+    def get_full_name(self):
+        if not self.hasPreposition:
+            return self.name
+        return f'{self.hasPreposition}_{self.name}'
 
 @namespaces(ssno="https://matthiasprobst.github.io/ssno#")
 @urirefs(Transformation='ssno:Transformation',
@@ -321,6 +325,35 @@ class StandardNameTable(Dataset):
                             yaml_data['creator'].append(creator_dict)
                 if len(yaml_data['creator']) == 0:
                     yaml_data.pop('creator')
+
+            if self.definesStandardNameModification:
+                for modification in self.definesStandardNameModification:
+                    if isinstance(modification, Qualification):
+                        if 'qualifications' not in yaml_data:
+                            yaml_data['qualifications'] = {
+                                'construction': self.get_qualification_rule_as_string(),
+                                'phrases': []
+                            }
+
+                        _modification = modification.model_dump(exclude_none=True)
+                        _modification.pop('id')
+                        # if _modification.get('before', None) is not None and str(_modification['before']) != str(SSNO.AnyStandardName):
+                        #     for _m in self.definesStandardNameModification:
+                        #         if str(_m.id) == modification.before:
+                        #             _modification['before'] = _m.name
+                        # elif _modification.get('after', None) is not None and str(_modification['after']) != str(SSNO.AnyStandardName):
+                        #     for _m in self.definesStandardNameModification:
+                        #         if str(_m.id) == modification.before:
+                        #             _modification['after'] = _m.name
+                        _modification.pop('after', None)
+                        _modification.pop('before', None)
+                        yaml_data['qualifications']['phrases'].append(_modification)
+                    elif isinstance(modification, Transformation):
+                        if 'transformations' not in yaml_data:
+                            yaml_data['transformations'] = []
+                        _modification = modification.model_dump(exclude_none=True)
+                        _modification.pop('id')
+                        yaml_data['transformations'].append(_modification)
 
             if self.standard_names:
                 yaml_data['standard_names'] = {}

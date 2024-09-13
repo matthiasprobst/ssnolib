@@ -70,6 +70,7 @@ class TestSSNO(unittest.TestCase):
         pathlib.Path('snt.json').unlink(missing_ok=True)
         pathlib.Path('snt.yaml').unlink(missing_ok=True)
         pathlib.Path('snt2.yaml').unlink(missing_ok=True)
+        pathlib.Path('snt_with_mod.yaml').unlink(missing_ok=True)
 
     def test_standard_name(self):
         sn = StandardName(standard_name='x_velocity',
@@ -240,15 +241,27 @@ class TestSSNO(unittest.TestCase):
         self.assertDictEqual(yaml1, yaml2)
 
     def test_modifications(self):
-        comp = ssnolib.Qualification(name="component", description="component of the vector")
-        medium = ssnolib.Qualification(name="medium", description="medium")
+        comp = ssnolib.Qualification(name="component", description="component of the vector",
+                                     hasValidValues=['x', 'y', "z"])
+        medium = ssnolib.Qualification(name="medium", description="medium", hasPreposition='in')
+        medium.after = SSNO.AnyStandardName
+        comp.before = SSNO.AnyStandardName
+
+        snt = StandardNameTable(title='SNT with modifications')
+        snt.definesStandardNameModification = [comp, medium]
+        self.assertEqual("[component] standard_name [in_medium]", snt.get_qualification_rule_as_string())
+
+        snt.to_yaml('snt_with_mod.yaml', overwrite=True)
+
+        new_snt = StandardNameTable.parse('snt_with_mod.yaml', fmt='yaml')
+        self.assertEqual(new_snt.title, 'SNT with modifications')
+        self.assertEqual("[component] standard_name [in_medium]", new_snt.get_qualification_rule_as_string())
+
+        # circular reference:
         medium.before = comp
         comp.after = medium
         with self.assertRaises(ValueError):
             medium.model_dump_jsonld()
-
-        comp.after = SSNO.AnyStandardName
-        print(medium.model_dump_jsonld())
 
     def test_cf_qualifications(self):
         # Taken from https://cfconventions.org/Data/cf-standard-names/docs/guidelines.html#id2797725
@@ -317,15 +330,15 @@ class TestSSNO(unittest.TestCase):
     def test_transformation(self):
         # taken from https://cfconventions.org/Data/cf-standard-names/docs/guidelines.html#process
         t = ssnolib.Transformation(name="derivative_of_X_wrt_Y",
-                               altersUnit="[X]/[Y]",
-                               description="dX/dY (keeping any other independent variables constant, i.e. the partial derivative if appropriate).")
-        snt = StandardNameTable(name = 'CF Rebuilt')
+                                   altersUnit="[X]/[Y]",
+                                   description="dX/dY (keeping any other independent variables constant, i.e. the partial derivative if appropriate).")
+        snt = StandardNameTable(name='CF Rebuilt')
         snt.definesStandardNameModification = [t]
         self.assertEqual(t.altersUnit, "[X]/[Y]")
-        self.assertEqual(t.description, "dX/dY (keeping any other independent variables constant, i.e. the partial derivative if appropriate).")
+        self.assertEqual(t.description,
+                         "dX/dY (keeping any other independent variables constant, i.e. the partial derivative if appropriate).")
         self.assertEqual(t.name, "derivative_of_X_wrt_Y")
         self.assertEqual(t.name, snt.definesStandardNameModification[0].name)
-
 
     def test_hdf5_accessor(self):
         # noinspection PyUnresolvedReferences

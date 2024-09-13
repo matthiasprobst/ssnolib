@@ -1,11 +1,11 @@
 import pathlib
+import re
 import uuid
+from typing import Dict
 from typing import Optional, Union
 
 import appdirs
 import requests
-
-import ssnolib
 
 
 def get_cache_dir() -> pathlib.Path:
@@ -71,3 +71,32 @@ def download_file(url,
 
         return dest_filename
     raise RuntimeError(f'Failed to download the file from {url}')
+
+
+def gpfqcs(input_str) -> Dict[int, str]:
+    """gpfqcs = get_positions_from_qualification_construction_string"""
+
+    # Use a regex to find all words inside square brackets
+    words_in_brackets = re.findall(r'\[([^\]]+)\]', input_str)
+
+    # Split the input string into parts around "standard_name"
+    parts = input_str.split("standard_name")
+
+    # Get words before and after "standard_name"
+    before_words = re.findall(r'\[([^\]]+)\]', parts[0])
+    after_words = re.findall(r'\[([^\]]+)\]', parts[1])
+
+    # Create a dictionary with positions for each word
+    result = {}
+
+    # Assign negative positions to words before "standard_name"
+    for i, word in enumerate(reversed(before_words)):
+        # result[word] = -(i + 1)
+        result[-(i + 1)] = word
+
+    # Assign positive positions to words after "standard_name"
+    for i, word in enumerate(after_words):
+        # result[word] = i + 1
+        result[i + 1] = word
+
+    return result

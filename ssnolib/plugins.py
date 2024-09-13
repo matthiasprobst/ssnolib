@@ -1,7 +1,10 @@
 import abc
+import logging
 import pathlib
 import warnings
 from typing import Dict, Union
+
+logger = logging.getLogger("ssnolib")
 
 
 class TableReader(abc.ABC):
@@ -98,7 +101,7 @@ class YAMLReader(TableReader):
 
         with open(self.filename, 'r') as f:
             data = yaml.safe_load(f)
-        standard_names = data['standard_names']
+        standard_names = data.get('standard_names', {})
 
         def _parse_standard_names(name, sndata: Dict):
             for ustr in ('unit', 'units', 'canonical_unit'):
@@ -124,27 +127,55 @@ class YAMLReader(TableReader):
                 if creator['orcid_id']:
                     creator['id'] = creator['orcid_id']
 
-        qualifications = {}
-        # locations = data.get('locations', None)
-        # devices = data.get('devices', None)
-        # media = data.get('media', None)
-        # conditions = data.get('conditions', None)
-        # reference_frames = data.get('reference_frames', None)
-        # surfaces = data.get('surfaces', None)
+        # parse qualifications
+        qualification_data = data.get('qualifications', None)
+        qualifications_dict = {}
+        if qualification_data:
+            construction = qualification_data.pop('construction', None)
+            if construction is None:
+                logger.error("No construction string is provided in the qualifications.")
+            phrases = qualification_data.get('phrases', None)
+            if phrases:
+                from ssnolib.standard_name_table import Qualification
+                qualifications = [Qualification(
+                    name=q['name'],
+                    description=q.get('description', None),
+                    hasPreposition=q.get('hasPreposition', None),
+                    hasValidValues=q.get('hasValidValues', None)
+                ) for q in phrases]
+                qualifications_dict = {q.get_full_name(): q for q in qualifications}
+            else:
+                logger.error("No phrases are provided in the qualifications.")
 
-        for q in ('locations', 'devices', 'media', 'conditions', 'reference_frames', 'surfaces'):
-            if q in data:
-                qualifications[q] = [{'name': ak, 'description': av} for ak, av in data[q].items()]
-        # if locations:
-        #     qualifications = {'locations': [{'location': ak, 'description': av} for ak, av in locations.items()]}
+            if phrases and qualifications_dict:
+                from ssnolib.utils import gpfqcs
+                positions = gpfqcs(construction)
+                for position, qualification_full_name in positions.items():
+                    if position < 0:
+                        if position == -1:
+                            from ssnolib.namespace import SSNO
+                            qualifications_dict[qualification_full_name].before = SSNO.AnyStandardName
+                        else:
+                            qualifications_dict[qualification_full_name].before = qualifications_dict[qualification_full_name+1]
+                    else:
+                        if position == 1:
+                            from ssnolib.namespace import SSNO
+                            qualifications_dict[qualification_full_name].after = SSNO.AnyStandardName
+                        else:
+                            qualifications_dict[qualification_full_name].after = qualifications_dict[qualification_full_name-1]
+
+                # relate the phrases to each other
+                # [component] standard_name [in_medium]
+                # -1, 0, 1
 
         data_dict = {'title': data.get('name', data.get('title', None)),
                      'creator': data.get('creator', {}),
                      'version': data.get('version', None),
                      'description': data.get('description', None),
                      'identifier': data.get('identifier', None),
-                     'standard_names': [_parse_standard_names(k, v) for k, v in standard_names.items()],
-                     **qualifications}
+                     'standard_names': [_parse_standard_names(k, v) for k, v in standard_names.items()]}
+        if qualifications_dict:
+            data_dict['definesStandardNameModification'] = list(qualifications_dict.values())
         if data.get('identifier', None):
             data_dict['id'] = data.get('identifier', None)
 
