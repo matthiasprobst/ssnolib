@@ -83,13 +83,13 @@ pip install git+https://github.com/matthiasprobst/SSNOlib.git[yaml]
 
 A complete documentation is still under development. However, the docstrings of the classes and methods should be
 sufficient to get started. Also have a look at the [Tutorial Notebook](docs/Tutorial.ipynb) or following class diagram
-and the [usage](#usage) examples below.
+and the [examples](#examples) below.
 
 ![Class diagram](docs/class_structure.png)
 
-## Usage
+## Examples
 
-Describe a Standard Name Table ith *sSNO*. Let's take the one from cfconventions.org as an example:
+Describe a Standard Name Table, e.g. the one from cfconventions.org:
 
 ```python
 import ssnolib
@@ -97,8 +97,8 @@ from ssnolib.dcat import Distribution
 
 # Create a distribution object (downloadable XML file containing the standard name table)
 distribution = Distribution(title='XML Table',
-                                    download_URL='http://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
-                                    media_type='application/xml')
+                            download_URL='http://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
+                            media_type='application/xml')
 
 # Create a standard name table object
 snt = ssnolib.StandardNameTable(title='CF Standard Name Table v79',
@@ -137,6 +137,7 @@ The corresponding JSON-LD file looks like this (showing only 2 standard names fo
 ```
 
 ### Standard name to JSON-LD
+A standard name alone can be described like this:
 
 ```python
 import ssnolib
@@ -150,7 +151,7 @@ with open('air_temperature.jsonld', 'w') as f:
     f.write(air_temp.model_dump_jsonld())
 ```
 
-The corresponding JSON-LD file looks like this:
+The corresponding JSON-LD file:
 
 ```json
 {
@@ -174,9 +175,3 @@ You can now take the JSON-LD file and use it with your data (place it next to it
 ## Contribution
 
 Contributions are welcome. Please open an issue or a pull request.
-
-### Design of model classes
-
-Attributes of the model classes should be the pref label as defined in the ontology. Underscores will be replaced with
-spaces when dumping to JSON-LD files. E.g. `canonical_units` will be `canonical units`  or
-`downloadURL` will be `download URL`  in the JSON-LD file.

@@ -2,7 +2,6 @@ import pathlib
 import unittest
 
 
-
 class TestReadme(unittest.TestCase):
 
     def tearDown(self):
