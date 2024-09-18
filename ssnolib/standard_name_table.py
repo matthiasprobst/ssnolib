@@ -74,69 +74,17 @@ class Qualification(StandardNameModification):
             return self.name
         return f'{self.hasPreposition}_{self.name}'
 
+
 @namespaces(ssno="https://matthiasprobst.github.io/ssno#")
 @urirefs(Transformation='ssno:Transformation',
-         altersUnit='ssno:altersUnit')
+         altersUnit='ssno:unitModificationRule',
+         standardNameCharacter='ssno:standardNameRepresentationCharacter'
+         )
 class Transformation(StandardNameModification):
     """Implementation of ssno:Transformation"""
 
-    altersUnit: Optional[str] = None  # ssno:altersUnit
-
-
-@namespaces(ssno="https://matthiasprobst.github.io/ssno#")
-@urirefs(Medium='ssno:Medium')
-class Medium(Qualification):
-    """Implementation of ssno:Medium"""
-
-    def __str__(self) -> str:
-        return f'{self.__class__.__name__}("{self.name}")'
-
-
-@namespaces(ssno="https://matthiasprobst.github.io/ssno#")
-@urirefs(Location='ssno:Location')
-class Location(Qualification):
-    """Implementation of ssno:Location"""
-
-    def __str__(self) -> str:
-        return f'{self.__class__.__name__}("{self.name}")'
-
-
-@namespaces(ssno="https://matthiasprobst.github.io/ssno#")
-@urirefs(Device='ssno:Device')
-class Device(Qualification):
-    """Implementation of ssno:Device"""
-
-    def __str__(self) -> str:
-        return f'{self.__class__.__name__}("{self.name}")'
-
-
-@namespaces(ssno="https://matthiasprobst.github.io/ssno#")
-@urirefs(Condition='ssno:Condition')
-class Condition(Qualification):
-    """Implementation of ssno:Condition"""
-
-    def __str__(self) -> str:
-        return f'{self.__class__.__name__}("{self.name}")'
-
-
-@namespaces(ssno="https://matthiasprobst.github.io/ssno#")
-@urirefs(Component='ssno:Component')
-class Component(Qualification):
-    """Implementation of ssno:Component"""
-
-    def __str__(self) -> str:
-        return f'{self.__class__.__name__}("{self.name}")'
-
-
-@namespaces(ssno="https://matthiasprobst.github.io/ssno#")
-@urirefs(ReferenceFrame='ssno:ReferenceFrame')
-class ReferenceFrame(Qualification):
-    """Implementation of ssno:ReferenceFrame"""
-
-    components: List[Component]
-
-    def __str__(self) -> str:
-        return f'{self.__class__.__name__}("{self.name}")'
+    altersUnit: Optional[str] = None  # ssno:unitModificationRule
+    standardNameCharacter: Optional[str] = None  # ssno:unitModificationRule
 
 
 @namespaces(ssno="https://matthiasprobst.github.io/ssno#",
