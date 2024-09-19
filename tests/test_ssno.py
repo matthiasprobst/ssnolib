@@ -329,16 +329,22 @@ class TestSSNO(unittest.TestCase):
 
     def test_transformation(self):
         # taken from https://cfconventions.org/Data/cf-standard-names/docs/guidelines.html#process
-        t = ssnolib.Transformation(name="derivative_of_X_wrt_Y",
-                                   altersUnit="[X]/[Y]",
-                                   description="dX/dY (keeping any other independent variables constant, i.e. the partial derivative if appropriate).")
+        X = ssnolib.Character(character="X", associatedWith=ssnolib.namespace.SSNO.AnyStandardName)
+        Y = ssnolib.Character(character="Y", associatedWith=ssnolib.namespace.SSNO.AnyStandardName)
+        t = ssnolib.Transformation(
+            name="derivative_of_X_wrt_Y",
+            altersUnit="[X]/[Y]",
+            hasCharacter=[X, Y],
+            description="dX/dY (keeping any other independent variables constant, i.e. the partial derivative if appropriate).")
         snt = StandardNameTable(name='CF Rebuilt')
         snt.definesStandardNameModification = [t]
         self.assertEqual(t.altersUnit, "[X]/[Y]")
-        self.assertEqual(t.description,
-                         "dX/dY (keeping any other independent variables constant, i.e. the partial derivative if appropriate).")
+        self.assertEqual(
+            t.description,
+            "dX/dY (keeping any other independent variables constant, i.e. the partial derivative if appropriate).")
         self.assertEqual(t.name, "derivative_of_X_wrt_Y")
         self.assertEqual(t.name, snt.definesStandardNameModification[0].name)
+        print(snt.model_dump_jsonld())
 
     def test_hdf5_accessor(self):
         # noinspection PyUnresolvedReferences

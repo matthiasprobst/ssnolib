@@ -3,7 +3,7 @@ from typing import List, Union, Dict, Optional
 
 import rdflib
 from ontolutils import namespaces, urirefs, Thing
-from pydantic import field_validator, Field
+from pydantic import field_validator, Field, HttpUrl
 
 from ssnolib.dcat import Dataset, Distribution
 from ssnolib.prov import Person, Organization
@@ -76,15 +76,27 @@ class Qualification(StandardNameModification):
 
 
 @namespaces(ssno="https://matthiasprobst.github.io/ssno#")
+@urirefs(Character='ssno:Character',
+         character='ssno:character',
+         associatedWith='ssno:associatedWith'
+         )
+class Character(Thing):
+    """Implementation of ssno:Transformation"""
+
+    character: str  # ssno:character
+    associatedWith: HttpUrl  # ssno:associatedWith
+
+
+@namespaces(ssno="https://matthiasprobst.github.io/ssno#")
 @urirefs(Transformation='ssno:Transformation',
          altersUnit='ssno:unitModificationRule',
-         standardNameCharacter='ssno:standardNameRepresentationCharacter'
+         hasCharacter='ssno:hasCharacter'
          )
 class Transformation(StandardNameModification):
     """Implementation of ssno:Transformation"""
 
-    altersUnit: Optional[str] = None  # ssno:unitModificationRule
-    standardNameCharacter: Optional[str] = None  # ssno:unitModificationRule
+    altersUnit: str  # ssno:altersUnit
+    hasCharacter: List[Character]  # ssno:hasCharacter
 
 
 @namespaces(ssno="https://matthiasprobst.github.io/ssno#",

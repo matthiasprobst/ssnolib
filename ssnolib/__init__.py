@@ -1,7 +1,7 @@
 from ._version import __version__
 from .agent import Person, Organization
 from .standard_name import StandardName
-from .standard_name_table import StandardNameTable, Qualification, Transformation
+from .standard_name_table import StandardNameTable, Qualification, Transformation, Character
 from .utils import get_cache_dir
 
 CACHE_DIR = get_cache_dir()
@@ -11,6 +11,7 @@ __all__ = ('__version__',
            'Qualification',
            'Transformation',
            'StandardName',
+           'Character',
            'Person',
            'Organization',
            'CONTEXT',
