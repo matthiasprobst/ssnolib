@@ -248,7 +248,7 @@ class TestSSNO(unittest.TestCase):
         comp.before = SSNO.AnyStandardName
 
         snt = StandardNameTable(title='SNT with modifications')
-        snt.definesStandardNameModification = [comp, medium]
+        snt.hasModifier = [comp, medium]
         self.assertEqual("[component] standard_name [in_medium]", snt.get_qualification_rule_as_string())
 
         snt.to_yaml('snt_with_mod.yaml', overwrite=True)
@@ -320,7 +320,7 @@ class TestSSNO(unittest.TestCase):
         condition.after = process
 
         snt = StandardNameTable(name='CF Rebuilt')
-        snt.definesStandardNameModification = [surface, component, at_surface, medium, process, condition]
+        snt.hasModifier = [surface, component, at_surface, medium, process, condition]
 
         self.assertEqual(
             "[surface] [component] standard_name [at_surface] [in_medium] [due_to_process] [assuming_process]",
@@ -337,13 +337,13 @@ class TestSSNO(unittest.TestCase):
             hasCharacter=[X, Y],
             description="dX/dY (keeping any other independent variables constant, i.e. the partial derivative if appropriate).")
         snt = StandardNameTable(name='CF Rebuilt')
-        snt.definesStandardNameModification = [t]
+        snt.hasModifier = [t]
         self.assertEqual(t.altersUnit, "[X]/[Y]")
         self.assertEqual(
             t.description,
             "dX/dY (keeping any other independent variables constant, i.e. the partial derivative if appropriate).")
         self.assertEqual(t.name, "derivative_of_X_wrt_Y")
-        self.assertEqual(t.name, snt.definesStandardNameModification[0].name)
+        self.assertEqual(t.name, snt.hasModifier[0].name)
         print(snt.model_dump_jsonld())
 
     def test_hdf5_accessor(self):

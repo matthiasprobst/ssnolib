@@ -84,7 +84,7 @@ class Character(Thing):
     """Implementation of ssno:Transformation"""
 
     character: str  # ssno:character
-    associatedWith: HttpUrl  # ssno:associatedWith
+    associatedWith: Union[HttpUrl, Qualification]  # ssno:associatedWith
 
 
 @namespaces(ssno="https://matthiasprobst.github.io/ssno#")
@@ -104,7 +104,7 @@ class Transformation(StandardNameModification):
 @urirefs(StandardNameTable='ssno:StandardNameTable',
          creator='dcterms:creator',
          standard_names='ssno:standardNames',
-         definesStandardNameModification='ssno:definesStandardNameModification'
+         hasModifier='ssno:hasModifier'
          )
 class StandardNameTable(Dataset):
     """Implementation of ssno:StandardNameTable
@@ -123,17 +123,6 @@ class StandardNameTable(Dataset):
         Identifier of the Standard Name Table, e.g. the DOI (dcterms:identifier)
     standard_names: List[StandardName]
         List of Standard Names (ssno:standardNames)
-    # locations: List[Location]
-    #     List of Locations (ssno:locations)
-    # devices: List[Device]
-    #     List of Devices (ssno:devices)
-    # media: List[Medium]
-    #     List of Media (ssno:media)
-    # conditions: List[Condition]
-    #     List of Conditions (ssno:conditions)
-    # reference_frames: List[ReferenceFrame]
-    #     List of Reference Frames (ssno:referenceFrames)
-
     """
     title: Optional[str] = None
     version: Optional[str] = None
@@ -141,7 +130,7 @@ class StandardNameTable(Dataset):
     identifier: Optional[str] = None
     creator: Optional[Union[Person, List[Person], Organization, List[Organization]]] = None
     standard_names: List[StandardName] = Field(default=None, alias="standardNames")  # ssno:standardNames
-    definesStandardNameModification: List[Union[Qualification, Transformation]] = None
+    hasModifier: List[Union[Qualification, Transformation]] = None
 
     def __str__(self) -> str:
         if self.identifier:
@@ -176,7 +165,7 @@ class StandardNameTable(Dataset):
 
         return cls(**data)
 
-    @field_validator('definesStandardNameModification', mode='before')
+    @field_validator('hasModifier', mode='before')
     @classmethod
     def _defines_standard_name_modification(cls, modifications: List[Union[Qualification, Transformation]]) -> List[
         Qualification]:
@@ -286,8 +275,8 @@ class StandardNameTable(Dataset):
                 if len(yaml_data['creator']) == 0:
                     yaml_data.pop('creator')
 
-            if self.definesStandardNameModification:
-                for modification in self.definesStandardNameModification:
+            if self.hasModifier:
+                for modification in self.hasModifier:
                     if isinstance(modification, Qualification):
                         if 'qualifications' not in yaml_data:
                             yaml_data['qualifications'] = {
@@ -298,11 +287,11 @@ class StandardNameTable(Dataset):
                         _modification = modification.model_dump(exclude_none=True)
                         _modification.pop('id')
                         # if _modification.get('before', None) is not None and str(_modification['before']) != str(SSNO.AnyStandardName):
-                        #     for _m in self.definesStandardNameModification:
+                        #     for _m in self.hasModifier:
                         #         if str(_m.id) == modification.before:
                         #             _modification['before'] = _m.name
                         # elif _modification.get('after', None) is not None and str(_modification['after']) != str(SSNO.AnyStandardName):
-                        #     for _m in self.definesStandardNameModification:
+                        #     for _m in self.hasModifier:
                         #         if str(_m.id) == modification.before:
                         #             _modification['after'] = _m.name
                         _modification.pop('after', None)

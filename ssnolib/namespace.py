@@ -14,9 +14,9 @@ class SSNO(DefinedNamespace):
     before: URIRef  # ['before']
     canonicalUnits: URIRef  # ['canonical units']
     contact: URIRef  # ['contact']
-    definesStandardNameModification: URIRef  # ['defines standard name modification']
+    hasModifier: URIRef  # ['defines standard name modification']
     hasStandardName: URIRef  # ['has standard name']
-    isStandardNameModificationDefinedIn: URIRef  # ['is standard name modification defined in']
+    isDefinedBy: URIRef  # ['is standard name modification defined in']
     isStandardNameOf: URIRef  # ['is standard name of']
     positioned: URIRef  # ['positioned']
     standardNameTable: URIRef  # ['standard name table']
@@ -44,9 +44,9 @@ setattr(SSNO, "after", SSNO.after)
 setattr(SSNO, "before", SSNO.before)
 setattr(SSNO, "canonical_units", SSNO.canonicalUnits)
 setattr(SSNO, "contact", SSNO.contact)
-setattr(SSNO, "defines_standard_name_modification", SSNO.definesStandardNameModification)
+setattr(SSNO, "defines_standard_name_modification", SSNO.hasModifier)
 setattr(SSNO, "has_standard_name", SSNO.hasStandardName)
-setattr(SSNO, "is_standard_name_modification_defined_in", SSNO.isStandardNameModificationDefinedIn)
+setattr(SSNO, "is_standard_name_modification_defined_in", SSNO.isDefinedBy)
 setattr(SSNO, "is_standard_name_of", SSNO.isStandardNameOf)
 setattr(SSNO, "positioned", SSNO.positioned)
 setattr(SSNO, "standard_name_table", SSNO.standardNameTable)

@@ -77,7 +77,7 @@ class TestClasses(unittest.TestCase):
         snt = ssnolib.StandardNameTable(title='CF Standard Name Table v79')
         self.assertEqual(snt.title, 'CF Standard Name Table v79')
         self.assertEqual(str(snt), 'CF Standard Name Table v79')
-        self.assertEqual(repr(snt), 'StandardNameTable(title=CF Standard Name Table v79)')
+        self.assertEqual(repr(snt), f'StandardNameTable(id={snt.id}, title=CF Standard Name Table v79)')
 
         distribution = ssnolib.dcat.Distribution(title='XML Table',
                                                                      download_URL='http://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
@@ -113,6 +113,7 @@ class TestClasses(unittest.TestCase):
             self.assertIsInstance(sn, ssnolib.StandardName)
 
         snt_from_xml_dict = snt_from_xml.model_dump(exclude_none=True)
+        snt_from_xml_dict['creator'].pop("id")
         self.assertDictEqual(snt_from_xml_dict['creator'],
                              {'mbox': 'support@ceda.ac.uk',
                               'name': 'Centre for Environmental Data Analysis'})

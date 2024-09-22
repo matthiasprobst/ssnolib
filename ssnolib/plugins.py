@@ -116,7 +116,7 @@ class YAMLReader(TableReader):
                     _data.pop(k)
             return _data
 
-        creator = data.get('creator', {})
+        creator = data.get('creator', None)
         # make the orcid id the ID of the creator:
         if creator:
             if isinstance(creator, list):
@@ -150,32 +150,32 @@ class YAMLReader(TableReader):
             if phrases and qualifications_dict:
                 from ssnolib.utils import gpfqcs
                 positions = gpfqcs(construction)
-                for position, qualification_full_name in positions.items():
+                for position, q_full_name in positions.items():
                     if position < 0:
                         if position == -1:
                             from ssnolib.namespace import SSNO
-                            qualifications_dict[qualification_full_name].before = SSNO.AnyStandardName
+                            qualifications_dict[q_full_name].before = SSNO.AnyStandardName
                         else:
-                            qualifications_dict[qualification_full_name].before = qualifications_dict[qualification_full_name+1]
+                            qualifications_dict[q_full_name].before = qualifications_dict[position+1]
                     else:
                         if position == 1:
                             from ssnolib.namespace import SSNO
-                            qualifications_dict[qualification_full_name].after = SSNO.AnyStandardName
+                            qualifications_dict[q_full_name].after = SSNO.AnyStandardName
                         else:
-                            qualifications_dict[qualification_full_name].after = qualifications_dict[qualification_full_name-1]
+                            qualifications_dict[q_full_name].after = qualifications_dict[position-1]
 
                 # relate the phrases to each other
                 # [component] standard_name [in_medium]
                 # -1, 0, 1
 
         data_dict = {'title': data.get('name', data.get('title', None)),
-                     'creator': data.get('creator', {}),
+                     'creator': creator,
                      'version': data.get('version', None),
                      'description': data.get('description', None),
                      'identifier': data.get('identifier', None),
                      'standard_names': [_parse_standard_names(k, v) for k, v in standard_names.items()]}
         if qualifications_dict:
-            data_dict['definesStandardNameModification'] = list(qualifications_dict.values())
+            data_dict['hasModifier'] = list(qualifications_dict.values())
         if data.get('identifier', None):
             data_dict['id'] = data.get('identifier', None)
 
