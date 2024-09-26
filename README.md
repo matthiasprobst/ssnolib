@@ -97,8 +97,8 @@ from ssnolib.dcat import Distribution
 
 # Create a distribution object (downloadable XML file containing the standard name table)
 distribution = Distribution(title='XML Table',
-                            download_URL='http://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
-                            media_type='application/xml')
+                            downloadURL='http://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
+                            mediaType='application/xml')
 
 # Create a standard name table object
 snt = ssnolib.StandardNameTable(title='CF Standard Name Table v79',
@@ -142,8 +142,8 @@ A standard name alone can be described like this:
 ```python
 import ssnolib
 
-air_temp = ssnolib.StandardName(standard_name='air_temperature',
-                                canonical_units='K',
+air_temp = ssnolib.StandardName(standardName='air_temperature',
+                                canonicalUnits='K',
                                 description='Air temperature is the bulk temperature of the air, not the surface (skin) temperature.')
 
 # write to JSON-LD

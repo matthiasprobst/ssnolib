@@ -170,7 +170,7 @@ class StandardNameTable(Dataset):
                 fmt = pathlib.Path(source).suffix[1:].lower()
         else:
             if fmt is None:
-                fmt = source.media_type
+                fmt = source.mediaType
             filename = source.download()
         reader = plugins.get(fmt, None)
         if reader is None:

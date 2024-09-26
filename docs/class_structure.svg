@@ -256,7 +256,7 @@
          id="tspan10-8-3-1"
          style="stroke-width:0.265;stroke-dasharray:none"
          x="-4.9574862"
-         y="51.731899">+ first_name</tspan></text>
+         y="51.731899">+ firstName</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:3.52777px;line-height:1.25;font-family:sans-serif;stroke-width:0.265;stroke-dasharray:none"
@@ -267,7 +267,7 @@
          id="tspan15-5"
          style="stroke-width:0.265;stroke-dasharray:none"
          x="-4.9574862"
-         y="57.023571">+ last_name</tspan></text>
+         y="57.023571">+ lastName</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:3.52777px;line-height:1.25;font-family:sans-serif;stroke-width:0.265;stroke-dasharray:none"
@@ -368,7 +368,7 @@
          id="tspan10-8-3-29"
          style="stroke-width:0.265;stroke-dasharray:none"
          x="98.864998"
-         y="37.190441">+ download_URL</tspan></text>
+         y="37.190441">+ downloadURL</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:3.52777px;line-height:1.25;font-family:sans-serif;stroke-width:0.265;stroke-dasharray:none"
@@ -379,7 +379,7 @@
          id="tspan15-7"
          style="stroke-width:0.265;stroke-dasharray:none"
          x="98.864998"
-         y="42.482113">+ media_type</tspan></text>
+         y="42.482113">+ mediaType</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:3.52777px;line-height:1.25;font-family:sans-serif;stroke-width:0.265;stroke-dasharray:none"
@@ -390,7 +390,7 @@
          id="tspan16-6"
          style="stroke-width:0.265;stroke-dasharray:none"
          x="98.864998"
-         y="47.773739">+ byte_size</tspan></text>
+         y="47.773739">+ byteSize</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:3.52777px;line-height:1.25;font-family:sans-serif;stroke-width:0.265;stroke-dasharray:none"

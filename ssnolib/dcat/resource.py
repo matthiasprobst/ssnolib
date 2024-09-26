@@ -83,10 +83,10 @@ class Resource(Thing):
 
 @namespaces(dcat="http://www.w3.org/ns/dcat#")
 @urirefs(Distribution='dcat:Distribution',
-         download_URL='dcat:downloadURL',
-         access_URL='dcat:accessURL',
-         media_type='dcat:mediaType',
-         byte_size='dcat:byteSize',
+         downloadURL='dcat:downloadURL',
+         accessURL='dcat:accessURL',
+         mediaType='dcat:mediaType',
+         byteSize='dcat:byteSize',
          keyword='dcat:keyword')
 class Distribution(Resource):
     """Implementation of dcat:Distribution
@@ -97,26 +97,26 @@ class Distribution(Resource):
 
     Parameters
     ----------
-    download_URL: Union[HttpUrl, FileUrl]
+    downloadURL: Union[HttpUrl, FileUrl]
         Download URL of the distribution (dcat:downloadURL)
-    media_type: HttpUrl = None
+    mediaType: HttpUrl = None
         Media type of the distribution (dcat:mediaType).
         Should be defined by the [IANA Media Types registry](https://www.iana.org/assignments/media-types/media-types.xhtml)
-    byte_size: int = None
+    byteSize: int = None
         Size of the distribution in bytes (dcat:byteSize)
     keyword: List[str]
         Keywords for the distribution.
     """
-    download_URL: Union[HttpUrl, FileUrl, pathlib.Path] = Field(default=None, alias='downloadURL')
-    access_URL: Union[HttpUrl, FileUrl, pathlib.Path] = Field(default=None, alias='accessURL')
-    media_type: HttpUrl = Field(default=None, alias='mediaType')  # dcat:mediaType
-    byte_size: int = Field(default=None, alias='byteSize')  # dcat:byteSize
+    downloadURL: Union[HttpUrl, FileUrl, pathlib.Path] = Field(default=None, alias='download_URL')
+    accessURL: Union[HttpUrl, FileUrl, pathlib.Path] = Field(default=None, alias='access_URL')
+    mediaType: HttpUrl = Field(default=None, alias='media_type')  # dcat:mediaType
+    byteSize: int = Field(default=None, alias='byte_size')  # dcat:byteSize
     keyword: List[str] = None  # dcat:keyword
 
     def _repr_html_(self):
         """Returns the HTML representation of the class"""
-        if self.download_URL is not None:
-            return f"{self.__class__.__name__}({self.download_URL})"
+        if self.downloadURL is not None:
+            return f"{self.__class__.__name__}({self.downloadURL})"
         return super()._repr_html_()
 
     def download(self,
@@ -126,7 +126,7 @@ class Distribution(Resource):
         """Downloads the distribution
         kwargs are passed to the download_file function, which goes to requests.get()"""
 
-        if self.download_URL is None:
+        if self.downloadURL is None:
             raise ValueError('The downloadURL is not defined')
 
         def _parse_file_url(furl):
@@ -134,25 +134,25 @@ class Distribution(Resource):
             fname = pathlib.Path(furl)
             if fname.exists():
                 return fname
-            fname = pathlib.Path(self.download_URL.path[1:])
+            fname = pathlib.Path(self.downloadURL.path[1:])
             if fname.exists():
                 return fname
-            raise FileNotFoundError(f'File {self.download_URL.path} does not exist')
+            raise FileNotFoundError(f'File {self.downloadURL.path} does not exist')
 
-        if self.download_URL.scheme == 'file':
+        if self.downloadURL.scheme == 'file':
             if dest_filename is None:
-                return _parse_file_url(self.download_URL.path)
+                return _parse_file_url(self.downloadURL.path)
             else:
-                return shutil.copy(_parse_file_url(self.download_URL.path), dest_filename)
-        dest_filename = pathlib.Path(dest_filename or self.download_URL.path.split('/')[-1])
+                return shutil.copy(_parse_file_url(self.downloadURL.path), dest_filename)
+        dest_filename = pathlib.Path(dest_filename or self.downloadURL.path.split('/')[-1])
         if dest_filename.exists():
             return dest_filename
-        return download_file(self.download_URL,
+        return download_file(self.downloadURL,
                              dest_filename,
                              exist_ok=exist_ok,
                              **kwargs)
 
-    @field_validator('media_type', mode='before')
+    @field_validator('mediaType', mode='before')
     @classmethod
     def _mediaType(cls, mediaType):
         """should be a valid URI, like: https://www.iana.org/assignments/media-types/text/markdown"""
@@ -165,7 +165,7 @@ class Distribution(Resource):
                 return HttpUrl("https://www.iana.org/assignments/media-types/" + mediaType)
         return mediaType
 
-    @field_validator('download_URL', mode='before')
+    @field_validator('downloadURL', mode='before')
     @classmethod
     def _downloadURL(cls, downloadURL):
         """a pathlib.Path is also allowed but needs to be converted to a URL"""

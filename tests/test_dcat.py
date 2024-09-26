@@ -65,8 +65,8 @@ class TestDcat(utils.ClassTest):
         self.assertEqual(distribution1.creator.name, 'John Doe')
         self.assertEqual(distribution1.version, '1.0')
         self.assertEqual(str(distribution1.identifier), 'http://example.com/distribution')
-        self.assertEqual(str(distribution1.access_URL), 'http://example.com/distribution')
-        self.assertEqual(str(distribution1.download_URL), 'http://example.com/distribution/download')
+        self.assertEqual(str(distribution1.accessURL), 'http://example.com/distribution')
+        self.assertEqual(str(distribution1.downloadURL), 'http://example.com/distribution/download')
 
         with self.assertRaises(requests.exceptions.HTTPError):
             distribution1.download(timeout=60)
@@ -113,7 +113,7 @@ class TestDcat(utils.ClassTest):
                     creator=prov.Person(name='John Doe'),
                     version='1.0',
                     identifier='http://example.com/distribution',
-                    access_URL='http://example.com/distribution',
+                    accessURL='http://example.com/distribution',
                     downloadURL='http://example.com/distribution/download'
                 )
             ]
@@ -133,5 +133,5 @@ class TestDcat(utils.ClassTest):
         self.assertEqual(dataset1.distribution[0].creator.name, 'John Doe')
         self.assertEqual(dataset1.distribution[0].version, '1.0')
         self.assertEqual(str(dataset1.distribution[0].identifier), 'http://example.com/distribution')
-        self.assertEqual(str(dataset1.distribution[0].access_URL), 'http://example.com/distribution')
-        self.assertEqual(str(dataset1.distribution[0].download_URL), 'http://example.com/distribution/download')
+        self.assertEqual(str(dataset1.distribution[0].accessURL), 'http://example.com/distribution')
+        self.assertEqual(str(dataset1.distribution[0].downloadURL), 'http://example.com/distribution/download')
