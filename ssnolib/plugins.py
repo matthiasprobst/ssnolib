@@ -87,7 +87,7 @@ class XMLReader(TableReader):
                 name = sn['standard_name']
                 warnings.warn(f'Description of "{name}" is None. Setting to empty string.', UserWarning)
                 sn['description'] = ""
-        data['standard_names'] = sndata
+        data['standardNames'] = sndata
         return data
 
 
@@ -101,7 +101,7 @@ class YAMLReader(TableReader):
 
         with open(self.filename, 'r') as f:
             data = yaml.safe_load(f)
-        standard_names = data.get('standard_names', {})
+        standardNames = data.get('standardNames', {})
 
         def _parse_standard_names(name, sndata: Dict):
             for ustr in ('unit', 'units', 'canonical_unit'):
@@ -173,7 +173,7 @@ class YAMLReader(TableReader):
                      'version': data.get('version', None),
                      'description': data.get('description', None),
                      'identifier': data.get('identifier', None),
-                     'standard_names': [_parse_standard_names(k, v) for k, v in standard_names.items()]}
+                     'standardNames': [_parse_standard_names(k, v) for k, v in standardNames.items()]}
         if qualifications_dict:
             data_dict['hasModifier'] = list(qualifications_dict.values())
         if data.get('identifier', None):

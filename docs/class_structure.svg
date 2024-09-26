@@ -7,7 +7,7 @@
    viewBox="0 0 242.97313 104.57361"
    version="1.1"
    id="svg1"
-   inkscape:version="1.3 (0e150ed6c4, 2023-07-21)"
+   inkscape:version="1.3.2 (091e20e, 2023-11-25, custom)"
    sodipodi:docname="class_structure.svg"
    inkscape:export-filename="class_structure.png"
    inkscape:export-xdpi="300"
@@ -27,13 +27,13 @@
      inkscape:deskcolor="#505050"
      inkscape:document-units="mm"
      showgrid="true"
-     inkscape:zoom="0.70710678"
-     inkscape:cx="424.26407"
-     inkscape:cy="303.34881"
+     inkscape:zoom="1"
+     inkscape:cx="358"
+     inkscape:cy="271.5"
      inkscape:window-width="1920"
-     inkscape:window-height="991"
-     inkscape:window-x="-9"
-     inkscape:window-y="-9"
+     inkscape:window-height="1129"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
      inkscape:window-maximized="1"
      inkscape:current-layer="layer1">
     <inkscape:grid
@@ -312,7 +312,7 @@
          id="tspan10-8-3-1-6"
          style="stroke-width:0.265;stroke-dasharray:none"
          x="159.37715"
-         y="21.465515">+ standard_name</tspan></text>
+         y="21.465515">+ standardName</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:3.52777px;line-height:1.25;font-family:sans-serif;stroke-width:0.265;stroke-dasharray:none"
@@ -323,7 +323,7 @@
          id="tspan15-5-9"
          style="stroke-width:0.265;stroke-dasharray:none"
          x="159.37715"
-         y="26.757202">+ canonical_units</tspan></text>
+         y="26.757202">+ canonicalUnits</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:3.52777px;line-height:1.25;font-family:sans-serif;stroke-width:0.265;stroke-dasharray:none"
@@ -561,7 +561,7 @@
          id="tspan3"
          style="stroke-width:0.265;stroke-dasharray:none"
          x="159.37715"
-         y="37.34053">+ standard_name_table: Dataset</tspan></text>
+         y="37.34053">+ standardNameTable: Dataset</tspan></text>
     <rect
        style="fill:#cccccc;fill-opacity:1;stroke:#000000;stroke-width:0.285;stroke-linecap:square;stroke-linejoin:round;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="rect1-8-4-3-65-0-8"
@@ -595,7 +595,7 @@
          id="tspan10-8-3-1-6-6"
          style="stroke-width:0.265;stroke-dasharray:none"
          x="159.37714"
-         y="72.25032">+ standard_names: List[StandardName]</tspan></text>
+         y="72.25032">+ standardNames: List[StandardName]</tspan></text>
     <path
        style="fill:none;stroke:#000000;stroke-width:0.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#ColoredTriangle)"
        d="M 156.74124,12.619797 76.853972,12.602653"

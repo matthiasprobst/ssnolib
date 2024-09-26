@@ -110,7 +110,7 @@ class Transformation(StandardNameModification):
             dcterms="http://purl.org/dc/terms/")
 @urirefs(StandardNameTable='ssno:StandardNameTable',
          creator='dcterms:creator',
-         standard_names='ssno:standardNames',
+         standardNames='ssno:standardNames',
          hasModifier='ssno:hasModifier'
          )
 class StandardNameTable(Dataset):
@@ -128,7 +128,7 @@ class StandardNameTable(Dataset):
         Version of the Standard Name Table (dcat:version)
     identifier: str
         Identifier of the Standard Name Table, e.g. the DOI (dcterms:identifier)
-    standard_names: List[StandardName]
+    standardNames: List[StandardName]
         List of Standard Names (ssno:standardNames)
     """
     title: Optional[str] = None
@@ -136,7 +136,7 @@ class StandardNameTable(Dataset):
     description: Optional[str] = None
     identifier: Optional[str] = None
     creator: Optional[Union[Person, List[Person], Organization, List[Organization]]] = None
-    standard_names: List[StandardName] = Field(default=None, alias="standardNames")  # ssno:standardNames
+    standardNames: List[StandardName] = Field(default=None, alias="standardNames")  # ssno:standardNames
     hasModifier: List[Union[Qualification, Transformation]] = None
 
     def __str__(self) -> str:
@@ -210,16 +210,16 @@ class StandardNameTable(Dataset):
         qualifications.extend(transformations)
         return qualifications
 
-    @field_validator('standard_names', mode='before')
+    @field_validator('standardNames', mode='before')
     @classmethod
-    def _standard_names(cls, standard_names: Union[StandardName, List[StandardName]]) -> List[StandardName]:
-        if not isinstance(standard_names, list):
-            return [standard_names]
-        return standard_names
+    def _standard_names(cls, standardNames: Union[StandardName, List[StandardName]]) -> List[StandardName]:
+        if not isinstance(standardNames, list):
+            return [standardNames]
+        return standardNames
 
     def verify(self, standard_name: str):
         # todo: first some technical checks: must not start with a "_" etc.
-        str_standard_names = [sn.standardName for sn in self.standard_names]
+        str_standard_names = [sn.standardName for sn in self.standardNames]
         if standard_name in str_standard_names:
             return True
         regex_pattern = self.get_qualification_regex()
@@ -247,7 +247,7 @@ class StandardNameTable(Dataset):
         Union[StandardName, None]
             The standard name object if found, otherwise None
         """
-        for sn in self.standard_names:
+        for sn in self.standardNames:
             if sn.standardName == standard_name:
                 return sn
         return
@@ -331,10 +331,10 @@ class StandardNameTable(Dataset):
                         _modification.pop('id')
                         yaml_data['transformations'].append(_modification)
 
-            if self.standard_names:
-                yaml_data['standard_names'] = {}
-                for sn in self.standard_names:
-                    yaml_data['standard_names'][sn.standardName] = {'canonicalUnits': sn.canonicalUnits,
+            if self.standardNames:
+                yaml_data['standardNames'] = {}
+                for sn in self.standardNames:
+                    yaml_data['standardNames'][sn.standardName] = {'canonicalUnits': sn.canonicalUnits,
                                                                      'description': sn.description}
 
             # if self.locations:

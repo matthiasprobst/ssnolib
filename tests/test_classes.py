@@ -108,8 +108,8 @@ class TestClasses(unittest.TestCase):
             overwrite_existing=True
         )
         snt_from_xml = snt.parse(table_filename, fmt='xml')
-        self.assertIsInstance(snt_from_xml.standard_names, list)
-        for sn in snt_from_xml.standard_names:
+        self.assertIsInstance(snt_from_xml.standardNames, list)
+        for sn in snt_from_xml.standardNames:
             self.assertIsInstance(sn, ssnolib.StandardName)
 
         snt_from_xml_dict = snt_from_xml.model_dump(exclude_none=True)
