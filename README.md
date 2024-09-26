@@ -170,6 +170,17 @@ The corresponding JSON-LD file:
 }
 ```
 
+## Qualifications
+QUalification can modify standard names by adding phrases to existing standard names. A qualification defines valid 
+phrases (valid values) to be used in front of or after a standard name. Since multiple qualifications can be defined. 
+they may also lead or follow other qualifications. A qualification may also have a preposition like "at" for example. 
+
+The class `StandardNameTable` can generate a regex pattern from the qualification definitions. The below Figure 
+illustrates this:
+
+![modification2regex](./docs/modification2regex.svg)
+
+
 You can now take the JSON-LD file and use it with your data (place it next to it, upload it to a server, etc.).
 
 ## Contribution
