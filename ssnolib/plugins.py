@@ -37,20 +37,20 @@ class XMLReader(TableReader):
         xmldata = xmldict[_name]
 
         def _parse_standard_name(sndict):
-            canonical_units = sndict.get('canonical_units', '')
-            if canonical_units == '1':
-                canonical_units = ''
-            elif canonical_units is None:
-                canonical_units = ''
+            canonicalUnits = sndict.get('canonicalUnits', '')
+            if canonicalUnits == '1':
+                canonicalUnits = ''
+            elif canonicalUnits is None:
+                canonicalUnits = ''
             description = sndict.get('description', '')
             if description is None:
                 description = ''
             standard_name = sndict.get('@id')
             assert standard_name is not None, 'Expected key "@id" in the XML file.'
-            assert canonical_units is not None, 'Expected key "canonical_units" in the XML file.'
+            assert canonicalUnits is not None, 'Expected key "canonicalUnits" in the XML file.'
             assert description is not None, 'Expected key "description" in the XML file.'
             return dict(standard_name=standard_name,
-                        canonical_units=canonical_units,
+                        canonicalUnits=canonicalUnits,
                         description=description)
 
         version = xmldata.get('version', None)
@@ -106,13 +106,13 @@ class YAMLReader(TableReader):
         def _parse_standard_names(name, sndata: Dict):
             for ustr in ('unit', 'units', 'canonical_unit'):
                 if ustr in sndata:
-                    sndata['canonical_units'] = sndata.pop(ustr)
+                    sndata['canonicalUnits'] = sndata.pop(ustr)
                     break
             _data = {'standard_name': name,
                      **sndata
                      }
             for k in list(_data.keys()):
-                if k not in ('canonical_units', 'description', 'standard_name'):
+                if k not in ('canonicalUnits', 'description', 'standard_name'):
                     _data.pop(k)
             return _data
 

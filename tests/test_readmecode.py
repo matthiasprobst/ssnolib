@@ -43,7 +43,7 @@ class TestReadme(unittest.TestCase):
         import ssnolib
 
         air_temp = ssnolib.StandardName(standard_name='air_temperature',
-                                        canonical_units='K',
+                                        canonicalUnits='K',
                                         description='Air temperature is the bulk temperature of the air, not the surface (skin) temperature.')
 
         # write to JSON-LD

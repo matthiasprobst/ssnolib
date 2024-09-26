@@ -1,4 +1,5 @@
 import pathlib
+import re
 from typing import List, Union, Dict, Optional
 
 import rdflib
@@ -77,14 +78,20 @@ class Qualification(StandardNameModification):
 
 @namespaces(ssno="https://matthiasprobst.github.io/ssno#")
 @urirefs(Character='ssno:Character',
-         character='ssno:character',
          associatedWith='ssno:associatedWith'
          )
 class Character(Thing):
     """Implementation of ssno:Transformation"""
 
     character: str  # ssno:character
-    associatedWith: Union[HttpUrl, Qualification]  # ssno:associatedWith
+    associatedWith: Union[str, HttpUrl, Qualification]  # ssno:associatedWith
+
+    @field_validator('associatedWith', mode='before')
+    @classmethod
+    def _associatedWith(cls, associatedWith: Union[str, HttpUrl, Qualification]) -> str:
+        if isinstance(associatedWith, str):
+            assert str(associatedWith).startswith(("http", "_:"))
+        return associatedWith
 
 
 @namespaces(ssno="https://matthiasprobst.github.io/ssno#")
@@ -139,6 +146,17 @@ class StandardNameTable(Dataset):
             return self.title
         return ''
 
+    def append(self, field_name: str, field):
+        self.__pydantic_validator__.validate_assignment(self.model_construct(), field_name, field)
+        obj = getattr(self, field_name)
+        if obj is None:
+            setattr(self, field_name, [field, ])
+            return
+        if not isinstance(obj, list):
+            raise TypeError("Can only append to list objects.")
+        obj.append(field)
+        setattr(self, field_name, obj)
+
     @classmethod
     def parse(cls,
               source: Union[str, pathlib.Path, Distribution],
@@ -167,29 +185,30 @@ class StandardNameTable(Dataset):
 
     @field_validator('hasModifier', mode='before')
     @classmethod
-    def _defines_standard_name_modification(cls, modifications: List[Union[Qualification, Transformation]]) -> List[
-        Qualification]:
-        if all(isinstance(m, Qualification) for m in modifications):
-            # assign IDs to the qualifications including the ones behind after/before so that no duplicates exist!
-            pyid_lookup = {}
-            for q in modifications:
+    def _hasModifier(cls, modifications: List[Union[Qualification, Transformation]]) -> List[
+        Union[Qualification, Transformation]]:
+        qualifications = [m for m in modifications if isinstance(m, Qualification)]
+        transformations = [m for m in modifications if isinstance(m, Transformation)]
+        # if all(isinstance(m, Qualification) for m in modifications):
+        # assign IDs to the qualifications including the ones behind after/before so that no duplicates exist!
+        pyid_lookup = {}
+        for q in qualifications:
+            if not q.id:
                 q.id = rdflib.URIRef(f"_:{rdflib.BNode()}")
-                pyid_lookup[id(q)] = q
-            for q in modifications:
-                if q.before:
-                    if isinstance(q.before, Qualification):
-                        q.before = pyid_lookup[id(q.before)].id
-                    elif isinstance(q.before, str):
-                        assert str(q.before) == str(SSNO.AnyStandardName)
-                if q.after:
-                    if isinstance(q.after, Qualification):
-                        q.after = pyid_lookup[id(q.after)].id
-                    elif isinstance(q.after, str):
-                        assert str(q.after) == str(SSNO.AnyStandardName)
-            return modifications
-        if all(isinstance(m, Transformation) for m in modifications):
-            return modifications
-        raise ValueError('Expected a list of either Qualifications or Transformations')
+            pyid_lookup[id(q)] = q
+        for q in qualifications:
+            if q.before:
+                if isinstance(q.before, Qualification):
+                    q.before = pyid_lookup[id(q.before)].id
+                elif isinstance(q.before, str):
+                    assert str(q.before).startswith(("_:", "http")), "Not a URIRef"
+            if q.after:
+                if isinstance(q.after, Qualification):
+                    q.after = pyid_lookup[id(q.after)].id
+                elif isinstance(q.after, str):
+                    assert str(q.after).startswith(("_:", "http")), "Not a URIRef"
+        qualifications.extend(transformations)
+        return qualifications
 
     @field_validator('standard_names', mode='before')
     @classmethod
@@ -197,6 +216,22 @@ class StandardNameTable(Dataset):
         if not isinstance(standard_names, list):
             return [standard_names]
         return standard_names
+
+    def verify(self, standard_name: str):
+        # todo: first some technical checks: must not start with a "_" etc.
+        str_standard_names = [sn.standardName for sn in self.standard_names]
+        if standard_name in str_standard_names:
+            return True
+        regex_pattern = self.get_qualification_regex()
+        for sn in str_standard_names:
+            if sn in standard_name:
+                # found a corresponding core standard name. replace it in regex pattern:
+                pattern = rf'{regex_pattern.replace("standard_name", sn)}'
+                # pattern = r'^(?:toa|tropopause|surface)?(?:_?(?:upward|downward|northward|southward|eastward|westward|x|y))?_?air_pressure(?:_at_(adiabatic_condensation_level|cloud_top|convective_cloud_top|cloud_base|convective_cloud_base|freezing_level|ground_level|maximum_wind_speed_level|sea_floor|sea_ice_base|sea_level|top_of_atmosphere_boundary_layer|top_of_atmosphere_model|top_of_dry_convection))?(?:_in_(air|atmosphere_boundary_layer|mesosphere|sea_ice|sea_water|soil|soil_water|stratosphere|thermosphere|troposphere))?(?:_due_to_(advection|convection|deep_convection|diabatic_processes|diffusion|dry_convection|gravity_wave_drag|gyre|isostatic_adjustment|large_scale_precipitation|longwave_heating|moist_convection|overturning|shallow_convection|shortwave_heating|thermodynamics))?(?:_assuming_(clear_sky|deep_snow|no_snow))?$'
+                if re.match(pattern, standard_name):
+                    return True
+                return False
+        return False
 
     def get_standard_name(self, standard_name: str) -> Union[StandardName, None]:
         """Check if the Standard Name Table has a given standard name. The
@@ -213,7 +248,7 @@ class StandardNameTable(Dataset):
             The standard name object if found, otherwise None
         """
         for sn in self.standard_names:
-            if sn.standard_name == standard_name:
+            if sn.standardName == standard_name:
                 return sn
         return
 
@@ -286,14 +321,6 @@ class StandardNameTable(Dataset):
 
                         _modification = modification.model_dump(exclude_none=True)
                         _modification.pop('id')
-                        # if _modification.get('before', None) is not None and str(_modification['before']) != str(SSNO.AnyStandardName):
-                        #     for _m in self.hasModifier:
-                        #         if str(_m.id) == modification.before:
-                        #             _modification['before'] = _m.name
-                        # elif _modification.get('after', None) is not None and str(_modification['after']) != str(SSNO.AnyStandardName):
-                        #     for _m in self.hasModifier:
-                        #         if str(_m.id) == modification.before:
-                        #             _modification['after'] = _m.name
                         _modification.pop('after', None)
                         _modification.pop('before', None)
                         yaml_data['qualifications']['phrases'].append(_modification)
@@ -307,7 +334,7 @@ class StandardNameTable(Dataset):
             if self.standard_names:
                 yaml_data['standard_names'] = {}
                 for sn in self.standard_names:
-                    yaml_data['standard_names'][sn.standard_name] = {'canonical_units': sn.canonical_units,
+                    yaml_data['standard_names'][sn.standardName] = {'canonicalUnits': sn.canonicalUnits,
                                                                      'description': sn.description}
 
             # if self.locations:
@@ -333,6 +360,78 @@ class StandardNameTable(Dataset):
         # print(self.model_dump())
 
         return pathlib.Path(filename)
+
+    def get_qualification_regex(self) -> str:
+        qualifications = {m.id: m for m in self.hasModifier if isinstance(m, Qualification)}
+        g = rdflib.Graph()
+        g.parse(data=self.model_dump_jsonld(),
+                format='json-ld')
+
+        query = """
+                PREFIX ssno: <https://matthiasprobst.github.io/ssno#>
+                PREFIX schema: <http://schema.org/>
+
+                SELECT ?qualification ?name ?before ?after ?preposition
+                WHERE {
+                    ?qualification a ssno:Qualification ;
+                                   schema:name ?name .
+                    OPTIONAL { ?qualification ssno:before ?before }
+                    OPTIONAL { ?qualification ssno:after ?after }
+                    OPTIONAL { ?qualification ssno:hasPreposition ?preposition }
+                }
+                ORDER BY ?before
+                """
+        # Execute the query
+        results = g.query(query)
+
+        # Print the results
+        qres = {}
+        for row in results:
+            if row.qualification not in qres:
+                qres[str(row.qualification).strip("_:")] = {
+                    'id': row.qualification.n3(),
+                    'name': str(row.name) if row.name else None,
+                    'before': str(row.before).strip("_:") if row.before else None,
+                    'after': str(row.after).strip("_:") if row.after else None,
+                    'preposition': str(row.preposition) if row.preposition else None
+                }
+
+        sorted_list = ['https://matthiasprobst.github.io/ssno#AnyStandardName', ]
+        qres_orig = qres.copy()
+        while len(qres) > 0:
+            for k, v in qres.copy().items():
+                if v["before"] in sorted_list:
+                    # find the element corresponding to v["before"]:
+                    i = sorted_list.index(v["before"])
+                    sorted_list.insert(i, k)
+                    qres.pop(k)
+                elif v["after"] in sorted_list:
+                    i = sorted_list.index(v["after"])
+                    sorted_list.insert(i + 1, k)
+                    qres.pop(k)
+
+        qualifications_output = []
+        for e in sorted_list:
+            if e in qres_orig:
+                # q = qres_orig[e]
+                qualifications_output.append(f'{qres_orig[e]["id"]}')
+            else:
+                qualifications_output.append("standard_name")
+        out = ""
+        for q in qualifications_output:
+            qualification = qualifications.get(q, None)
+            if qualification:
+                valid_values = qualification.hasValidValues
+                if qualification.hasPreposition:
+                    _valid_values = [qualification.hasPreposition + "_" + v for v in valid_values]
+                    out += f'(?:{"|".join(_valid_values)})?_?'
+                else:
+                    out += f'(?:({"|".join(valid_values)}))?_?'
+            elif q == "standard_name":
+                out += f"{q}_?"
+        if out.endswith("?_?"):
+            return "^" + out.strip("?_?") + "?$"
+        return "^" + out + "$"
 
     def get_qualification_rule_as_string(self) -> str:
         """Returns the qualification rule similar to the CF standard name table documentation
@@ -363,12 +462,12 @@ class StandardNameTable(Dataset):
         qres = {}
         for row in results:
             if row.qualification not in qres:
-                qres[str(row.qualification).strip("_:")] = {'name': str(row.name) if row.name else None,
-                                                            'before': str(row.before).strip(
-                                                                "_:") if row.before else None,
-                                                            'after': str(row.after).strip("_:") if row.after else None,
-                                                            'preposition': str(
-                                                                row.preposition) if row.preposition else None}
+                qres[str(row.qualification).strip("_:")] = {
+                    'name': str(row.name) if row.name else None,
+                    'before': str(row.before).strip("_:") if row.before else None,
+                    'after': str(row.after).strip("_:") if row.after else None,
+                    'preposition': str(row.preposition) if row.preposition else None
+                }
 
         sorted_list = ['https://matthiasprobst.github.io/ssno#AnyStandardName', ]
         qres_orig = qres.copy()

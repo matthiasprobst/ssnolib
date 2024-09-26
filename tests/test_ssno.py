@@ -4,6 +4,7 @@ import unittest
 
 import h5rdmtoolbox as h5tbx
 import ontolutils
+import pydantic
 import requests.exceptions
 import yaml
 from ontolutils import QUDT_UNIT
@@ -36,28 +37,28 @@ SNT_JSONLD = """{
       "@type": "ssnolib:StandardName",
       "ssnolib:standard_name": "absolute_pressure",
       "dcterms:description": "Pressure is force per unit area. Absolute air pressure is pressure deviation to a total vacuum.",
-      "canonical_units": "Pa",
+      "canonicalUnits": "Pa",
       "@id": "local:39257b94-d31c-480e-a43c-8ae7f57fae6d"
     },
     {
       "@type": "ssnolib:StandardName",
       "ssnolib:standard_name": "ambient_static_pressure",
       "dcterms:description": "Static air pressure is the amount of pressure exerted by air that is not moving. Ambient static air pressure is the static air pressure of the surrounding air.",
-      "canonical_units": "Pa",
+      "canonicalUnits": "Pa",
       "@id": "local:0637ec26-310b-4b0a-bf4c-e51d4afccc7d"
     },
     {
       "@type": "ssnolib:StandardName",
       "ssnolib:standard_name": "ambient_temperature",
       "dcterms:description": "Air temperature is the bulk temperature of the air, not the surface (skin) temperature. Ambient air temperature is the temperature of the surrounding air.",
-      "canonical_units": "K",
+      "canonicalUnits": "K",
       "@id": "local:3286d041-a826-4776-9d25-065dae107b55"
     },
     {
       "@type": "ssnolib:StandardName",
       "ssnolib:standard_name": "auxiliary_fan_rotational_speed",
       "dcterms:description": "Number of revolutions of an auxiliary fan.",
-      "canonical_units": "1/s",
+      "canonicalUnits": "1/s",
       "@id": "local:2a521e9d-4481-4965-9b42-390db2da4c83"
     }
   ]
@@ -75,32 +76,32 @@ class TestSSNO(unittest.TestCase):
     def test_standard_name(self):
         sn = StandardName(standard_name='x_velocity',
                           description='x component of velocity',
-                          canonical_units=QUDT_UNIT.M_PER_SEC)  # 'm s-1'
+                          canonicalUnits=QUDT_UNIT.M_PER_SEC)  # 'm s-1'
         self.assertIsInstance(sn, ontolutils.Thing)
         self.assertIsInstance(sn, StandardName)
-        self.assertEqual(sn.standard_name, 'x_velocity')
+        self.assertEqual(sn.standardName, 'x_velocity')
         self.assertEqual(sn.description, 'x component of velocity')
-        self.assertEqual(sn.canonical_units, str(parse_unit('m s-1')))
+        self.assertEqual(sn.canonicalUnits, str(parse_unit('m s-1')))
 
         sn = StandardName(standard_name='x_velocity',
                           description='x component of velocity',
-                          canonical_units='m s-1')
-        self.assertEqual(sn.canonical_units, str(parse_unit('m s-1')))
+                          canonicalUnits='m s-1')
+        self.assertEqual(sn.canonicalUnits, str(parse_unit('m s-1')))
 
         with open('sn.jsonld', 'w') as f:
             f.write(sn.model_dump_jsonld())
 
         sn_loaded = ontolutils.query(StandardName, source='sn.jsonld')
         self.assertEqual(len(sn_loaded), 1)
-        self.assertEqual(sn_loaded[0].standard_name, 'x_velocity')
+        self.assertEqual(sn_loaded[0].standardName, 'x_velocity')
         self.assertEqual(sn_loaded[0].description, 'x component of velocity')
-        self.assertEqual(sn_loaded[0].canonical_units, str(parse_unit('m s-1')))
+        self.assertEqual(sn_loaded[0].canonicalUnits, str(parse_unit('m s-1')))
 
         sn_loaded = StandardName.from_jsonld(data=sn.model_dump_jsonld())
         self.assertEqual(len(sn_loaded), 1)
-        self.assertEqual(sn_loaded[0].standard_name, 'x_velocity')
+        self.assertEqual(sn_loaded[0].standardName, 'x_velocity')
         self.assertEqual(sn_loaded[0].description, 'x component of velocity')
-        self.assertEqual(sn_loaded[0].canonical_units, str(parse_unit('m s-1')))
+        self.assertEqual(sn_loaded[0].canonicalUnits, str(parse_unit('m s-1')))
 
         pathlib.Path('sn.jsonld').unlink(missing_ok=True)
 
@@ -108,18 +109,18 @@ class TestSSNO(unittest.TestCase):
         snt = StandardNameTable(identifier='https://doi.org/10.5281/zenodo.10428817')
 
         xvel = StandardName(
-            standard_name_table=snt
+            standardNameTable=snt
         )
         self.assertEqual(xvel.__str__(), '')
-        self.assertEqual(xvel.standard_name_table, snt)
+        self.assertEqual(xvel.standardNameTable, snt)
 
     def test_standard_name_table(self):
         sn1 = StandardName(standard_name='x_velocity',
                            description='x component of velocity',
-                           canonical_units='m s-1')
+                           canonicalUnits='m s-1')
         sn2 = StandardName(standard_name='y_velocity',
                            description='y component of velocity',
-                           canonical_units='m s-1')
+                           canonicalUnits='m s-1')
 
         snt = StandardNameTable(standard_names=[sn1, sn2])
         with open('snt.json', 'w') as f:
@@ -128,21 +129,21 @@ class TestSSNO(unittest.TestCase):
         snt_loaded = list(StandardNameTable.from_jsonld(data=snt.model_dump_jsonld(), limit=None))
         self.assertEqual(len(snt_loaded), 1)
         self.assertEqual(len(snt_loaded[0].standard_names), 2)
-        self.assertEqual(snt_loaded[0].standard_names[0].standard_name, 'x_velocity')
+        self.assertEqual(snt_loaded[0].standard_names[0].standardName, 'x_velocity')
         self.assertEqual(snt_loaded[0].standard_names[0].description, 'x component of velocity')
-        self.assertEqual(snt_loaded[0].standard_names[0].canonical_units, str(parse_unit('m s-1')))
-        self.assertEqual(snt_loaded[0].standard_names[1].standard_name, 'y_velocity')
+        self.assertEqual(snt_loaded[0].standard_names[0].canonicalUnits, str(parse_unit('m s-1')))
+        self.assertEqual(snt_loaded[0].standard_names[1].standardName, 'y_velocity')
         self.assertEqual(snt_loaded[0].standard_names[1].description, 'y component of velocity')
-        self.assertEqual(snt_loaded[0].standard_names[1].canonical_units, str(parse_unit('m s-1')))
+        self.assertEqual(snt_loaded[0].standard_names[1].canonicalUnits, str(parse_unit('m s-1')))
 
         snt_loaded = StandardNameTable.from_jsonld(data=snt.model_dump_jsonld(), limit=1)
         self.assertEqual(len(snt_loaded.standard_names), 2)
-        self.assertEqual(snt_loaded.standard_names[0].standard_name, 'x_velocity')
+        self.assertEqual(snt_loaded.standard_names[0].standardName, 'x_velocity')
         self.assertEqual(snt_loaded.standard_names[0].description, 'x component of velocity')
-        self.assertEqual(snt_loaded.standard_names[0].canonical_units, str(parse_unit('m s-1')))
-        self.assertEqual(snt_loaded.standard_names[1].standard_name, 'y_velocity')
+        self.assertEqual(snt_loaded.standard_names[0].canonicalUnits, str(parse_unit('m s-1')))
+        self.assertEqual(snt_loaded.standard_names[1].standardName, 'y_velocity')
         self.assertEqual(snt_loaded.standard_names[1].description, 'y component of velocity')
-        self.assertEqual(snt_loaded.standard_names[1].canonical_units, str(parse_unit('m s-1')))
+        self.assertEqual(snt_loaded.standard_names[1].canonicalUnits, str(parse_unit('m s-1')))
         pathlib.Path('snt.json').unlink(missing_ok=True)
 
     def test_standard_name_table_from_jsonld(self):
@@ -168,9 +169,9 @@ class TestSSNO(unittest.TestCase):
                          'version': 'abc123invalid',  # v1.0.0
                          'identifier': 'https://example.org/sntIdentifier',
                          'standard_names': {'x_velocity': {'description': 'x component of velocity',
-                                                           'canonical_units': 'm s-1'},
+                                                           'canonicalUnits': 'm s-1'},
                                             'y_velocity': {'description': 'y component of velocity',
-                                                           'canonical_units': 'm s-1'}}}
+                                                           'canonicalUnits': 'm s-1'}}}
         with open('snt.yaml', 'w') as f:
             yaml.dump(snt_yaml_data, f)
         snt = StandardNameTable.parse('snt.yaml', fmt='yaml')
@@ -233,7 +234,7 @@ class TestSSNO(unittest.TestCase):
             yaml1 = yaml.safe_load(f)
             for k, v in yaml1.copy()['standard_names'].items():
                 print(yaml1["standard_names"][k])
-                yaml1['standard_names'][k]['canonical_units'] = str(parse_unit(v['canonical_units']))
+                yaml1['standard_names'][k]['canonicalUnits'] = str(parse_unit(v['canonicalUnits']))
 
         with open('snt2.yaml') as f:
             yaml2 = yaml.safe_load(f)
@@ -303,7 +304,7 @@ class TestSSNO(unittest.TestCase):
                             "shallow_convection", "shortwave_heating", "thermodynamics"]
         )
         condition = ssnolib.Qualification(
-            name="process",
+            name="condition",
             description='A phrase assuming_condition indicates that the named quantity is the value which would obtain if all aspects of the system were unaltered except for the assumption of the circumstances specified by the condition. Possibilities are assuming_clear_sky, assuming_deep_snow, assuming_no_snow.',
             hasPreposition='assuming',
             hasValidValues=["clear_sky", "deep_snow", "no_snow"]
@@ -320,12 +321,89 @@ class TestSSNO(unittest.TestCase):
         condition.after = process
 
         snt = StandardNameTable(name='CF Rebuilt')
+        snt.hasModifier = [surface, component, at_surface]
+        print(snt.get_qualification_regex())
+
+        # snt = StandardNameTable(name='CF Rebuilt')
         snt.hasModifier = [surface, component, at_surface, medium, process, condition]
 
         self.assertEqual(
-            "[surface] [component] standard_name [at_surface] [in_medium] [due_to_process] [assuming_process]",
-            snt.get_qualification_rule_as_string())
-        print(snt.get_qualification_rule_as_string())
+            "[surface] [component] standard_name [at_surface] [in_medium] [due_to_process] [assuming_condition]",
+            snt.get_qualification_rule_as_string()
+        )
+
+        core_standard_names = [
+            ("air_density", "kg/m-3"),
+            ("air_pressure", "Pa"),
+            ("temperature", "K"),
+            ("speed", "m/s")
+        ]
+        with self.assertRaises(pydantic.ValidationError):
+            snt.append("standard_names", 1.5)
+
+        # snt.standard_names = StandardName(standardName="density", description="density", canonicalUnits="kg/m-3")
+        for csn in core_standard_names:
+            snt.append("standard_names", StandardName(standardName=csn[0], description="", canonicalUnits=csn[1]))
+
+        self.assertTrue(snt.verify("air_density"))  # equals "air_density"
+        self.assertTrue(snt.verify("tropopause_air_pressure"))  # using regex
+
+    def test_regex(self):
+        a = ssnolib.Qualification(
+            name="a",
+            description='a',
+            hasValidValues=["a", "aa", "aaa"]
+        )
+        b = ssnolib.Qualification(
+            name="b",
+            description='b',
+            hasValidValues=["b", "bb", "bbb"]
+        )
+        c = ssnolib.Qualification(
+            name="c",
+            description='c',
+            hasValidValues=["c", "cc", "ccc"]
+        )
+        d = ssnolib.Qualification(
+            name="d",
+            description='d',
+            hasValidValues=["d", "dd", "ddd"]
+        )
+
+        # order the qualifications:
+        from ssnolib.namespace import SSNO
+        a.before = b
+        b.before = SSNO.AnyStandardName
+        c.after = SSNO.AnyStandardName
+        d.after = c
+
+        snt = StandardNameTable(name='CF Rebuilt')
+        snt.hasModifier = [a, b, c, d]
+
+        core_standard_names = [
+            ("density", "kg/m-3"),
+            ("pressure", "Pa"),
+            ("temperature", "K"),
+            ("speed", "m/s")
+        ]
+
+        # snt.standard_names = StandardName(standardName="density", description="density", canonicalUnits="kg/m-3")
+        for csn in core_standard_names:
+            snt.append("standard_names", StandardName(standardName=csn[0], description="", canonicalUnits=csn[1]))
+
+        self.assertEqual(
+            r"^(?:(a|aa|aaa))?_?(?:(b|bb|bbb))?_?standard_name_?(?:(c|cc|ccc))?_?(?:(d|dd|ddd))?$",
+            snt.get_qualification_regex()
+        )
+        self.assertTrue(snt.verify("density"))  # equals "air_density"
+        self.assertTrue(snt.verify("a_density"))  # using regex
+        self.assertTrue(snt.verify("aa_density"))  # using regex
+        self.assertTrue(snt.verify("aaa_density"))  # using regex
+        self.assertTrue(snt.verify("a_density_c"))  # using regex
+        self.assertTrue(snt.verify("a_density_d"))  # using regex
+        self.assertTrue(snt.verify("a_density_c_d"))  # using regex
+        self.assertTrue(snt.verify("a_b_density_c"))  # using regex
+        self.assertTrue(snt.verify("a_b_density_c_d"))  # using regex
 
     def test_transformation(self):
         # taken from https://cfconventions.org/Data/cf-standard-names/docs/guidelines.html#process

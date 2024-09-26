@@ -12,46 +12,46 @@ from ssnolib.skos import Concept
 @namespaces(ssno="https://matthiasprobst.github.io/ssno#",
             dcat="http://www.w3.org/ns/dcat#")
 @urirefs(StandardName='ssno:StandardName',
-         canonical_units='ssno:canonicalUnits',
-         standard_name='ssno:standardName',
+         canonicalUnits='ssno:canonicalUnits',
+         standardName='ssno:standardName',
          description='ssno:description',
-         standard_name_table='ssno:standardNameTable')
+         standardNameTable='ssno:standardNameTable')
 class StandardName(Concept):
     """Implementation of ssno:StandardName"""
-    canonical_units: str = Field(default=None, alias="canonicalUnits")
-    standard_name: str = Field(default=None, alias="standardName")
+    canonicalUnits: str = Field(default=None, alias="canonicalUnits")
+    standardName: str = Field(default=None, alias="standard_name")
     description: str = None  # ssno:description
-    standard_name_table: Dataset = Field(default=None, alias="standardNameTable")
+    standardNameTable: Dataset = Field(default=None, alias="standard_name_table")
 
     def __str__(self) -> str:
-        if self.standard_name is None:
+        if self.standardName is None:
             return ''
-        return self.standard_name
+        return self.standardName
 
-    @field_validator("standard_name_table", mode='before')
+    @field_validator("standardNameTable", mode='before')
     @classmethod
-    def _parse_standard_name_table(cls, standard_name_table: Union[Dataset, str]) -> Dataset:
+    def _parse_standard_name_table(cls, standardNameTable: Union[Dataset, str]) -> Dataset:
         """Parse the standard_name_table and return the standard_name_table as Dataset."""
-        if isinstance(standard_name_table, Dataset):
-            return standard_name_table
-        elif isinstance(standard_name_table, str):
-            assert standard_name_table.startswith('http'), f"Expected a URL, got {standard_name_table}"
+        if isinstance(standardNameTable, Dataset):
+            return standardNameTable
+        elif isinstance(standardNameTable, str):
+            assert standardNameTable.startswith('http'), f"Expected a URL, got {standardNameTable}"
             from .standard_name_table import StandardNameTable
-            return StandardNameTable(identifier=standard_name_table)
-        raise TypeError(f"Expected a Dataset, got {type(standard_name_table)}")
+            return StandardNameTable(identifier=standardNameTable)
+        raise TypeError(f"Expected a Dataset, got {type(standardNameTable)}")
 
-    @field_validator("canonical_units", mode='before')
+    @field_validator("canonicalUnits", mode='before')
     @classmethod
-    def _parse_unit(cls, canonical_units: Union[HttpUrl, str]) -> str:
-        """Parse the canonical_units and return the canonical_units as string."""
-        if canonical_units is None:
+    def _parse_unit(cls, canonicalUnits: Union[HttpUrl, str]) -> str:
+        """Parse the canonicalUnits and return the canonicalUnits as string."""
+        if canonicalUnits is None:
             return parse_unit('dimensionless')
-        if isinstance(canonical_units, str):
-            if canonical_units.startswith('http'):
-                return str(HttpUrl(canonical_units))
+        if isinstance(canonicalUnits, str):
+            if canonicalUnits.startswith('http'):
+                return str(HttpUrl(canonicalUnits))
             try:
-                return str(parse_unit(canonical_units))
+                return str(parse_unit(canonicalUnits))
             except KeyError:
-                warnings.warn(f'Could not parse canonical_units: "{canonical_units}".', UserWarning)
-            return str(canonical_units)
-        return str(HttpUrl(canonical_units))
+                warnings.warn(f'Could not parse canonicalUnits: "{canonicalUnits}".', UserWarning)
+            return str(canonicalUnits)
+        return str(HttpUrl(canonicalUnits))

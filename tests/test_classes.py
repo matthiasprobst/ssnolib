@@ -135,31 +135,31 @@ class TestClasses(unittest.TestCase):
         http://cfconventions.org/Data/cf-standard-names/current/build/cf-standard-name-table.html"""
 
         with self.assertRaises(pydantic.ValidationError):
-            # invalid canonical_units
+            # invalid canonicalUnits
             ssnolib.StandardName(
-                standard_name='air_temperature',
-                canonical_units=123,
+                standardName='air_temperature',
+                canonicalUnits=123,
                 description='Air temperature is the bulk temperature of the air, not the surface (skin) temperature.', )
 
         atemp = ssnolib.StandardName(
-            standard_name='air_temperature',
-            canonical_units='K',
+            standardName='air_temperature',
+            canonicalUnits='K',
             description='Air temperature is the bulk temperature of the air, not the surface (skin) temperature.')
 
         self.assertEqual(str(atemp), 'air_temperature')
-        self.assertEqual(atemp.standard_name, 'air_temperature')
-        self.assertEqual(atemp.canonical_units, 'http://qudt.org/vocab/unit/K')
+        self.assertEqual(atemp.standardName, 'air_temperature')
+        self.assertEqual(atemp.canonicalUnits, 'http://qudt.org/vocab/unit/K')
         self.assertEqual(atemp.description,
                          'Air temperature is the bulk temperature of the air, not the surface (skin) temperature.')
 
         self.assertEqual(str(atemp), 'air_temperature')
-        self.assertEqual(atemp.standard_name_table, None)
+        self.assertEqual(atemp.standardNameTable, None)
 
         # to dict:
         atemp_dict = atemp.model_dump(exclude_none=True)
         self.assertIsInstance(atemp_dict, dict)
-        self.assertEqual(atemp_dict['standard_name'], 'air_temperature')
-        self.assertEqual(atemp_dict['canonical_units'], 'http://qudt.org/vocab/unit/K')
+        self.assertEqual(atemp_dict['standardName'], 'air_temperature')
+        self.assertEqual(atemp_dict['canonicalUnits'], 'http://qudt.org/vocab/unit/K')
         self.assertEqual(atemp_dict['description'],
                          'Air temperature is the bulk temperature of the air, not the surface (skin) temperature.')
 
@@ -167,8 +167,8 @@ class TestClasses(unittest.TestCase):
         self.assertIsInstance(atemp_json, str)
         atemp_json_dict = json.loads(atemp_json)
         self.assertIsInstance(atemp_json_dict, dict)
-        self.assertEqual(atemp_json_dict['standard_name'], 'air_temperature')
-        self.assertEqual(atemp_json_dict['canonical_units'], 'http://qudt.org/vocab/unit/K')
+        self.assertEqual(atemp_json_dict['standardName'], 'air_temperature')
+        self.assertEqual(atemp_json_dict['canonicalUnits'], 'http://qudt.org/vocab/unit/K')
         self.assertEqual(atemp_json_dict['description'],
                          'Air temperature is the bulk temperature of the air, not the surface (skin) temperature.')
 
