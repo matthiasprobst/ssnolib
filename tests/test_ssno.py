@@ -216,7 +216,8 @@ class TestSSNO(unittest.TestCase):
         self.assertEqual(4, len(snt.standardNames))
         self.assertEqual(snt.standardNames[0].standardName, 'absolute_pressure')
         self.assertEqual(snt.standardNames[0].standard_name, 'absolute_pressure')
-        self.assertEqual(snt.standardNames[0].description, 'Pressure is force per unit area. Absolute air pressure is pressure deviation to a total vacuum.')
+        self.assertEqual(snt.standardNames[0].description,
+                         'Pressure is force per unit area. Absolute air pressure is pressure deviation to a total vacuum.')
         self.assertEqual(snt.standardNames[0].canonicalUnits, 'http://qudt.org/vocab/unit/PA')
         self.assertEqual(snt.standardNames[1].standardName, 'ambient_static_pressure')
         self.assertEqual(snt.standardNames[1].standard_name, 'ambient_static_pressure')
@@ -289,6 +290,8 @@ class TestSSNO(unittest.TestCase):
         )
         self.assertEqual(snt.title, 'cf-standard-name-table')
         pathlib.Path(f'{snt.title}.xml').unlink(missing_ok=True)
+
+        self.assertFalse(snt.verify_name("x_velocity"))
 
     def test_standard_name_table_to_yaml(self):
         snt_yaml_filename = pathlib.Path('snt.yaml')

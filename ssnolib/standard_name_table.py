@@ -156,7 +156,8 @@ class StandardNameTable(Dataset):
     identifier: Optional[str] = None
     creator: Optional[Union[Person, List[Person], Organization, List[Organization]]] = None
     standardNames: List[StandardName] = Field(default=None, alias="standardNames")  # ssno:standardNames
-    hasModifier: List[Union[Qualification, Transformation]] = None
+    hasModifier: List[Union[Qualification, Transformation]] = Field(default_factory=dict,
+                                                                    alias="hasModifier")  # ssno:hasModifier
 
     def __str__(self) -> str:
         if self.identifier:
@@ -613,3 +614,6 @@ class StandardNameTable(Dataset):
             raise ValueError(f"Standard Name '{name}' is invalid. Could not verified by the qualification rules")
 
         return new_standard_name
+
+    def fetch(self):
+        """Download the Standard Name Table and parse it"""
