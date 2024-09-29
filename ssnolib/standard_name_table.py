@@ -1,6 +1,6 @@
 import pathlib
 import re
-from typing import List, Union, Dict, Optional
+from typing import List, Union, Dict, Optional, Tuple
 
 import rdflib
 from ontolutils import namespaces, urirefs, Thing
@@ -8,6 +8,7 @@ from pydantic import field_validator, Field, HttpUrl
 
 from ssnolib.dcat import Dataset, Distribution
 from ssnolib.prov import Person, Organization
+from . import config
 from . import plugins
 from .namespace import SSNO
 from .standard_name import StandardName
@@ -30,6 +31,15 @@ class StandardNameModification(Thing):
 
 
 @namespaces(ssno="https://matthiasprobst.github.io/ssno#")
+@urirefs(AnnotatedValue='ssno:AnnotatedValue',
+         value='ssno:value',
+         annotation='ssno:annotation')
+class AnnotatedValue(Thing):
+    value: str
+    annotation: str
+
+
+@namespaces(ssno="https://matthiasprobst.github.io/ssno#")
 @urirefs(Qualification='ssno:Qualification',
          before='ssno:before',
          after='ssno:after',
@@ -40,7 +50,7 @@ class Qualification(StandardNameModification):
     before: Optional[Union[str, "Qualification"]] = None  # ssno:before
     after: Optional[Union[str, "Qualification"]] = None  # ssno:after
     hasPreposition: Optional[str] = None  # ssno:hasPreposition
-    hasValidValues: Optional[List[str]] = None  # ssno:hasValidValues
+    hasValidValues: Optional[List[Union[str, AnnotatedValue]]] = None  # ssno:hasValidValues
 
     @field_validator('before')
     @classmethod
@@ -69,6 +79,15 @@ class Qualification(StandardNameModification):
                 SSNO.AnyStandardName):
             raise TypeError(f'Expected a AnyStandardName or Qualification, got {type(after)}')
         return after
+
+    @field_validator('hasValidValues')
+    @classmethod
+    def _hasValidValues(cls, hasValidValues: Optional[List[Union[str, AnnotatedValue]]] = None) -> List[AnnotatedValue]:
+        if hasValidValues:
+            for k, v in enumerate(hasValidValues.copy()):
+                if isinstance(v, str):
+                    hasValidValues[k] = AnnotatedValue(value=v, annotation="No description available.")
+        return hasValidValues
 
     def get_full_name(self):
         if not self.hasPreposition:
@@ -160,7 +179,8 @@ class StandardNameTable(Dataset):
     @classmethod
     def parse(cls,
               source: Union[str, pathlib.Path, Distribution],
-              fmt: str = None):
+              fmt: str = None,
+              **kwargs):
         """Call the reader plugin for the given format.
         Format will select the reader plugin to use. Currently, 'xml' is supported."""
         if isinstance(source, (str, pathlib.Path)):
@@ -179,7 +199,7 @@ class StandardNameTable(Dataset):
                 'You may overwrite this by providing the parameter fmt'
             )
 
-        data: Dict = reader(filename).parse()
+        data: Dict = reader(filename).parse(**kwargs)
 
         return cls(**data)
 
@@ -217,40 +237,103 @@ class StandardNameTable(Dataset):
             return [standardNames]
         return standardNames
 
-    def verify(self, standard_name: str):
-        # todo: first some technical checks: must not start with a "_" etc.
+    def verify_name(self, standard_name: str):
+        """Verifies a string standard name"""
+        # first some technical checks: must not start with a "_" etc.
+        general_pattern = config.standard_name_core_pattern
+        if not re.match(general_pattern, standard_name):
+            print("General pattern not matched. Must be lowercase and parts may be separated by '_'.")
+            return False
         str_standard_names = [sn.standardName for sn in self.standardNames]
+
         if standard_name in str_standard_names:
             return True
-        regex_pattern = self.get_qualification_regex()
-        for sn in str_standard_names:
-            if sn in standard_name:
+
+        qdict = {q.id: q for q in self.hasModifier if isinstance(q, Qualification)}
+        regex_pattern, qualifications = self.get_qualification_regex()
+        for existing_standard_name in str_standard_names:
+            if existing_standard_name in standard_name:
                 # found a corresponding core standard name. replace it in regex pattern:
-                pattern = rf'{regex_pattern.replace("standard_name", sn)}'
+                pattern = rf'{regex_pattern.replace("standard_name", existing_standard_name)}'
                 # pattern = r'^(?:toa|tropopause|surface)?(?:_?(?:upward|downward|northward|southward|eastward|westward|x|y))?_?air_pressure(?:_at_(adiabatic_condensation_level|cloud_top|convective_cloud_top|cloud_base|convective_cloud_base|freezing_level|ground_level|maximum_wind_speed_level|sea_floor|sea_ice_base|sea_level|top_of_atmosphere_boundary_layer|top_of_atmosphere_model|top_of_dry_convection))?(?:_in_(air|atmosphere_boundary_layer|mesosphere|sea_ice|sea_water|soil|soil_water|stratosphere|thermosphere|troposphere))?(?:_due_to_(advection|convection|deep_convection|diabatic_processes|diffusion|dry_convection|gravity_wave_drag|gyre|isostatic_adjustment|large_scale_precipitation|longwave_heating|moist_convection|overturning|shallow_convection|shortwave_heating|thermodynamics))?(?:_assuming_(clear_sky|deep_snow|no_snow))?$'
                 if re.match(pattern, standard_name):
+                    # TODO: Find out which groups were found:
+                    groups = re.match(pattern, standard_name).groups()
+                    qs = [qdict[qid] for qid in qualifications]
+                    for g, q in zip(groups, qs):
+                        if g:
+                            existing_description = ""
+                            print(f"Found group {g} for qualification {q.get_full_name()}")
+                            for s in self.standardNames:
+                                if s.standardName == existing_standard_name:
+                                    existing_description = s.description
+                                    break
+                            print(f"{existing_description}. {q.description}")
+                    return True
+                return False
+        return False
+
+    def verify(self, standard_name: StandardName):
+        """Verifies a string standard name"""
+        # first some technical checks: must not start with a "_" etc.
+        if not re.match(config.standard_name_core_pattern, standard_name.standardName):
+            print("General pattern not matched. Must be lowercase and parts may be separated by '_'.")
+            return False
+        str_standard_names = [sn.standardName for sn in self.standardNames]
+        str_standard_name = standard_name.standardName
+        if str_standard_name in str_standard_names:
+            return True
+        regex_pattern, _ = self.get_qualification_regex()
+        for existing_standard_name in str_standard_names:
+            if existing_standard_name in str_standard_name:
+                reference_canonical_units = self.get_standard_name(existing_standard_name).canonicalUnits
+                if standard_name.canonicalUnits != reference_canonical_units:
+                    raise ValueError("Canonical units do not match the reference standard name.")
+                # found a corresponding core standard name. replace it in regex pattern:
+                pattern = rf'{regex_pattern.replace("standard_name", existing_standard_name)}'
+
+                if re.match(pattern, str_standard_name):
                     return True
                 return False
         return False
 
     def get_standard_name(self, standard_name: str) -> Union[StandardName, None]:
-        """Check if the Standard Name Table has a given standard name. The
-        standard name object is returned if found, otherwise None.
+        """Check if the Standard Name Table has a given standard name. If the name is not found it will be checked
+        if it can be constructed using the qualification objects. Otherwise, None is returned.
 
         Parameters
         ----------
         standard_name: str
-            The standard name to look for
+            The standard name to look for, which may be a modification of an existing one in the table.
 
         Returns
         -------
         Union[StandardName, None]
-            The standard name object if found, otherwise None
+            The standard name object if found or constructed, otherwise None
         """
         for sn in self.standardNames:
             if sn.standardName == standard_name:
                 return sn
-        return
+        # let's try to construct the standard name:
+        if not re.match(config.standard_name_core_pattern, standard_name):
+            print("General pattern not matched. Must be lowercase and parts may be separated by '_'.")
+            return None
+
+        regex_pattern, _ = self.get_qualification_regex()
+        for existing_standard_name in self.standardNames:
+            if existing_standard_name.standardName == standard_name:
+                return existing_standard_name  # identical match
+
+            if existing_standard_name.standardName in standard_name:
+                # found a corresponding core standard name. replace it in regex pattern:
+                core_standard_name: StandardName = existing_standard_name
+                pattern = rf'{regex_pattern.replace("standard_name", existing_standard_name)}'
+                # pattern = r'^(?:toa|tropopause|surface)?(?:_?(?:upward|downward|northward|southward|eastward|westward|x|y))?_?air_pressure(?:_at_(adiabatic_condensation_level|cloud_top|convective_cloud_top|cloud_base|convective_cloud_base|freezing_level|ground_level|maximum_wind_speed_level|sea_floor|sea_ice_base|sea_level|top_of_atmosphere_boundary_layer|top_of_atmosphere_model|top_of_dry_convection))?(?:_in_(air|atmosphere_boundary_layer|mesosphere|sea_ice|sea_water|soil|soil_water|stratosphere|thermosphere|troposphere))?(?:_due_to_(advection|convection|deep_convection|diabatic_processes|diffusion|dry_convection|gravity_wave_drag|gyre|isostatic_adjustment|large_scale_precipitation|longwave_heating|moist_convection|overturning|shallow_convection|shortwave_heating|thermodynamics))?(?:_assuming_(clear_sky|deep_snow|no_snow))?$'
+                if re.match(pattern, standard_name):
+                    return StandardName(standardName=standard_name, canonicalUnits=core_standard_name.canonicalUnits,
+                                        description=core_standard_name.description)
+        raise ValueError(
+            f"The standard name {standard_name} is not part of the table and does not conform to the qualification rules.")
 
     def to_yaml(self, filename: Union[str, pathlib.Path], overwrite: bool = False, exists_ok=False) -> pathlib.Path:
         """Dump the Standard Name Table to a file.
@@ -335,7 +418,7 @@ class StandardNameTable(Dataset):
                 yaml_data['standardNames'] = {}
                 for sn in self.standardNames:
                     yaml_data['standardNames'][sn.standardName] = {'canonicalUnits': sn.canonicalUnits,
-                                                                     'description': sn.description}
+                                                                   'description': sn.description}
 
             # if self.locations:
             #     for loc in self.locations:
@@ -361,7 +444,7 @@ class StandardNameTable(Dataset):
 
         return pathlib.Path(filename)
 
-    def get_qualification_regex(self) -> str:
+    def get_qualification_regex(self) -> Tuple[str, List[str]]:
         qualifications = {m.id: m for m in self.hasModifier if isinstance(m, Qualification)}
         g = rdflib.Graph()
         g.parse(data=self.model_dump_jsonld(),
@@ -410,6 +493,7 @@ class StandardNameTable(Dataset):
                     sorted_list.insert(i + 1, k)
                     qres.pop(k)
 
+        qualification_dict = {}
         qualifications_output = []
         for e in sorted_list:
             if e in qres_orig:
@@ -421,7 +505,7 @@ class StandardNameTable(Dataset):
         for q in qualifications_output:
             qualification = qualifications.get(q, None)
             if qualification:
-                valid_values = qualification.hasValidValues
+                valid_values = [v.value for v in qualification.hasValidValues]
                 if qualification.hasPreposition:
                     _valid_values = [qualification.hasPreposition + "_" + v for v in valid_values]
                     out += f'(?:{"|".join(_valid_values)})?_?'
@@ -429,9 +513,10 @@ class StandardNameTable(Dataset):
                     out += f'(?:({"|".join(valid_values)}))?_?'
             elif q == "standard_name":
                 out += f"{q}_?"
+        qualifications_output.remove("standard_name")
         if out.endswith("?_?"):
-            return "^" + out.strip("?_?") + "?$"
-        return "^" + out + "$"
+            return "^" + out.strip("?_?") + "?$", qualifications_output
+        return "^" + out + "$", qualifications_output
 
     def get_qualification_rule_as_string(self) -> str:
         """Returns the qualification rule similar to the CF standard name table documentation
@@ -494,3 +579,37 @@ class StandardNameTable(Dataset):
             else:
                 qualifications_output.append("standard_name")
         return " ".join(qualifications_output)
+
+    def add_new_standard_name(self, name: Union[str, StandardName], verify: bool = True) -> StandardName:
+        """Add a new standard name to the Standard Name Table.
+
+        Parameters
+        ----------
+        name: Union[str, StandardName]
+            The new standard name to add.
+        verify: bool=True
+            Verify the new standard name against the existing standard names. If False, it
+            is interpreted as a new core standard name
+
+        Returns
+        -------
+        StandardName
+            The new StandardName object
+        """
+        if not verify and isinstance(name, StandardName):
+            self.append("standardName", name)
+        if isinstance(name, StandardName):
+            self.verify(name)
+            return name
+
+        new_standard_name = StandardName(standardName=name, canonicalUnits="dimensionless", description="N.A")
+
+        name = new_standard_name.standardName
+
+        for sn in self.standardNames:
+            if name == sn.standardName:
+                raise ValueError(f"Standard Name '{name}' already exists in the Standard Name Table.")
+        if not self.verify_name(name):
+            raise ValueError(f"Standard Name '{name}' is invalid. Could not verified by the qualification rules")
+
+        return new_standard_name

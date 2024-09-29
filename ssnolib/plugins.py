@@ -16,13 +16,13 @@ class TableReader(abc.ABC):
         assert self.filename.is_file(), f'{self.filename} is not a file'
 
     @abc.abstractmethod
-    def parse(self) -> Dict:
+    def parse(self, **kwargs) -> Dict:
         """Parse the file"""
 
 
 class XMLReader(TableReader):
 
-    def parse(self) -> Dict:
+    def parse(self, make_standard_names_lowercase: bool = False) -> Dict:
         """Parse the file"""
         try:
             import xmltodict
@@ -49,7 +49,7 @@ class XMLReader(TableReader):
             assert standard_name is not None, 'Expected key "@id" in the XML file.'
             assert canonicalUnits is not None, 'Expected key "canonicalUnits" in the XML file.'
             assert description is not None, 'Expected key "description" in the XML file.'
-            return dict(standard_name=standard_name,
+            return dict(standardName=standard_name.lower() if make_standard_names_lowercase else standard_name,
                         canonicalUnits=canonicalUnits,
                         description=description)
 
@@ -93,7 +93,7 @@ class XMLReader(TableReader):
 
 class YAMLReader(TableReader):
 
-    def parse(self):
+    def parse(self, **kwargs):
         try:
             import yaml
         except ImportError as e:
@@ -156,13 +156,13 @@ class YAMLReader(TableReader):
                             from ssnolib.namespace import SSNO
                             qualifications_dict[q_full_name].before = SSNO.AnyStandardName
                         else:
-                            qualifications_dict[q_full_name].before = qualifications_dict[position+1]
+                            qualifications_dict[q_full_name].before = qualifications_dict[position + 1]
                     else:
                         if position == 1:
                             from ssnolib.namespace import SSNO
                             qualifications_dict[q_full_name].after = SSNO.AnyStandardName
                         else:
-                            qualifications_dict[q_full_name].after = qualifications_dict[position-1]
+                            qualifications_dict[q_full_name].after = qualifications_dict[position - 1]
 
                 # relate the phrases to each other
                 # [component] standard_name [in_medium]
@@ -183,7 +183,7 @@ class YAMLReader(TableReader):
 
 
 class JSONLDReader(TableReader):
-    def parse(self) -> Dict:
+    def parse(self, **kwargs) -> Dict:
         from .standard_name_table import StandardNameTable
         with open(self.filename, 'r') as f:
             import json

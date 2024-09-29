@@ -107,7 +107,7 @@ class TestClasses(unittest.TestCase):
             dest_filename=CACHE_DIR / 'cf-standard-name-table.xml',
             overwrite_existing=True
         )
-        snt_from_xml = snt.parse(table_filename, fmt='xml')
+        snt_from_xml = snt.parse(table_filename, fmt='xml', make_standard_names_lowercase=True)
         self.assertIsInstance(snt_from_xml.standardNames, list)
         for sn in snt_from_xml.standardNames:
             self.assertIsInstance(sn, ssnolib.StandardName)
