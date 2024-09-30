@@ -16,3 +16,8 @@ dist/
 docs/class_structure_pub.svg
 .coverage
 docs/cf-standard-name-table.xml
+*/snt.md
+*/snt.html
+snt.md
+snt.html
+snt.xml
