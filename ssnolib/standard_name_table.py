@@ -770,7 +770,3 @@ class StandardNameTable(Dataset):
             import webbrowser
             webbrowser.open('file://' + str(html_filename.resolve()))
         return html_filename
-
-    @property
-    def qualification(self):
-        return {q.name: q for q in self.hasModifier if isinstance(q, Qualification)}

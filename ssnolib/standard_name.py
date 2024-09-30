@@ -79,7 +79,7 @@ class StandardName(Concept):
                         type="value_error",
                         loc=("canonicalUnits",),
                         input=canonicalUnits,
-                        ctx={"error": f"your_message Unable to parse: {canonicalUnits}",}
+                        ctx={"error": f"your_message Unable to parse: {canonicalUnits}", }
                     )
                     raise ValidationError.from_exception_data(title=cls.__name__, line_errors=[err, ])
                 else:

@@ -421,9 +421,10 @@ class TestSSNO(unittest.TestCase):
         self.assertTrue(snt.verify_name("air_density"))  # equals "air_density"
         self.assertTrue(snt.verify_name("tropopause_air_pressure"))  # using regex
         tropopause_air_pressure = snt.get_standard_name("tropopause_air_pressure")  # using regex
+
         self.assertEqual(
             tropopause_air_pressure.description,
-            snt.get_standard_name("air_pressure").description + snt.qualification["surface"].description)
+            snt.get_standard_name("air_pressure").description + surface.description)
         # TODO: Qualification -> validValues could be a list of
         #  QualificationValues(value='tropopause', description='The tropopause is the boundary between the troposphere and the stratosphere.'))
         #  this helps with these "means" statements: The surface called "surface" means the lower boundary of the atmosphere. sea_level means mean sea level, which is close to the geoid in sea areas
