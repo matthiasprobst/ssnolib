@@ -1,5 +1,5 @@
 rdflib
-ontolutils>=0.4.0
+ontolutils>=0.4.3
 pydantic[email]
 appdirs
 python-dateutil

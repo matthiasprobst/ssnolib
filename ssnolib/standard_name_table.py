@@ -1,17 +1,21 @@
 import pathlib
 import re
+import warnings
 from typing import List, Union, Dict, Optional, Tuple
 
 import rdflib
 from ontolutils import namespaces, urirefs, Thing
-from pydantic import field_validator, Field, HttpUrl
+from pydantic import field_validator, Field, HttpUrl, ValidationError
 
 from ssnolib.dcat import Dataset, Distribution
 from ssnolib.prov import Person, Organization
 from . import config
 from . import plugins
 from .namespace import SSNO
+from .qudt.utils import iri2str
 from .standard_name import StandardName
+
+__this_dir__ = pathlib.Path(__file__).parent
 
 
 @namespaces(ssno="https://matthiasprobst.github.io/ssno#",
@@ -110,6 +114,8 @@ class Character(Thing):
     def _associatedWith(cls, associatedWith: Union[str, HttpUrl, Qualification]) -> str:
         if isinstance(associatedWith, str):
             assert str(associatedWith).startswith(("http", "_:"))
+        if isinstance(associatedWith, Thing):
+            return str(associatedWith.id)
         return associatedWith
 
 
@@ -202,6 +208,15 @@ class StandardNameTable(Dataset):
 
         data: Dict = reader(filename).parse(**kwargs)
 
+        # unfortunately, we need to remove all units which we could not parse...
+        standardNames = []
+        for sn in data["standardNames"].copy():
+            try:
+                standardNames.append(StandardName(**sn))
+            except ValidationError as e:
+                print(f"Could not parse {sn}. {e}", UserWarning)
+                warnings.warn(f"Could not parse {sn}. {e}", UserWarning)
+        data["standardNames"] = standardNames
         return cls(**data)
 
     @field_validator('hasModifier', mode='before')
@@ -263,13 +278,11 @@ class StandardNameTable(Dataset):
                     qs = [qdict[qid] for qid in qualifications]
                     for g, q in zip(groups, qs):
                         if g:
-                            existing_description = ""
-                            print(f"Found group {g} for qualification {q.get_full_name()}")
+                            # existing_description = ""
                             for s in self.standardNames:
                                 if s.standardName == existing_standard_name:
-                                    existing_description = s.description
+                                    # existing_description = s.description
                                     break
-                            print(f"{existing_description}. {q.description}")
                     return True
                 return False
         return False
@@ -320,7 +333,8 @@ class StandardNameTable(Dataset):
             print("General pattern not matched. Must be lowercase and parts may be separated by '_'.")
             return None
 
-        regex_pattern, _ = self.get_qualification_regex()
+        qdict = {q.id: q for q in self.hasModifier if isinstance(q, Qualification)}
+        regex_pattern, qualifications = self.get_qualification_regex()
         for existing_standard_name in self.standardNames:
             if existing_standard_name.standardName == standard_name:
                 return existing_standard_name  # identical match
@@ -328,11 +342,18 @@ class StandardNameTable(Dataset):
             if existing_standard_name.standardName in standard_name:
                 # found a corresponding core standard name. replace it in regex pattern:
                 core_standard_name: StandardName = existing_standard_name
-                pattern = rf'{regex_pattern.replace("standard_name", existing_standard_name)}'
-                # pattern = r'^(?:toa|tropopause|surface)?(?:_?(?:upward|downward|northward|southward|eastward|westward|x|y))?_?air_pressure(?:_at_(adiabatic_condensation_level|cloud_top|convective_cloud_top|cloud_base|convective_cloud_base|freezing_level|ground_level|maximum_wind_speed_level|sea_floor|sea_ice_base|sea_level|top_of_atmosphere_boundary_layer|top_of_atmosphere_model|top_of_dry_convection))?(?:_in_(air|atmosphere_boundary_layer|mesosphere|sea_ice|sea_water|soil|soil_water|stratosphere|thermosphere|troposphere))?(?:_due_to_(advection|convection|deep_convection|diabatic_processes|diffusion|dry_convection|gravity_wave_drag|gyre|isostatic_adjustment|large_scale_precipitation|longwave_heating|moist_convection|overturning|shallow_convection|shortwave_heating|thermodynamics))?(?:_assuming_(clear_sky|deep_snow|no_snow))?$'
+                pattern = rf'{regex_pattern.replace("standard_name", existing_standard_name.standardName)}'
                 if re.match(pattern, standard_name):
+                    groups = re.match(pattern, standard_name).groups()
+                    qs = [qdict[qid] for qid in qualifications]
+                    q_description = ""
+                    for g, q in zip(groups, qs):
+                        if g:
+                            for s in self.standardNames:
+                                if s.standardName == existing_standard_name.standardName:
+                                    q_description = q.description
                     return StandardName(standardName=standard_name, canonicalUnits=core_standard_name.canonicalUnits,
-                                        description=core_standard_name.description)
+                                        description=core_standard_name.description + q_description)
         raise ValueError(
             f"The standard name {standard_name} is not part of the table and does not conform to the qualification rules.")
 
@@ -438,10 +459,6 @@ class StandardNameTable(Dataset):
             #         yaml_data['reference_frames'] = {ref.name: ref.description}
 
             yaml.dump(yaml_data, f, sort_keys=False)
-
-        # yaml_data = {'description': self.description if self.description,
-        #              'identifier': }
-        # print(self.model_dump())
 
         return pathlib.Path(filename)
 
@@ -574,7 +591,7 @@ class StandardNameTable(Dataset):
             if e in qres_orig:
                 q = qres_orig[e]
                 if q["preposition"]:
-                    qualifications_output.append(f'[{q["preposition"]}_{q["name"]}]')
+                    qualifications_output.append(f'[{q["preposition"].replace("_", " ")} {q["name"]}]')
                 else:
                     qualifications_output.append(f'[{qres_orig[e]["name"]}]')
             else:
@@ -617,3 +634,143 @@ class StandardNameTable(Dataset):
 
     def fetch(self):
         """Download the Standard Name Table and parse it"""
+
+    # exports
+    def to_markdown(self, filename: Optional[Union[str, pathlib.Path]] = None):
+        """Export the Standard Name Table to a markdown file.
+
+        Parameters
+        ----------
+        filename: Optional[Union[str, pathlib.Path]]
+            The filename to write the markdown file to. If None, the markdown will be printed to the console.
+        """
+        if filename is None:
+            filename = f"{self.title}.md"
+        markdown_filename = pathlib.Path(filename)
+
+        with open(markdown_filename, 'w', encoding="utf-8") as f:
+            f.write(f"\n---\n")
+            f.write(f"title: {self.title}")
+            f.write(f"\n---\n\n")
+            f.write(f"\n# {self.title}\n\n")
+            if self.version:
+                f.write(f"Version: {self.version}\n")
+            if self.description:
+                f.write(f"{self.description}\n\n")
+            if self.creator:
+                creator_string = ""
+                if isinstance(self.creator, Person):
+                    first_name = self.creator.firstName
+                    last_name = self.creator.lastName
+                    email = self.creator.mbox
+                    affiliation = self.creator.affiliation
+                    orcid = self.creator.orcidId
+                    creator_string = ""
+                    if first_name and last_name:
+                        creator_string += f"{last_name}, {first_name}; "
+                    if affiliation:
+                        creator_string += f"{affiliation}; "
+                    if email:
+                        creator_string += f"{email}; "
+                    if orcid:
+                        creator_string += f"ORCID: {orcid}; "
+                elif isinstance(self.creator, Organization):
+                    name = self.creator.name
+                    url = self.creator.url
+                    ror = self.creator.hasRorId
+                    email = self.creator.mbox
+                    if name:
+                        creator_string += f"{name}; "
+                    if url:
+                        creator_string += f"{url}; "
+                    if ror:
+                        creator_string += f"ROR ID: {ror}; "
+                    if email:
+                        creator_string += f"{email}; "
+                f.write(f"<br>Creator: {creator_string.strip('; ')}\n")
+
+            f.write(f"\n\n\n## Modifications\n\n")
+            f.write("Standard names can be modified by qualifications and transformations. Qualification do not change "
+                    "the unit of a standard name, where a transformation may change the unit.")
+
+            f.write(f"\n\n\n### Qualification\n\n")
+            qualifications = [m for m in self.hasModifier if isinstance(m, Qualification)]
+            if qualifications:
+                qualification_expl_string = self.get_qualification_rule_as_string()
+                for q in qualifications:
+                    if q.hasPreposition:
+                        prep_str = q.hasPreposition.replace("_", " ")
+                        qualification_expl_string = qualification_expl_string.replace(f"[{prep_str} {q.name}]",
+                                                                                      f"[{prep_str} [{q.name}]]")
+                    else:
+                        qualification_expl_string = qualification_expl_string.replace(f"[{q.name}]", f"[[{q.name}]]")
+
+                f.write(f"{qualification_expl_string}\n")
+                for q in qualifications:
+                    f.write(f"\n\n#### {q.name.capitalize()}\n")
+                    f.write(f"Valid values: {', '.join([v.value for v in q.hasValidValues])}\n")
+                    if q.description:
+                        f.write(f"\n{q.description}\n")
+                    else:
+                        f.write("No description available.\n")
+            else:
+                f.write("No qualifications defined for this table.\n")
+
+            f.write(f"\n\n### Transformations\n\n")
+            transformations = [m for m in self.hasModifier if isinstance(m, Transformation)]
+            if transformations:
+                f.write(f"| Rule | Units | Meaning |\n")
+                f.write(f"|---------------|:-------------|:------------|\n")
+                for t in transformations:
+                    f.write(f"| {t.name} | {t.altersUnit if t.altersUnit else 'N.A'} | "
+                            f"{t.description if t.description else 'N.A'} |\n")
+            else:
+                f.write("No transformations defined for this table.\n")
+
+            f.write(f"\n\n\n## Standard Names\n\n")
+
+            f.write(f"| Standard Name |     Units     | Description |\n")
+            f.write(f"|---------------|:-------------|:------------|\n")
+
+            sorted_standard_names = sorted(self.standardNames, key=lambda x: x.standardName)
+            for sn in sorted_standard_names:
+                units = iri2str.get(str(sn.canonicalUnits), str(sn.canonicalUnits))
+                if units is None:
+                    units = 'dimensionless'
+                if units is 'None':
+                    units = 'dimensionless'
+                f.write(f'| {sn.standardName} | {units} | '
+                        f'{sn.description} |\n')
+        return markdown_filename
+
+    def to_html(self, filename: Optional[Union[str, pathlib.Path]] = None,
+                open_in_browser: bool = False) -> pathlib.Path:
+        if filename is None:
+            filename = f"{self.title}.html"
+        html_filename = pathlib.Path(filename)
+        markdown_filename = self.to_markdown(html_filename.with_suffix('.tmp.md'))
+        template_filename = __this_dir__ / 'templates' / 'standard_name_table.html'
+
+        if not template_filename.exists():
+            raise FileNotFoundError(f'Could not find the template file at {template_filename.absolute()}')
+
+        # Convert Markdown to HTML using pandoc
+        try:
+            import pypandoc
+        except ImportError:
+            raise ImportError('Package "pypandoc" is required for this function.')
+        output = pypandoc.convert_file(str(markdown_filename.absolute()), 'html', format='md',
+                                       extra_args=['--template', template_filename])
+        markdown_filename.unlink(missing_ok=True)
+
+        with open(html_filename, 'w') as f:
+            f.write(output)
+
+        if open_in_browser:
+            import webbrowser
+            webbrowser.open('file://' + str(html_filename.resolve()))
+        return html_filename
+
+    @property
+    def qualification(self):
+        return {q.name: q for q in self.hasModifier if isinstance(q, Qualification)}

@@ -8,13 +8,16 @@ import pydantic
 import requests.exceptions
 import yaml
 from ontolutils import QUDT_UNIT
+from pydantic import ValidationError
 
 import ssnolib
 import ssnolib.standard_name_table
-from ssnolib import StandardName, StandardNameTable
+from ssnolib import StandardName, StandardNameTable, Transformation
 from ssnolib.dcat import Distribution
 from ssnolib.namespace import SSNO
+from ssnolib.namespace import SSNO
 from ssnolib.qudt import parse_unit
+from ssnolib.utils import download_file
 
 # ignore User Warnings:
 
@@ -124,7 +127,7 @@ class TestSSNO(unittest.TestCase):
             )
 
         # Cannot parse unit
-        with self.assertRaises(KeyError):
+        with self.assertRaises(ValidationError):
             ssnolib.StandardName(
                 standard_name='x_velocity',
                 canonical_units='meterprosec',
@@ -250,7 +253,6 @@ class TestSSNO(unittest.TestCase):
         self.assertEqual(snt.title, 'SNT')
 
     def test_standard_name_table_from_xml(self):
-        from ssnolib.utils import download_file
         cf_contention = 'http://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml'
         snt_xml_filename = download_file(cf_contention,
                                          dest_filename='snt.xml',
@@ -304,7 +306,6 @@ class TestSSNO(unittest.TestCase):
         with open('snt.yaml') as f:
             yaml1 = yaml.safe_load(f)
             for k, v in yaml1.copy()['standardNames'].items():
-                print(yaml1["standardNames"][k])
                 yaml1['standardNames'][k]['canonicalUnits'] = str(parse_unit(v['canonicalUnits']))
 
         with open('snt2.yaml') as f:
@@ -321,13 +322,13 @@ class TestSSNO(unittest.TestCase):
 
         snt = StandardNameTable(title='SNT with modifications')
         snt.hasModifier = [comp, medium]
-        self.assertEqual("[component] standard_name [in_medium]", snt.get_qualification_rule_as_string())
+        self.assertEqual("[component] standard_name [in medium]", snt.get_qualification_rule_as_string())
 
         snt.to_yaml('snt_with_mod.yaml', overwrite=True)
 
         new_snt = StandardNameTable.parse('snt_with_mod.yaml', fmt='yaml')
         self.assertEqual(new_snt.title, 'SNT with modifications')
-        self.assertEqual("[component] standard_name [in_medium]", new_snt.get_qualification_rule_as_string())
+        self.assertEqual("[component] standard_name [in medium]", new_snt.get_qualification_rule_as_string())
 
         # circular reference:
         medium.before = comp
@@ -391,15 +392,16 @@ class TestSSNO(unittest.TestCase):
         process.after = medium
         condition.after = process
 
-        snt = StandardNameTable(name='CF Rebuilt')
+        snt = StandardNameTable(
+            title='CF Rebuilt'
+        )
         snt.hasModifier = [surface, component, at_surface]
 
         # snt = StandardNameTable(name='CF Rebuilt')
         snt.hasModifier = [surface, component, at_surface, medium, process, condition]
-        print(snt.get_qualification_regex())
 
         self.assertEqual(
-            "[surface] [component] standard_name [at_surface] [in_medium] [due_to_process] [assuming_condition]",
+            "[surface] [component] standard_name [at surface] [in medium] [due to process] [assuming condition]",
             snt.get_qualification_rule_as_string()
         )
 
@@ -418,7 +420,10 @@ class TestSSNO(unittest.TestCase):
 
         self.assertTrue(snt.verify_name("air_density"))  # equals "air_density"
         self.assertTrue(snt.verify_name("tropopause_air_pressure"))  # using regex
-
+        tropopause_air_pressure = snt.get_standard_name("tropopause_air_pressure")  # using regex
+        self.assertEqual(
+            tropopause_air_pressure.description,
+            snt.get_standard_name("air_pressure").description + snt.qualification["surface"].description)
         # TODO: Qualification -> validValues could be a list of
         #  QualificationValues(value='tropopause', description='The tropopause is the boundary between the troposphere and the stratosphere.'))
         #  this helps with these "means" statements: The surface called "surface" means the lower boundary of the atmosphere. sea_level means mean sea level, which is close to the geoid in sea areas
@@ -430,6 +435,95 @@ class TestSSNO(unittest.TestCase):
                 canonicalUnits="Pa"
             )
         )
+
+    def test_to_html(self):
+        cf_contention = 'http://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml'
+        snt_xml_filename = download_file(cf_contention,
+                                         dest_filename='snt.xml',
+                                         exist_ok=True)
+        self.assertTrue(snt_xml_filename.exists())
+
+        xml_snt = StandardNameTable.parse(snt_xml_filename, fmt=None, make_standard_names_lowercase=True)
+        xml_snt.description = f"This table is built by from {snt_xml_filename}. This is not complete, but an excerpt!"
+
+        surface = ssnolib.Qualification(
+            name="surface",
+            description='A surface is defined as a function of horizontal position. Surfaces which are defined using a coordinate value (e.g. height of 1.5 m) are indicated by a single-valued coordinate variable, not by the standard name. In the standard name, some surfaces are named by single words which are placed at the start: toa (top of atmosphere), tropopause, surface. Other surfaces are named by multi-word phrases put after at: at_adiabatic_condensation_level, at_cloud_top, at_convective_cloud_top, at_cloud_base, at_convective_cloud_base, at_freezing_level, at_ground_level, at_maximum_wind_speed_level, at_sea_floor, at_sea_ice_base, at_sea_level, at_top_of_atmosphere_boundary_layer, at_top_of_atmosphere_model, at_top_of_dry_convection. The surface called "surface" means the lower boundary of the atmosphere. sea_level means mean sea level, which is close to the geoid in sea areas. ground_level means the land surface (beneath the snow and surface water, if any). cloud_base refers to the base of the lowest cloud. cloud_top refers to the top of the highest cloud. Fluxes at the top_of_atmosphere_model differ from TOA fluxes only if the model TOA fluxes make some allowance for the atmosphere above the top of the model; if not, it is usual to give standard names with toa to the fluxes at the top of the model atmosphere.',
+            hasValidValues=["toa", "tropopause", "surface"]
+        )
+        component = ssnolib.Qualification(
+            name="component",
+            description='The direction of the spatial component of a vector is indicated by one of the words upward, downward, northward, southward, eastward, westward, x, y. The last two indicate directions along the horizontal grid being used when they are not true longitude and latitude (if there is a rotated pole, for instance). If the standard name indicates a tensor quantity, two of these direction words may be included, applying to two of the spatial dimensions Z Y X, in that order. If only one component is indicated for a tensor, it means the flux in the indicated direction of the magnitude of the vector quantity in the plane of the other two spatial dimensions. The names of vertical components of radiative fluxes are prefixed with net_, thus: net_downward and net_upward. This treatment is not applied for any kinds of flux other than radiative. Radiative fluxes from above and below are often measured and calculated separately, the "net" being the difference. Within the atmosphere, radiation from below (not net) is indicated by a prefix of upwelling, and from above with downwelling. For the top of the atmosphere, the prefixes incoming and outgoing are used instead.,',
+            hasValidValues=["upward", "downward", "northward", "southward", "eastward", "westward", "x", "y"]
+        )
+        at_surface = ssnolib.Qualification(
+            name="surface",
+            description=surface.description,
+            hasPreposition='at',
+            hasValidValues=["adiabatic_condensation_level", "cloud_top", "convective_cloud_top",
+                            "cloud_base",
+                            "convective_cloud_base", "freezing_level", "ground_level",
+                            "maximum_wind_speed_level",
+                            "sea_floor", "sea_ice_base", "sea_level", "top_of_atmosphere_boundary_layer",
+                            "top_of_atmosphere_model", "top_of_dry_convection"]
+        )
+        medium = ssnolib.Qualification(
+            name="medium",
+            description='A medium indicates the local medium or layer within which an intensive quantity applies: in_air, in_atmosphere_boundary_layer, in_mesosphere, in_sea_ice, in_sea_water, in_soil, in_soil_water, in_stratosphere, in_thermosphere, in_troposphere.',
+            hasPreposition='in',
+            hasValidValues=['air', 'atmosphere_boundary_layer', "mesosphere", "sea_ice", "sea_water", "soil",
+                            "soil_water", "stratosphere", "thermosphere", "troposphere"]
+        )
+        process = ssnolib.Qualification(
+            name="process",
+            description='The specification of a physical process by the phrase due_to_process means that the quantity named is a single term in a sum of terms which together compose the general quantity named by omitting the phrase. Possibilites are: due_to_advection, due_to_convection, due_to_deep_convection, due_to_diabatic_processes, due_to_diffusion, due_to_dry_convection, due_to_gravity_wave_drag, due_to_gyre, due_to_isostatic_adjustment, due_to_large_scale_precipitation, due_to_longwave_heating, due_to_moist_convection, due_to_overturning, due_to_shallow_convection, due_to_shortwave_heating, due_to_thermodynamics (referring to sea ice freezing and melting).',
+            hasPreposition='due_to',
+            hasValidValues=["advection", "convection", "deep_convection", "diabatic_processes",
+                            "diffusion", "dry_convection", "gravity_wave_drag", "gyre", "isostatic_adjustment",
+                            "large_scale_precipitation", "longwave_heating", "moist_convection", "overturning",
+                            "shallow_convection", "shortwave_heating", "thermodynamics"]
+        )
+        condition = ssnolib.Qualification(
+            name="condition",
+            description='A phrase assuming_condition indicates that the named quantity is the value which would obtain if all aspects of the system were unaltered except for the assumption of the circumstances specified by the condition. Possibilities are assuming_clear_sky, assuming_deep_snow, assuming_no_snow.',
+            hasPreposition='assuming',
+            hasValidValues=["clear_sky", "deep_snow", "no_snow"]
+        )
+
+        # order the qualifications:
+        surface.before = component
+        component.before = SSNO.AnyStandardName
+        at_surface.after = SSNO.AnyStandardName
+        medium.after = at_surface
+        process.after = medium
+        condition.after = process
+
+        change_over_time = Transformation(
+            name="change_over_time_in_X",
+            description="change in a quantity X over a time-interval, which should be defined by the bounds of the time coordinate.",
+            altersUnit="[X]",
+            hasCharacter=[ssnolib.Character(character="X", associatedWith=SSNO.AnyStandardName)]
+        )
+        component_derivative_of_X = Transformation(
+            name="C_derivative_of_X",
+            description="derivative of X with respect to distance in the component direction, which may be northward, "
+                        "southward, eastward, westward, x or y. The last two indicate derivatives along the axes of "
+                        "the grid, in the case where they are not true longitude and latitude.",
+            altersUnit="[X]/[C]",
+            hasCharacter=[ssnolib.Character(character="C", associatedWith=component),
+                          ssnolib.Character(character="X", associatedWith=SSNO.AnyStandardName)]
+        )
+        xml_snt.hasModifier = [
+            surface,
+            component,
+            at_surface,
+            medium,
+            process,
+            condition,
+            change_over_time,
+            component_derivative_of_X
+        ]
+        xml_snt.to_html('snt.html')
 
     def test_regex(self):
         a = ssnolib.Qualification(
@@ -505,7 +599,6 @@ class TestSSNO(unittest.TestCase):
             "dX/dY (keeping any other independent variables constant, i.e. the partial derivative if appropriate).")
         self.assertEqual(t.name, "derivative_of_X_wrt_Y")
         self.assertEqual(t.name, snt.hasModifier[0].name)
-        print(snt.model_dump_jsonld())
 
     def test_hdf5_accessor(self):
         # noinspection PyUnresolvedReferences

@@ -20,7 +20,6 @@ class TestReadme(unittest.TestCase):
         snt = ssnolib.StandardNameTable(title='CF Standard Name Table (latest version)',
                                         distribution=distribution)
 
-        print(snt.model_dump_jsonld())
 
     def test_code2(self):
         import ssnolib

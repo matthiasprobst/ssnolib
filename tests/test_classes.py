@@ -71,7 +71,6 @@ class TestClasses(unittest.TestCase):
         self.assertTrue(download_filename.is_file())
         download_filename.unlink(missing_ok=True)
 
-        print(distribution.model_dump_jsonld())
 
     def test_standard_name_table(self):
         snt = ssnolib.StandardNameTable(title='CF Standard Name Table v79')
@@ -181,9 +180,7 @@ class TestClasses(unittest.TestCase):
         g = rdflib.Graph()
         g.parse(data=jsonld_string, format='json-ld')
         self.assertEqual(len(g), 4)
-        print(jsonld_string)
         for s, p, o in g:
-            print(s, p, o)
             self.assertIsInstance(s, rdflib.BNode)
             self.assertIsInstance(p, rdflib.URIRef)
             self.assertIsInstance(o, str)
@@ -198,7 +195,6 @@ class TestClasses(unittest.TestCase):
                          'Air temperature is the bulk temperature of the air, not the surface (skin) temperature.')
         self.assertEqual(jsonld_dict['ssno:canonicalUnits'], 'http://qudt.org/vocab/unit/K')
 
-        print(jsonld_string)
 
         # https://qudt.org/vocab/unit/K
 

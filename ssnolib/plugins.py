@@ -37,7 +37,7 @@ class XMLReader(TableReader):
         xmldata = xmldict[_name]
 
         def _parse_standard_name(sndict):
-            canonicalUnits = sndict.get('canonicalUnits', '')
+            canonicalUnits = sndict.get('canonical_units', '')
             if canonicalUnits == '1':
                 canonicalUnits = ''
             elif canonicalUnits is None:
@@ -108,9 +108,10 @@ class YAMLReader(TableReader):
                 if ustr in sndata:
                     sndata['canonicalUnits'] = sndata.pop(ustr)
                     break
-            _data = {'standard_name': name,
-                     **sndata
-                     }
+            _data = {
+                'standard_name': name,
+                **sndata
+            }
             for k in list(_data.keys()):
                 if k not in ('canonicalUnits', 'description', 'standard_name'):
                     _data.pop(k)
@@ -160,9 +161,9 @@ class YAMLReader(TableReader):
                     else:
                         if position == 1:
                             from ssnolib.namespace import SSNO
-                            qualifications_dict[q_full_name].after = SSNO.AnyStandardName
+                            qualifications_dict[q_full_name.replace(' ', '_')].after = SSNO.AnyStandardName
                         else:
-                            qualifications_dict[q_full_name].after = qualifications_dict[position - 1]
+                            qualifications_dict[q_full_name.replace(' ', '_')].after = qualifications_dict[position - 1]
 
                 # relate the phrases to each other
                 # [component] standard_name [in_medium]
