@@ -523,7 +523,9 @@ class TestSSNO(unittest.TestCase):
             change_over_time,
             component_derivative_of_X
         ]
-        xml_snt.to_html('snt.html')
+        filename = xml_snt.to_html('snt.html')
+        filename.unlink(missing_ok=True)
+        snt_xml_filename.unlink(missing_ok=True)
 
     def test_regex(self):
         a = ssnolib.Qualification(
