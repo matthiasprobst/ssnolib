@@ -1,5 +1,5 @@
 from ._version import __version__
-from .agent import Person, Organization
+from .prov import Person, Organization
 from .standard_name import StandardName
 from .standard_name_table import StandardNameTable, Qualification, Transformation, Character
 from .utils import get_cache_dir

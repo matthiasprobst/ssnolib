@@ -110,6 +110,22 @@ class TestSSNO(unittest.TestCase):
 
         pathlib.Path('sn.jsonld').unlink(missing_ok=True)
 
+    def test_mutliple_agents(self):
+        snt = ssnolib.StandardNameTable(
+            title='SNT from scratch',
+            version='v1',
+            creator=[
+                ssnolib.Person(
+                    firstName="Matthias", lastName="Probst",
+                    orcidID="https://orcid.org/0000-0001-8729-0482",
+                    id="https://orcid.org/0000-0001-8729-0482"),
+                ssnolib.Person(
+                    firstName="Matthias", lastName="Probst",
+                    orcidID="https://orcid.org/0000-0001-8729-0482",
+                    id="https://orcid.org/0000-0001-8729-0482")
+            ]
+        )
+
     def test_invalid_standard_names(self):
         # Wrong type for description:
         with self.assertRaises(pydantic.ValidationError):
