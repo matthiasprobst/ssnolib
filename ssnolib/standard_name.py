@@ -59,7 +59,7 @@ class StandardName(Concept):
         elif isinstance(standardNameTable, str):
             assert standardNameTable.startswith('http'), f"Expected a URL, got {standardNameTable}"
             from .standard_name_table import StandardNameTable
-            return StandardNameTable(identifier=standardNameTable)
+            return StandardNameTable(id=standardNameTable)
         raise TypeError(f"Expected a Dataset, got {type(standardNameTable)}")
 
     @field_validator("canonicalUnits", mode='before')

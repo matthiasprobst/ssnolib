@@ -658,36 +658,44 @@ class StandardNameTable(Dataset):
             if self.description:
                 f.write(f"{self.description}\n\n")
             if self.creator:
-                creator_string = ""
-                if isinstance(self.creator, Person):
-                    first_name = self.creator.firstName
-                    last_name = self.creator.lastName
-                    email = self.creator.mbox
-                    affiliation = self.creator.affiliation
-                    orcid = self.creator.orcidId
+                if not isinstance(self.creator, list):
+                    creators = [self.creator]
+                else:
+                    creators = self.creator
+
+                creators_string_list = []
+                for creator in creators:
                     creator_string = ""
-                    if first_name and last_name:
-                        creator_string += f"{last_name}, {first_name}; "
-                    if affiliation:
-                        creator_string += f"{affiliation}; "
-                    if email:
-                        creator_string += f"{email}; "
-                    if orcid:
-                        creator_string += f"ORCID: {orcid}; "
-                elif isinstance(self.creator, Organization):
-                    name = self.creator.name
-                    url = self.creator.url
-                    ror = self.creator.hasRorId
-                    email = self.creator.mbox
-                    if name:
-                        creator_string += f"{name}; "
-                    if url:
-                        creator_string += f"{url}; "
-                    if ror:
-                        creator_string += f"ROR ID: {ror}; "
-                    if email:
-                        creator_string += f"{email}; "
-                f.write(f"<br>Creator: {creator_string.strip('; ')}\n")
+                    if isinstance(creator, Person):
+                        first_name = creator.firstName
+                        last_name = creator.lastName
+                        email = creator.mbox
+                        affiliation = creator.affiliation
+                        orcid = creator.orcidId
+                        if first_name and last_name:
+                            creator_string += f"{last_name}, {first_name}; "
+                        if affiliation:
+                            creator_string += f"{affiliation}; "
+                        if email:
+                            creator_string += f"{email}; "
+                        if orcid:
+                            creator_string += f"ORCID: {orcid}; "
+                    elif isinstance(creator, Organization):
+                        name = creator.name
+                        url = creator.url
+                        ror = creator.hasRorId
+                        email = creator.mbox
+                        if name:
+                            creator_string += f"{name}; "
+                        if url:
+                            creator_string += f"{url}; "
+                        if ror:
+                            creator_string += f"ROR ID: {ror}; "
+                        if email:
+                            creator_string += f"{email}; "
+                    creators_string_list.append(creator_string)
+                creators_string = ', '.join(creators_string_list)
+                f.write(f"<br>Creator: {creators_string.strip('; ')}\n")
 
             f.write(f"\n\n\n## Modifications\n\n")
             f.write("Standard names can be modified by qualifications and transformations. Qualification do not change "
@@ -737,14 +745,43 @@ class StandardNameTable(Dataset):
                 units = iri2str.get(str(sn.canonicalUnits), str(sn.canonicalUnits))
                 if units is None:
                     units = 'dimensionless'
-                if units is 'None':
+                if units == 'None':
                     units = 'dimensionless'
                 f.write(f'| {sn.standardName} | {units} | '
                         f'{sn.description} |\n')
         return markdown_filename
 
-    def to_html(self, filename: Optional[Union[str, pathlib.Path]] = None,
-                open_in_browser: bool = False) -> pathlib.Path:
+    def to_html(self,
+                *,
+                folder: Optional[Union[str, pathlib.Path]] = None,
+                filename: Optional[Union[str, pathlib.Path]] = None) -> pathlib.Path:
+        """Generates an HTML page for the standard name table.
+        Either a folder or a filename may be provided. If only a folder is provided, the filename will be the title of
+        the standard name table and will be saved in the folder. If only a filename is provided, the file will be saved
+        wherever the filename points to. If both are provided, a ValueError is raised.
+
+        Note
+        ----
+        The function requires the package "pypandoc" to be installed.
+
+        Parameters
+        ----------
+        folder: Optional[Union[str, pathlib.Path]]
+            The folder to save the HTML file to if the filename is not provided.
+        filename: Optional[Union[str, pathlib.Path]]
+            The filename to save the HTML file to if the folder is not provided.
+
+        Returns
+        -------
+        pathlib.Path
+            The filename of the written file.
+        """
+        if folder is not None and filename is not None:
+            raise ValueError("Either provide a folder or a filename, not both.")
+        if folder:
+            assert pathlib.Path(folder).is_dir(), f"Folder {folder} is not a folder."
+            assert pathlib.Path(folder).exists(), f"Folder {folder} does not exist."
+            filename = pathlib.Path(folder) / f"{self.title}.html"
         if filename is None:
             filename = f"{self.title}.html"
         html_filename = pathlib.Path(filename)
@@ -766,7 +803,4 @@ class StandardNameTable(Dataset):
         with open(html_filename, 'w') as f:
             f.write(output)
 
-        if open_in_browser:
-            import webbrowser
-            webbrowser.open('file://' + str(html_filename.resolve()))
         return html_filename
