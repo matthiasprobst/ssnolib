@@ -6,6 +6,7 @@ from typing import List, Union, Dict, Optional, Tuple
 import rdflib
 from ontolutils import namespaces, urirefs, Thing
 from pydantic import field_validator, Field, HttpUrl, ValidationError
+from rdflib import URIRef
 
 from ssnolib.dcat import Dataset, Distribution
 from ssnolib.prov import Person, Organization
@@ -20,15 +21,15 @@ __this_dir__ = pathlib.Path(__file__).parent
 
 @namespaces(ssno="https://matthiasprobst.github.io/ssno#",
             schema="http://schema.org/",
-            dcterms="http://purl.org/dc/terms/")
+            skos="http://www.w3.org/2004/02/skos/core#")
 @urirefs(StandardNameModification='ssno:StandardNameModification',
          name='schema:name',
-         description='dcterms:description')
+         definition='skos:definition')
 class StandardNameModification(Thing):
     """Implementation of ssno:StandardNameModification"""
 
     name: str  # schema:name
-    description: str  # dcterms:description
+    definition: str  # skos:definition
 
     def __str__(self) -> str:
         return f'{self.__class__.__name__}("{self.name}")'
@@ -186,10 +187,32 @@ class StandardNameTable(Dataset):
     @classmethod
     def parse(cls,
               source: Union[str, pathlib.Path, Distribution],
+              qudt_lookup: Optional[Dict[str, URIRef]] = None,
               fmt: str = None,
               **kwargs):
         """Call the reader plugin for the given format.
-        Format will select the reader plugin to use. Currently, 'xml' is supported."""
+        Format will select the reader plugin to use. Currently, 'xml' is supported.
+
+        Parameters
+        ----------
+        source: Union[str, pathlib.Path, Distribution]
+            The source of the Standard Name Table. This can be a file path, URL or a Distribution object.
+        qudt_lookup: Optional[Dict[str, URIRef]]
+            Additional lookup table for QUDT units to translate string units like 'm/s' into QUDT URIs.
+            The ontolutils package provides a lookup table for QUDT units but may not include all units of the
+            parsed Standard Name Table. By providing this additional lookup table, the parser can translate
+            the missing units into QUDT URIs.
+        fmt: str=None
+            The format of the source. If not provided, the format is determined based on the suffix of the source.
+        kwargs
+            Additional keyword arguments passed to the reader plugin.
+        """
+        from ontolutils.utils import qudt_units
+
+        original_qudt_lookup = qudt_units.qudt_lookup
+        if qudt_lookup:
+            qudt_units.qudt_lookup.update(qudt_lookup)
+
         if isinstance(source, (str, pathlib.Path)):
             filename = source
             if fmt is None:
@@ -214,9 +237,9 @@ class StandardNameTable(Dataset):
             try:
                 standardNames.append(StandardName(**sn))
             except ValidationError as e:
-                print(f"Could not parse {sn}. {e}", UserWarning)
-                warnings.warn(f"Could not parse {sn}. {e}", UserWarning)
+                warnings.warn(f"Could not parse {sn['standardName']}. {e}", UserWarning)
         data["standardNames"] = standardNames
+        qudt_units.qudt_lookup = original_qudt_lookup
         return cls(**data)
 
     @field_validator('hasModifier', mode='before')
@@ -281,7 +304,7 @@ class StandardNameTable(Dataset):
                             # existing_description = ""
                             for s in self.standardNames:
                                 if s.standardName == existing_standard_name:
-                                    # existing_description = s.description
+                                    # existing_description = s.definition
                                     break
                     return True
                 return False
@@ -346,14 +369,14 @@ class StandardNameTable(Dataset):
                 if re.match(pattern, standard_name):
                     groups = re.match(pattern, standard_name).groups()
                     qs = [qdict[qid] for qid in qualifications]
-                    q_description = ""
+                    q_definition = ""
                     for g, q in zip(groups, qs):
                         if g:
                             for s in self.standardNames:
                                 if s.standardName == existing_standard_name.standardName:
-                                    q_description = q.description
+                                    q_definition = q.definition
                     return StandardName(standardName=standard_name, canonicalUnits=core_standard_name.canonicalUnits,
-                                        description=core_standard_name.description + q_description)
+                                        definition=core_standard_name.definition + q_definition)
         raise ValueError(
             f"The standard name {standard_name} is not part of the table and does not conform to the qualification rules.")
 
@@ -440,23 +463,7 @@ class StandardNameTable(Dataset):
                 yaml_data['standardNames'] = {}
                 for sn in self.standardNames:
                     yaml_data['standardNames'][sn.standardName] = {'canonicalUnits': sn.canonicalUnits,
-                                                                   'description': sn.description}
-
-            # if self.locations:
-            #     for loc in self.locations:
-            #         yaml_data['locations'] = {loc.name: loc.description}
-            #
-            # if self.media:
-            #     for med in self.media:
-            #         yaml_data['media'] = {med.name: med.description}
-            #
-            # if self.conditions:
-            #     for cond in self.conditions:
-            #         yaml_data['conditions'] = {cond.name: cond.description}
-            #
-            # if self.reference_frames:
-            #     for ref in self.reference_frames:
-            #         yaml_data['reference_frames'] = {ref.name: ref.description}
+                                                                   'definition': sn.definition}
 
             yaml.dump(yaml_data, f, sort_keys=False)
 
@@ -620,7 +627,7 @@ class StandardNameTable(Dataset):
             self.verify(name)
             return name
 
-        new_standard_name = StandardName(standardName=name, canonicalUnits="dimensionless", description="N.A")
+        new_standard_name = StandardName(standardName=name, canonicalUnits="dimensionless", definition="N.A")
 
         name = new_standard_name.standardName
 
@@ -717,8 +724,8 @@ class StandardNameTable(Dataset):
                 for q in qualifications:
                     f.write(f"\n\n#### {q.name.capitalize()}\n")
                     f.write(f"Valid values: {', '.join([v.value for v in q.hasValidValues])}\n")
-                    if q.description:
-                        f.write(f"\n{q.description}\n")
+                    if q.definition:
+                        f.write(f"\n{q.definition}\n")
                     else:
                         f.write("No description available.\n")
             else:
@@ -731,7 +738,7 @@ class StandardNameTable(Dataset):
                 f.write(f"|---------------|:-------------|:------------|\n")
                 for t in transformations:
                     f.write(f"| {t.name} | {t.altersUnit if t.altersUnit else 'N.A'} | "
-                            f"{t.description if t.description else 'N.A'} |\n")
+                            f"{t.definition if t.definition else 'N.A'} |\n")
             else:
                 f.write("No transformations defined for this table.\n")
 
@@ -748,7 +755,7 @@ class StandardNameTable(Dataset):
                 if units == 'None':
                     units = 'dimensionless'
                 f.write(f'| {sn.standardName} | {units} | '
-                        f'{sn.description} |\n')
+                        f'{sn.definition} |\n')
         return markdown_filename
 
     def to_html(self,

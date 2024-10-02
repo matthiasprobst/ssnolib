@@ -159,7 +159,7 @@ class TestClasses(unittest.TestCase):
         self.assertIsInstance(atemp_dict, dict)
         self.assertEqual(atemp_dict['standardName'], 'air_temperature')
         self.assertEqual(atemp_dict['canonicalUnits'], 'http://qudt.org/vocab/unit/K')
-        self.assertEqual(atemp_dict['description'],
+        self.assertEqual(atemp_dict['definition'],
                          'Air temperature is the bulk temperature of the air, not the surface (skin) temperature.')
 
         atemp_json = atemp.model_dump_json()
@@ -168,7 +168,7 @@ class TestClasses(unittest.TestCase):
         self.assertIsInstance(atemp_json_dict, dict)
         self.assertEqual(atemp_json_dict['standardName'], 'air_temperature')
         self.assertEqual(atemp_json_dict['canonicalUnits'], 'http://qudt.org/vocab/unit/K')
-        self.assertEqual(atemp_json_dict['description'],
+        self.assertEqual(atemp_json_dict['definition'],
                          'Air temperature is the bulk temperature of the air, not the surface (skin) temperature.')
 
         # to json-ld:
@@ -191,7 +191,7 @@ class TestClasses(unittest.TestCase):
 
         self.assertEqual(jsonld_dict['@type'], 'ssno:StandardName')
         self.assertEqual(jsonld_dict['ssno:standardName'], 'air_temperature')
-        self.assertEqual(jsonld_dict['ssno:description'],
+        self.assertEqual(jsonld_dict['skos:definition'],
                          'Air temperature is the bulk temperature of the air, not the surface (skin) temperature.')
         self.assertEqual(jsonld_dict['ssno:canonicalUnits'], 'http://qudt.org/vocab/unit/K')
 

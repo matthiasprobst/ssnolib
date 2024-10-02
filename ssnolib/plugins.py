@@ -51,7 +51,7 @@ class XMLReader(TableReader):
             assert description is not None, 'Expected key "description" in the XML file.'
             return dict(standardName=standard_name.lower() if make_standard_names_lowercase else standard_name,
                         canonicalUnits=canonicalUnits,
-                        description=description)
+                        definition=description)
 
         version = xmldata.get('version', None)
         if version is None:
@@ -83,10 +83,10 @@ class XMLReader(TableReader):
 
         sndata = data.pop('standard_name')
         for sn in sndata:
-            if sn['description'] is None:
+            if sn['definition'] is None:
                 name = sn['standard_name']
-                warnings.warn(f'Description of "{name}" is None. Setting to empty string.', UserWarning)
-                sn['description'] = ""
+                warnings.warn(f'Definition of "{name}" is None. Setting to empty string.', UserWarning)
+                sn['definition'] = ""
         data['standardNames'] = sndata
         return data
 
@@ -113,7 +113,7 @@ class YAMLReader(TableReader):
                 **sndata
             }
             for k in list(_data.keys()):
-                if k not in ('canonicalUnits', 'description', 'standard_name'):
+                if k not in ('canonicalUnits', 'definition', 'standard_name'):
                     _data.pop(k)
             return _data
 
@@ -140,7 +140,7 @@ class YAMLReader(TableReader):
                 from ssnolib.standard_name_table import Qualification
                 qualifications = [Qualification(
                     name=q['name'],
-                    description=q.get('description', None),
+                    definition=q.get('definition', None),
                     hasPreposition=q.get('hasPreposition', None),
                     hasValidValues=q.get('hasValidValues', None)
                 ) for q in phrases]

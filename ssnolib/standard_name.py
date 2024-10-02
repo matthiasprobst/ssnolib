@@ -14,11 +14,12 @@ from . import config
 
 
 @namespaces(ssno="https://matthiasprobst.github.io/ssno#",
-            dcat="http://www.w3.org/ns/dcat#")
+            dcat="http://www.w3.org/ns/dcat#",
+            skos="http://www.w3.org/2004/02/skos/core#")
 @urirefs(StandardName='ssno:StandardName',
          standardName='ssno:standardName',
          canonicalUnits='ssno:canonicalUnits',
-         description='ssno:description',
+         definition='skos:definition',
          standardNameTable='ssno:standardNameTable')
 class StandardName(Concept):
     """Implementation of ssno:StandardName"""
@@ -30,7 +31,7 @@ class StandardName(Concept):
 
     standardName: str = Field(alias="standard_name")
     canonicalUnits: str = Field(alias="canonical_units")
-    description: str = None  # ssno:description
+    definition: str = Field(alias="description", default=None)  # skos:definition  (description is used in the CF Convention)
     standardNameTable: Dataset = Field(default=None, alias="standard_name_table")
 
     def __getattr__(self, item):
