@@ -1,6 +1,6 @@
 import re
 import warnings
-from typing import Union
+from typing import Union, List
 
 from ontolutils import namespaces, urirefs
 from pydantic import HttpUrl, field_validator, Field, ConfigDict
@@ -14,12 +14,11 @@ from . import config
 
 
 @namespaces(ssno="https://matthiasprobst.github.io/ssno#",
-            dcat="http://www.w3.org/ns/dcat#",
-            skos="http://www.w3.org/2004/02/skos/core#")
+            dcat="http://www.w3.org/ns/dcat#")
 @urirefs(StandardName='ssno:StandardName',
          standardName='ssno:standardName',
-         canonicalUnits='ssno:canonicalUnits',
-         definition='skos:definition',
+         unit='ssno:unit',
+         description='ssno:description',
          standardNameTable='ssno:standardNameTable')
 class StandardName(Concept):
     """Implementation of ssno:StandardName"""
@@ -30,8 +29,8 @@ class StandardName(Concept):
     )
 
     standardName: str = Field(alias="standard_name")
-    canonicalUnits: str = Field(alias="canonical_units")
-    definition: str = Field(alias="description", default=None)  # skos:definition  (description is used in the CF Convention)
+    unit: Union[str, HttpUrl]  # required!
+    description: Union[str, List[str]] = None  # ssno:description
     standardNameTable: Dataset = Field(default=None, alias="standard_name_table")
 
     def __getattr__(self, item):
@@ -63,30 +62,30 @@ class StandardName(Concept):
             return StandardNameTable(id=standardNameTable)
         raise TypeError(f"Expected a Dataset, got {type(standardNameTable)}")
 
-    @field_validator("canonicalUnits", mode='before')
+    @field_validator("unit", mode='before')
     @classmethod
-    def _parse_unit(cls, canonicalUnits: Union[HttpUrl, str]) -> str:
-        """Parse the canonicalUnits and return the canonicalUnits as string."""
-        if canonicalUnits is None:
-            return parse_unit('dimensionless')
-        if isinstance(canonicalUnits, str):
-            if canonicalUnits.startswith('http'):
-                return str(HttpUrl(canonicalUnits))
+    def _parse_unit(cls, unit: Union[HttpUrl, str]) -> str:
+        """Parse the unit and return the unit as string."""
+        if unit is None:
+            return str(parse_unit('dimensionless'))
+        if isinstance(unit, str):
+            if unit.startswith('http'):
+                return str(HttpUrl(unit))
             try:
-                return str(parse_unit(canonicalUnits))
+                return str(parse_unit(unit))
             except KeyError:
                 if config.raise_error_on_unparsable_unit:
                     err = InitErrorDetails(
                         type="value_error",
-                        loc=("canonicalUnits",),
-                        input=canonicalUnits,
-                        ctx={"error": f"your_message Unable to parse: {canonicalUnits}", }
+                        loc=("unit",),
+                        input=unit,
+                        ctx={"error": f"your_message Unable to parse: {unit}", }
                     )
                     raise ValidationError.from_exception_data(title=cls.__name__, line_errors=[err, ])
                 else:
-                    warnings.warn(f'Could not parse canonicalUnits: "{canonicalUnits}".', UserWarning)
-            return str(canonicalUnits)
-        return str(HttpUrl(canonicalUnits))
+                    warnings.warn(f'Could not parse unit: "{unit}".', UserWarning)
+            return str(unit)
+        return str(HttpUrl(unit))
 
     @field_validator("standardName", mode='before')
     @classmethod

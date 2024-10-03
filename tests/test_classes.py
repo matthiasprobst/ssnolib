@@ -71,12 +71,12 @@ class TestClasses(unittest.TestCase):
         self.assertTrue(download_filename.is_file())
         download_filename.unlink(missing_ok=True)
 
-
     def test_standard_name_table(self):
         snt = ssnolib.StandardNameTable(title='CF Standard Name Table v79')
         self.assertEqual(snt.title, 'CF Standard Name Table v79')
         self.assertEqual(str(snt), 'CF Standard Name Table v79')
-        self.assertEqual(repr(snt), f'StandardNameTable(id={snt.id}, title=CF Standard Name Table v79, hasModifier={{}})')
+        self.assertEqual(repr(snt),
+                         f'StandardNameTable(id={snt.id}, title=CF Standard Name Table v79, hasModifier={{}})')
 
         distribution = ssnolib.dcat.Distribution(title='XML Table',
                                                  downloadURL='http://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
@@ -112,8 +112,10 @@ class TestClasses(unittest.TestCase):
             self.assertIsInstance(sn, ssnolib.StandardName)
 
         snt_from_xml_dict = snt_from_xml.model_dump(exclude_none=True)
-        snt_from_xml_dict['creator'].pop("id")
-        self.assertDictEqual(snt_from_xml_dict['creator'],
+
+        agent = snt_from_xml_dict['qualifiedAttribution']["agent"]
+        agent.pop("id")
+        self.assertDictEqual(agent,
                              {'mbox': 'support@ceda.ac.uk',
                               'name': 'Centre for Environmental Data Analysis'})
 
@@ -134,20 +136,20 @@ class TestClasses(unittest.TestCase):
         http://cfconventions.org/Data/cf-standard-names/current/build/cf-standard-name-table.html"""
 
         with self.assertRaises(pydantic.ValidationError):
-            # invalid canonicalUnits
+            # invalid unit
             ssnolib.StandardName(
                 standardName='air_temperature',
-                canonicalUnits=123,
+                unit=123,
                 description='Air temperature is the bulk temperature of the air, not the surface (skin) temperature.', )
 
         atemp = ssnolib.StandardName(
             standardName='air_temperature',
-            canonicalUnits='K',
+            unit='K',
             description='Air temperature is the bulk temperature of the air, not the surface (skin) temperature.')
 
         self.assertEqual(str(atemp), 'air_temperature')
         self.assertEqual(atemp.standardName, 'air_temperature')
-        self.assertEqual(atemp.canonicalUnits, 'http://qudt.org/vocab/unit/K')
+        self.assertEqual(atemp.unit, 'http://qudt.org/vocab/unit/K')
         self.assertEqual(atemp.description,
                          'Air temperature is the bulk temperature of the air, not the surface (skin) temperature.')
 
@@ -158,8 +160,8 @@ class TestClasses(unittest.TestCase):
         atemp_dict = atemp.model_dump(exclude_none=True)
         self.assertIsInstance(atemp_dict, dict)
         self.assertEqual(atemp_dict['standardName'], 'air_temperature')
-        self.assertEqual(atemp_dict['canonicalUnits'], 'http://qudt.org/vocab/unit/K')
-        self.assertEqual(atemp_dict['definition'],
+        self.assertEqual(atemp_dict['unit'], 'http://qudt.org/vocab/unit/K')
+        self.assertEqual(atemp_dict['description'],
                          'Air temperature is the bulk temperature of the air, not the surface (skin) temperature.')
 
         atemp_json = atemp.model_dump_json()
@@ -167,8 +169,8 @@ class TestClasses(unittest.TestCase):
         atemp_json_dict = json.loads(atemp_json)
         self.assertIsInstance(atemp_json_dict, dict)
         self.assertEqual(atemp_json_dict['standardName'], 'air_temperature')
-        self.assertEqual(atemp_json_dict['canonicalUnits'], 'http://qudt.org/vocab/unit/K')
-        self.assertEqual(atemp_json_dict['definition'],
+        self.assertEqual(atemp_json_dict['unit'], 'http://qudt.org/vocab/unit/K')
+        self.assertEqual(atemp_json_dict['description'],
                          'Air temperature is the bulk temperature of the air, not the surface (skin) temperature.')
 
         # to json-ld:
@@ -191,10 +193,9 @@ class TestClasses(unittest.TestCase):
 
         self.assertEqual(jsonld_dict['@type'], 'ssno:StandardName')
         self.assertEqual(jsonld_dict['ssno:standardName'], 'air_temperature')
-        self.assertEqual(jsonld_dict['skos:definition'],
+        self.assertEqual(jsonld_dict['ssno:description'],
                          'Air temperature is the bulk temperature of the air, not the surface (skin) temperature.')
-        self.assertEqual(jsonld_dict['ssno:canonicalUnits'], 'http://qudt.org/vocab/unit/K')
-
+        self.assertEqual(jsonld_dict['ssno:unit'], 'http://qudt.org/vocab/unit/K')
 
         # https://qudt.org/vocab/unit/K
 

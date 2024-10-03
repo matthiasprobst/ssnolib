@@ -28,7 +28,7 @@ from ssnolib.utils import download_file
          version='dcat:version',
          identifier='dcterms:identifier')
 class Resource(Thing):
-    """Pdyantic implementation of dcat:Resource
+    """Pydantic implementation of dcat:Resource
 
     .. note::
 
@@ -211,8 +211,6 @@ class Dataset(Resource):
         Version of the resource (dcat:version)
     identifier: HttpUrl = None
         Identifier of the resource (dcterms:identifier)
-    creator: Union[Person, Organization] = None  # dcterms:creator
-        Contact person or Organization of the resource (http://www.w3.org/ns/prov#Person)
     distribution: List[Distribution] = None
         Distribution of the resource (dcat:Distribution)
     landing_page: HttpUrl = None

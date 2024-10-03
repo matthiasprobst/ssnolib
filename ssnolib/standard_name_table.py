@@ -9,7 +9,7 @@ from pydantic import field_validator, Field, HttpUrl, ValidationError
 from rdflib import URIRef
 
 from ssnolib.dcat import Dataset, Distribution
-from ssnolib.prov import Person, Organization
+from ssnolib.prov import Person, Organization, Attribution
 from . import config
 from . import plugins
 from .namespace import SSNO
@@ -21,15 +21,15 @@ __this_dir__ = pathlib.Path(__file__).parent
 
 @namespaces(ssno="https://matthiasprobst.github.io/ssno#",
             schema="http://schema.org/",
-            skos="http://www.w3.org/2004/02/skos/core#")
+            dcterms="http://purl.org/dc/terms/")
 @urirefs(StandardNameModification='ssno:StandardNameModification',
          name='schema:name',
-         definition='skos:definition')
+         description='dcterms:description')
 class StandardNameModification(Thing):
     """Implementation of ssno:StandardNameModification"""
 
     name: str  # schema:name
-    definition: str  # skos:definition
+    description: str  # dcterms:description
 
     def __str__(self) -> str:
         return f'{self.__class__.__name__}("{self.name}")'
@@ -161,10 +161,12 @@ class StandardNameTable(Dataset):
     version: Optional[str] = None
     description: Optional[str] = None
     identifier: Optional[str] = None
-    creator: Optional[Union[Person, List[Person], Organization, List[Organization]]] = None
-    standardNames: List[StandardName] = Field(default=None, alias="standardNames")  # ssno:standardNames
-    hasModifier: List[Union[Qualification, Transformation]] = Field(default_factory=dict,
-                                                                    alias="hasModifier")  # ssno:hasModifier
+    # creator: Optional[Union[Person, List[Person], Organization, List[Organization]]] = None  # depr!
+    qualifiedAttribution: Optional[Union[Attribution, List[Attribution]]] = Field(default=None,
+                                                                                  alias="qualified_attribution")
+    standardNames: Optional[List[StandardName]] = Field(default=None, alias="standardNames")  # ssno:standardNames
+    hasModifier: Optional[List[Union[Qualification, Transformation]]] = Field(default_factory=dict,
+                                                                              alias="hasModifier")  # ssno:hasModifier
 
     def __str__(self) -> str:
         if self.identifier:
@@ -187,8 +189,8 @@ class StandardNameTable(Dataset):
     @classmethod
     def parse(cls,
               source: Union[str, pathlib.Path, Distribution],
-              qudt_lookup: Optional[Dict[str, URIRef]] = None,
               fmt: str = None,
+              qudt_lookup: Optional[Dict[str, URIRef]] = None,
               **kwargs):
         """Call the reader plugin for the given format.
         Format will select the reader plugin to use. Currently, 'xml' is supported.
@@ -237,7 +239,7 @@ class StandardNameTable(Dataset):
             try:
                 standardNames.append(StandardName(**sn))
             except ValidationError as e:
-                warnings.warn(f"Could not parse {sn['standardName']}. {e}", UserWarning)
+                warnings.warn(f"Could not parse {sn}. {e}", UserWarning)
         data["standardNames"] = standardNames
         qudt_units.qudt_lookup = original_qudt_lookup
         return cls(**data)
@@ -304,7 +306,7 @@ class StandardNameTable(Dataset):
                             # existing_description = ""
                             for s in self.standardNames:
                                 if s.standardName == existing_standard_name:
-                                    # existing_description = s.definition
+                                    # existing_description = s.description
                                     break
                     return True
                 return False
@@ -323,8 +325,8 @@ class StandardNameTable(Dataset):
         regex_pattern, _ = self.get_qualification_regex()
         for existing_standard_name in str_standard_names:
             if existing_standard_name in str_standard_name:
-                reference_canonical_units = self.get_standard_name(existing_standard_name).canonicalUnits
-                if standard_name.canonicalUnits != reference_canonical_units:
+                reference_canonical_units = self.get_standard_name(existing_standard_name).unit
+                if standard_name.unit != reference_canonical_units:
                     raise ValueError("Canonical units do not match the reference standard name.")
                 # found a corresponding core standard name. replace it in regex pattern:
                 pattern = rf'{regex_pattern.replace("standard_name", existing_standard_name)}'
@@ -369,14 +371,14 @@ class StandardNameTable(Dataset):
                 if re.match(pattern, standard_name):
                     groups = re.match(pattern, standard_name).groups()
                     qs = [qdict[qid] for qid in qualifications]
-                    q_definition = ""
+                    q_description = ""
                     for g, q in zip(groups, qs):
                         if g:
                             for s in self.standardNames:
                                 if s.standardName == existing_standard_name.standardName:
-                                    q_definition = q.definition
-                    return StandardName(standardName=standard_name, canonicalUnits=core_standard_name.canonicalUnits,
-                                        definition=core_standard_name.definition + q_definition)
+                                    q_description = q.description
+                    return StandardName(standardName=standard_name, unit=core_standard_name.unit,
+                                        description=core_standard_name.description + q_description)
         raise ValueError(
             f"The standard name {standard_name} is not part of the table and does not conform to the qualification rules.")
 
@@ -462,8 +464,9 @@ class StandardNameTable(Dataset):
             if self.standardNames:
                 yaml_data['standardNames'] = {}
                 for sn in self.standardNames:
-                    yaml_data['standardNames'][sn.standardName] = {'canonicalUnits': sn.canonicalUnits,
-                                                                   'definition': sn.definition}
+                    yaml_data['standardNames'][sn.standardName] = {
+                        'unit': sn.unit,
+                        'description': sn.description}
 
             yaml.dump(yaml_data, f, sort_keys=False)
 
@@ -627,7 +630,7 @@ class StandardNameTable(Dataset):
             self.verify(name)
             return name
 
-        new_standard_name = StandardName(standardName=name, canonicalUnits="dimensionless", definition="N.A")
+        new_standard_name = StandardName(standardName=name, unit="dimensionless", description="N.A")
 
         name = new_standard_name.standardName
 
@@ -724,8 +727,8 @@ class StandardNameTable(Dataset):
                 for q in qualifications:
                     f.write(f"\n\n#### {q.name.capitalize()}\n")
                     f.write(f"Valid values: {', '.join([v.value for v in q.hasValidValues])}\n")
-                    if q.definition:
-                        f.write(f"\n{q.definition}\n")
+                    if q.description:
+                        f.write(f"\n{q.description}\n")
                     else:
                         f.write("No description available.\n")
             else:
@@ -738,7 +741,7 @@ class StandardNameTable(Dataset):
                 f.write(f"|---------------|:-------------|:------------|\n")
                 for t in transformations:
                     f.write(f"| {t.name} | {t.altersUnit if t.altersUnit else 'N.A'} | "
-                            f"{t.definition if t.definition else 'N.A'} |\n")
+                            f"{t.description if t.description else 'N.A'} |\n")
             else:
                 f.write("No transformations defined for this table.\n")
 
@@ -749,13 +752,13 @@ class StandardNameTable(Dataset):
 
             sorted_standard_names = sorted(self.standardNames, key=lambda x: x.standardName)
             for sn in sorted_standard_names:
-                units = iri2str.get(str(sn.canonicalUnits), str(sn.canonicalUnits))
+                units = iri2str.get(str(sn.unit), str(sn.unit))
                 if units is None:
                     units = 'dimensionless'
                 if units == 'None':
                     units = 'dimensionless'
                 f.write(f'| {sn.standardName} | {units} | '
-                        f'{sn.definition} |\n')
+                        f'{sn.description} |\n')
         return markdown_filename
 
     def to_html(self,
