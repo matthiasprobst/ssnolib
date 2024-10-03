@@ -1,8 +1,7 @@
-from typing import Union
-
-from pydantic import EmailStr, HttpUrl, Field
+from typing import Union, List
 
 from ontolutils import Thing, namespaces, urirefs
+from pydantic import EmailStr, HttpUrl, Field, field_validator
 
 
 @namespaces(prov="http://www.w3.org/ns/prov#",
@@ -55,8 +54,8 @@ class Organization(Agent):
         A Research Organization Registry identifier, that points to a research organization
     """
     name: str  # foaf:name
-    url: HttpUrl = None
-    hasRorId: HttpUrl = Field(alias="ror_id", default=None)
+    url: Union[str, HttpUrl] = None
+    hasRorId: Union[str, HttpUrl] = Field(alias="ror_id", default=None)
 
 
 @namespaces(prov="http://www.w3.org/ns/prov#",
@@ -67,8 +66,6 @@ class Organization(Agent):
          firstName='foaf:firstName',
          lastName='foaf:lastName',
          orcidId='m4i:orcidId',
-         hadRole='prov:hadRole',
-         wasRoleIn='prov:wasRoleIn',
          affiliation='schema:affiliation')
 class Person(Agent):
     """Pydantic Model for http://www.w3.org/ns/prov#Person
@@ -96,6 +93,39 @@ class Person(Agent):
     firstName: str = Field(default=None, alias="first_name")  # foaf:firstName
     lastName: str = Field(default=None, alias="last_name")  # foaf:last_name
     orcidId: str = Field(default=None, alias="orcid_id")  # m4i:orcidID
-    hadRole: HttpUrl = Field(default=None, alias="had_role")  # m4i:hadRole
-    wasRoleIn: Union[HttpUrl, str, Thing] = Field(default=None, alias="was_role_in")  # m4i:wasRoleIn
     affiliation: Organization = Field(default=None, alias="affiliation")  # schema:affiliation
+
+
+@namespaces(prov="http://www.w3.org/ns/prov#")
+@urirefs(Role='prov:Role')
+class Role(Thing):
+    """prov:Role"""
+
+
+@namespaces(prov="http://www.w3.org/ns/prov#")
+@urirefs(Attribution='prov:Attribution',
+         agent='prov:agent',
+         hadRole='prov:hadRole')
+class Attribution(Thing):
+    """Pydantic Model for http://www.w3.org/ns/prov#Agent
+
+    .. note::
+
+        More than the below parameters are possible but not explicitly defined here.
+
+
+    Parameters
+    ----------
+    agent: Agent
+        Person or Organization
+    hadRole: Role
+        Role of the agent
+    """
+    agent: Union[Person, List[Person], Organization, List[Organization], List[Union[Person, Organization]]]
+    hadRole: Union[str, HttpUrl] = Field(alias="had_role", default=None)
+
+    @field_validator('hadRole', mode='before')
+    @classmethod
+    def _hadRole(cls, hadRole: HttpUrl):
+        HttpUrl(hadRole)
+        return str(hadRole)

@@ -4,6 +4,9 @@ import pathlib
 import warnings
 from typing import Dict, Union
 
+from . import Person
+from .prov import Attribution
+
 logger = logging.getLogger("ssnolib")
 
 
@@ -37,20 +40,20 @@ class XMLReader(TableReader):
         xmldata = xmldict[_name]
 
         def _parse_standard_name(sndict):
-            canonicalUnits = sndict.get('canonical_units', '')
-            if canonicalUnits == '1':
-                canonicalUnits = ''
-            elif canonicalUnits is None:
-                canonicalUnits = ''
+            unit = sndict.get('canonical_units', '')
+            if unit == '1':
+                unit = ''
+            elif unit is None:
+                unit = ''
             description = sndict.get('description', '')
             if description is None:
                 description = ''
             standard_name = sndict.get('@id')
             assert standard_name is not None, 'Expected key "@id" in the XML file.'
-            assert canonicalUnits is not None, 'Expected key "canonicalUnits" in the XML file.'
+            assert unit is not None, 'Expected key "canonical_units" in the XML file.'
             assert description is not None, 'Expected key "description" in the XML file.'
             return dict(standardName=standard_name.lower() if make_standard_names_lowercase else standard_name,
-                        canonicalUnits=canonicalUnits,
+                        unit=unit,
                         description=description)
 
         version = xmldata.get('version', None)
@@ -64,9 +67,12 @@ class XMLReader(TableReader):
         if "@" in contact and institution is not None:
             # it is an email address
             from ssnolib.prov import Organization
-            creator = Organization(mbox=contact, name=institution)
+            org = Organization(mbox=contact, name=institution)
+            agent = Attribution(agent=org)
+            if org.hasRorId:
+                org.id = org.hasRorId
         else:
-            creator = contact
+            agent = Attribution(agent=contact)
 
             # else cannot be parsed
 
@@ -76,7 +82,7 @@ class XMLReader(TableReader):
         data = {'standard_name': [_parse_standard_name(sn) for sn in sn_data],
                 'version': version,
                 # 'modified': last_modified,
-                'creator': creator}
+                'qualifiedAttribution': agent}
 
         if 'title' not in xmldata:
             data['title'] = self.filename.stem
@@ -104,29 +110,29 @@ class YAMLReader(TableReader):
         standardNames = data.get('standardNames', {})
 
         def _parse_standard_names(name, sndata: Dict):
-            for ustr in ('unit', 'units', 'canonical_unit'):
+            for ustr in ('unit', 'units', 'canonical_unit', 'canonicalUnits'):
                 if ustr in sndata:
-                    sndata['canonicalUnits'] = sndata.pop(ustr)
+                    sndata['unit'] = sndata.pop(ustr)
                     break
             _data = {
                 'standard_name': name,
                 **sndata
             }
             for k in list(_data.keys()):
-                if k not in ('canonicalUnits', 'description', 'standard_name'):
+                if k not in ('unit', 'description', 'standard_name'):
                     _data.pop(k)
             return _data
 
-        creator = data.get('creator', None)
+        qualifiedAttribution = data.get('creator', None)
         # make the orcid id the ID of the creator:
-        if creator:
-            if isinstance(creator, list):
-                for ic, c in enumerate(creator.copy()):
+        if qualifiedAttribution:
+            if isinstance(qualifiedAttribution, list):
+                for ic, c in enumerate(qualifiedAttribution.copy()):
                     if c['orcid_id']:
-                        creator[ic]['id'] = c['orcid_id']
+                        qualifiedAttribution[ic]['id'] = c['orcid_id']
             else:
-                if creator['orcid_id']:
-                    creator['id'] = creator['orcid_id']
+                if qualifiedAttribution['orcid_id']:
+                    qualifiedAttribution['id'] = qualifiedAttribution['orcid_id']
 
         # parse qualifications
         qualification_data = data.get('qualifications', None)
@@ -170,7 +176,7 @@ class YAMLReader(TableReader):
                 # -1, 0, 1
 
         data_dict = {'title': data.get('name', data.get('title', None)),
-                     'creator': creator,
+                     'qualifiedAttribution': qualifiedAttribution,
                      'version': data.get('version', None),
                      'description': data.get('description', None),
                      'identifier': data.get('identifier', None),

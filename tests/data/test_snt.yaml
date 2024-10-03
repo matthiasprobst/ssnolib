@@ -74,15 +74,15 @@ affixes:
     z: Z indicates the z-axis component of the vector.
 standard_names:
   time:
-    units: s
+    unit: s
     description: Time refers to the relative time since start of data acquisition.
   coordinate:
     vector: true
-    units: m
+    unit: m
     description: Coordinate refers to the spatial coordinate. Coordinate is a vector quantity.
   velocity:
     vector: true
-    units: m/s
+    unit: m/s
     description: Velocity refers to the change of position over time. Velocity is a vector quantity.
   static_pressure:
     units: Pa

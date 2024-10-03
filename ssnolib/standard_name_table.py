@@ -6,9 +6,10 @@ from typing import List, Union, Dict, Optional, Tuple
 import rdflib
 from ontolutils import namespaces, urirefs, Thing
 from pydantic import field_validator, Field, HttpUrl, ValidationError
+from rdflib import URIRef
 
 from ssnolib.dcat import Dataset, Distribution
-from ssnolib.prov import Person, Organization
+from ssnolib.prov import Person, Organization, Attribution
 from . import config
 from . import plugins
 from .namespace import SSNO
@@ -160,10 +161,12 @@ class StandardNameTable(Dataset):
     version: Optional[str] = None
     description: Optional[str] = None
     identifier: Optional[str] = None
-    creator: Optional[Union[Person, List[Person], Organization, List[Organization]]] = None
-    standardNames: List[StandardName] = Field(default=None, alias="standardNames")  # ssno:standardNames
-    hasModifier: List[Union[Qualification, Transformation]] = Field(default_factory=dict,
-                                                                    alias="hasModifier")  # ssno:hasModifier
+    # creator: Optional[Union[Person, List[Person], Organization, List[Organization]]] = None  # depr!
+    qualifiedAttribution: Optional[Union[Attribution, List[Attribution]]] = Field(default=None,
+                                                                                  alias="qualified_attribution")
+    standardNames: Optional[List[StandardName]] = Field(default=None, alias="standardNames")  # ssno:standardNames
+    hasModifier: Optional[List[Union[Qualification, Transformation]]] = Field(default_factory=dict,
+                                                                              alias="hasModifier")  # ssno:hasModifier
 
     def __str__(self) -> str:
         if self.identifier:
@@ -187,9 +190,31 @@ class StandardNameTable(Dataset):
     def parse(cls,
               source: Union[str, pathlib.Path, Distribution],
               fmt: str = None,
+              qudt_lookup: Optional[Dict[str, URIRef]] = None,
               **kwargs):
         """Call the reader plugin for the given format.
-        Format will select the reader plugin to use. Currently, 'xml' is supported."""
+        Format will select the reader plugin to use. Currently, 'xml' is supported.
+
+        Parameters
+        ----------
+        source: Union[str, pathlib.Path, Distribution]
+            The source of the Standard Name Table. This can be a file path, URL or a Distribution object.
+        qudt_lookup: Optional[Dict[str, URIRef]]
+            Additional lookup table for QUDT units to translate string units like 'm/s' into QUDT URIs.
+            The ontolutils package provides a lookup table for QUDT units but may not include all units of the
+            parsed Standard Name Table. By providing this additional lookup table, the parser can translate
+            the missing units into QUDT URIs.
+        fmt: str=None
+            The format of the source. If not provided, the format is determined based on the suffix of the source.
+        kwargs
+            Additional keyword arguments passed to the reader plugin.
+        """
+        from ontolutils.utils import qudt_units
+
+        original_qudt_lookup = qudt_units.qudt_lookup
+        if qudt_lookup:
+            qudt_units.qudt_lookup.update(qudt_lookup)
+
         if isinstance(source, (str, pathlib.Path)):
             filename = source
             if fmt is None:
@@ -214,9 +239,9 @@ class StandardNameTable(Dataset):
             try:
                 standardNames.append(StandardName(**sn))
             except ValidationError as e:
-                print(f"Could not parse {sn}. {e}", UserWarning)
                 warnings.warn(f"Could not parse {sn}. {e}", UserWarning)
         data["standardNames"] = standardNames
+        qudt_units.qudt_lookup = original_qudt_lookup
         return cls(**data)
 
     @field_validator('hasModifier', mode='before')
@@ -300,8 +325,8 @@ class StandardNameTable(Dataset):
         regex_pattern, _ = self.get_qualification_regex()
         for existing_standard_name in str_standard_names:
             if existing_standard_name in str_standard_name:
-                reference_canonical_units = self.get_standard_name(existing_standard_name).canonicalUnits
-                if standard_name.canonicalUnits != reference_canonical_units:
+                reference_canonical_units = self.get_standard_name(existing_standard_name).unit
+                if standard_name.unit != reference_canonical_units:
                     raise ValueError("Canonical units do not match the reference standard name.")
                 # found a corresponding core standard name. replace it in regex pattern:
                 pattern = rf'{regex_pattern.replace("standard_name", existing_standard_name)}'
@@ -352,7 +377,7 @@ class StandardNameTable(Dataset):
                             for s in self.standardNames:
                                 if s.standardName == existing_standard_name.standardName:
                                     q_description = q.description
-                    return StandardName(standardName=standard_name, canonicalUnits=core_standard_name.canonicalUnits,
+                    return StandardName(standardName=standard_name, unit=core_standard_name.unit,
                                         description=core_standard_name.description + q_description)
         raise ValueError(
             f"The standard name {standard_name} is not part of the table and does not conform to the qualification rules.")
@@ -439,24 +464,9 @@ class StandardNameTable(Dataset):
             if self.standardNames:
                 yaml_data['standardNames'] = {}
                 for sn in self.standardNames:
-                    yaml_data['standardNames'][sn.standardName] = {'canonicalUnits': sn.canonicalUnits,
-                                                                   'description': sn.description}
-
-            # if self.locations:
-            #     for loc in self.locations:
-            #         yaml_data['locations'] = {loc.name: loc.description}
-            #
-            # if self.media:
-            #     for med in self.media:
-            #         yaml_data['media'] = {med.name: med.description}
-            #
-            # if self.conditions:
-            #     for cond in self.conditions:
-            #         yaml_data['conditions'] = {cond.name: cond.description}
-            #
-            # if self.reference_frames:
-            #     for ref in self.reference_frames:
-            #         yaml_data['reference_frames'] = {ref.name: ref.description}
+                    yaml_data['standardNames'][sn.standardName] = {
+                        'unit': sn.unit,
+                        'description': sn.description}
 
             yaml.dump(yaml_data, f, sort_keys=False)
 
@@ -620,7 +630,7 @@ class StandardNameTable(Dataset):
             self.verify(name)
             return name
 
-        new_standard_name = StandardName(standardName=name, canonicalUnits="dimensionless", description="N.A")
+        new_standard_name = StandardName(standardName=name, unit="dimensionless", description="N.A")
 
         name = new_standard_name.standardName
 
@@ -742,7 +752,7 @@ class StandardNameTable(Dataset):
 
             sorted_standard_names = sorted(self.standardNames, key=lambda x: x.standardName)
             for sn in sorted_standard_names:
-                units = iri2str.get(str(sn.canonicalUnits), str(sn.canonicalUnits))
+                units = iri2str.get(str(sn.unit), str(sn.unit))
                 if units is None:
                     units = 'dimensionless'
                 if units == 'None':

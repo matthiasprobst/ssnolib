@@ -1,3 +1,9 @@
-from .agent import Organization, Person, Agent
+from .attribution import Attribution, Person, Organization, Agent, Role
 
-__all__ = ['Organization', 'Person', 'Agent']
+__all__ = [
+    "Attribution",
+    "Person",
+    "Organization",
+    "Agent",
+    "Role",
+]
