@@ -76,7 +76,7 @@ class TestClasses(unittest.TestCase):
         self.assertEqual(snt.title, 'CF Standard Name Table v79')
         self.assertEqual(str(snt), 'CF Standard Name Table v79')
         self.assertEqual(repr(snt),
-                         f'StandardNameTable(id={snt.id}, title=CF Standard Name Table v79, hasModifier={{}})')
+                         f'StandardNameTable(id={snt.id}, title=CF Standard Name Table v79)')
 
         distribution = ssnolib.dcat.Distribution(title='XML Table',
                                                  downloadURL='http://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',

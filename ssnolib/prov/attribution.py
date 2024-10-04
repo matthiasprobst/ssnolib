@@ -57,6 +57,17 @@ class Organization(Agent):
     url: Union[str, HttpUrl] = None
     hasRorId: Union[str, HttpUrl] = Field(alias="ror_id", default=None)
 
+    def to_text(self) -> str:
+        """Return the text representation of the class"""
+        parts = [self.name]
+        if self.mbox:
+            parts.append(f"{self.mbox}")
+        if self.url:
+            parts.append(f"URL: {self.url}")
+        if self.hasRorId:
+            parts.append(f"ROR ID: {self.hasRorId}")
+        return '; '.join(parts)
+
 
 @namespaces(prov="http://www.w3.org/ns/prov#",
             foaf="http://xmlns.com/foaf/0.1/",
@@ -94,6 +105,21 @@ class Person(Agent):
     lastName: str = Field(default=None, alias="last_name")  # foaf:last_name
     orcidId: str = Field(default=None, alias="orcid_id")  # m4i:orcidID
     affiliation: Organization = Field(default=None, alias="affiliation")  # schema:affiliation
+
+    def to_text(self) -> str:
+        """Return the text representation of the class"""
+        parts = []
+        if self.firstName and self.lastName:
+            parts.append(f"{self.lastName}, {self.firstName}")
+        elif self.lastName:
+            parts.append(self.lastName)
+        if self.mbox:
+            parts.append(f"{self.mbox}")
+        if self.orcidId:
+            parts.append(f"ORCID: {self.orcidId}")
+        if self.affiliation:
+            parts.append(f"{self.affiliation.to_text()}")
+        return '; '.join(parts)
 
 
 @namespaces(prov="http://www.w3.org/ns/prov#")
