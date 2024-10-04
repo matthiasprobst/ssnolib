@@ -15,9 +15,9 @@ import ssnolib.standard_name_table
 from ssnolib import StandardName, StandardNameTable, Transformation
 from ssnolib.dcat import Distribution
 from ssnolib.namespace import SSNO
-from ssnolib.namespace import SSNO
 from ssnolib.prov import Attribution
 from ssnolib.qudt import parse_unit
+from ssnolib.standard_name import ScalarStandardName, VectorStandardName
 from ssnolib.utils import download_file
 
 __this_dir__ = pathlib.Path(__file__).parent
@@ -118,9 +118,17 @@ class TestSSNOStandardNameTable(unittest.TestCase):
                            description='y component of velocity',
                            unit='m s-1')
 
+        snt = StandardNameTable()
+        self.assertEqual(0, len(snt.standardNames))
+        snt.add_new_standard_name(
+            StandardName(standard_name='z_velocity', description='z component of velocity', unit='m s-1')
+        )
+        self.assertEqual(1, len(snt.standardNames))
+
         snt = StandardNameTable(standardNames=[sn1, sn2])
         with open('snt.json', 'w') as f:
             f.write(snt.model_dump_jsonld())
+
 
         snt_loaded = list(StandardNameTable.from_jsonld(data=snt.model_dump_jsonld(), limit=None))
         self.assertEqual(len(snt_loaded), 1)
@@ -255,12 +263,22 @@ class TestSSNOStandardNameTable(unittest.TestCase):
 
         self.assertDictEqual(yaml1, yaml2)
 
+    def test_scalar_qualifications(self):
+        medium = ssnolib.Qualification(name="medium", description="medium of a quantity",
+                                       hasValidValues=["air", "water"],
+                                       before=ssnolib.SSNO.AnyStandardName)
+        snt = ssnolib.StandardNameTable(
+            standard_names=[ssnolib.ScalarStandardName(standard_name="density", description="", unit="kg/m^3")])
+        snt.hasModifier = [medium, ]
+        self.assertTrue(snt.verify_name("density"))
+        self.assertTrue(snt.verify_name("air_density"))
+
     def test_modifications(self):
         comp = ssnolib.Qualification(name="component",
                                      description="component of the vector",
                                      hasValidValues=['x', 'y', "z"])
         medium = ssnolib.Qualification(name="medium", description="medium", hasPreposition='in')
-        medium.after = SSNO.AnyVectorStandardName
+        medium.after = SSNO.AnyStandardName
         comp.before = SSNO.AnyStandardName
 
         snt = StandardNameTable(title='SNT with modifications')
@@ -340,6 +358,11 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         )
         snt.hasModifier = [surface, component, at_surface]
 
+        self.assertEqual(
+            "[surface] [component] standard_name [at surface]",
+            snt.get_qualification_rule_as_string()
+        )
+
         # snt = StandardNameTable(name='CF Rebuilt')
         snt.hasModifier = [surface, component, at_surface, medium, process, condition]
 
@@ -348,19 +371,33 @@ class TestSSNOStandardNameTable(unittest.TestCase):
             snt.get_qualification_rule_as_string()
         )
 
-        core_standard_names = [
+        core_scalar_standard_names = [
             ("air_density", "kg m-3"),
             ("air_pressure", "Pa"),
             ("temperature", "K"),
-            ("speed", "m/s")
+        ]
+        core_vector_standard_names = [
+            ("coordinate", "m"),
+            ("velocity", "m/s"),
         ]
         with self.assertRaises(pydantic.ValidationError):
             snt.append("standardNames", 1.5)
 
         # snt.standardNames = StandardName(standardName="density", description="density", unit="kg/m-3")
-        for csn in core_standard_names:
-            snt.append("standardNames", StandardName(standardName=csn[0], description="", unit=csn[1]))
+        for csn in core_scalar_standard_names:
+            snt.append("standardNames", ScalarStandardName(standardName=csn[0], description="", unit=csn[1]))
+        for csn in core_vector_standard_names:
+            snt.append("standardNames", VectorStandardName(standardName=csn[0], description="", unit=csn[1]))
 
+        self.assertTrue(
+            snt.verify_name("x_air_density")
+        )  # density is not a vector standard name, hence x_ cannot be applied!
+        self.assertTrue(
+            snt.verify_name("x_coordinate")
+        )
+        self.assertTrue(
+            snt.verify_name("tropopause_coordinate")
+        )
         self.assertTrue(snt.verify_name("air_density"))  # equals "air_density"
         self.assertTrue(snt.verify_name("tropopause_air_pressure"))  # using regex
         tropopause_air_pressure = snt.get_standard_name("tropopause_air_pressure")  # using regex
@@ -379,6 +416,49 @@ class TestSSNOStandardNameTable(unittest.TestCase):
                 unit="Pa"
             )
         )
+
+    def test_cf_qualifications2(self):
+        snt = StandardNameTable()
+        surface = ssnolib.Qualification(
+            name="surface",
+            description="My surface",
+            hasValidValues=["toa", "tropopause", "surface"]
+        )
+        component = ssnolib.VectorQualification(
+            name="component",
+            description='My component',
+            hasValidValues=["x", "y"]
+        )
+        at_surface = ssnolib.Qualification(
+            name="surface",
+            description=surface.description,
+            hasPreposition='at',
+            hasValidValues=["adiabatic_condensation_level", "cloud_top", "convective_cloud_top",
+                            "cloud_base",
+                            "convective_cloud_base", "freezing_level", "ground_level",
+                            "maximum_wind_speed_level",
+                            "sea_floor", "sea_ice_base", "sea_level", "top_of_atmosphere_boundary_layer",
+                            "top_of_atmosphere_model", "top_of_dry_convection"]
+        )
+        component.before = surface
+        surface.before = SSNO.AnyStandardName
+        at_surface.after = SSNO.AnyStandardName
+        snt.hasModifier = [surface, component, at_surface]
+
+        self.assertFalse(snt.verify_name("x_velocity"))
+
+        snt.add_new_standard_name(VectorStandardName(standard_name='velocity', unit='m/s', description='velocity'),
+                                  False)
+        snt.add_new_standard_name(ScalarStandardName(standard_name='pressure', unit='Pa', description='pressure'),
+                                  False)
+        # self.assertTrue(snt.verify_name("x_velocity"))
+        # self.assertTrue(snt.verify_name("toa_velocity"))
+        # self.assertFalse(snt.verify_name("invalid_velocity"))
+        self.assertTrue(snt.verify_name("x_toa_velocity_at_sea_floor"))
+        self.assertFalse(
+            snt.verify_name("x_toa_pressure_at_sea_floor"))  # component is not applicable to pressure (scalar)
+        # self.assertTrue(snt.verify_name("x_toa_pressure"))
+        # self.assertFalse(snt.verify_name("toa_x_velocity"))
 
     if platform.system() != "Darwin":  # pandoc could not be installed in CI for macos... to be solved...
         def test_to_html(self):

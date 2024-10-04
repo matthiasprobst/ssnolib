@@ -3,7 +3,7 @@ from rdflib.term import URIRef
 
 
 class SSNO(DefinedNamespace):
-    # uri = "https://matthiasprobst.github.io/ssno/#"
+    # uri = "https://matthiasprobst.github.io/ssno#"
     # Generated with ssnolib
     Qualification: URIRef  # ['Qualification']
     StandardName: URIRef  # ['StandardName']

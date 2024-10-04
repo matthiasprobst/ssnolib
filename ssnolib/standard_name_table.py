@@ -15,8 +15,9 @@ from . import config
 from . import plugins
 from .namespace import SSNO
 from .qudt.utils import iri2str
-from .standard_name import StandardName
+from .standard_name import StandardName, VectorStandardName
 
+MAX_ITER = 1000
 __this_dir__ = pathlib.Path(__file__).parent
 ROLE_LOOKUP: Dict[str, str] = {
     str(M4I.ContactPerson): "Contact person",
@@ -35,6 +36,39 @@ ROLE_LOOKUP: Dict[str, str] = {
     str(M4I.Supervisor): "Supervisor",
     str(M4I.WorkPackageLeader): "Workpackage leader",
 }
+
+
+def _generate_ordered_list_of_qualifications(qres):
+    sorted_list = ['https://matthiasprobst.github.io/ssno#AnyStandardName', ]
+    i = 0
+    while len(qres) > 0:
+        i += 1
+        if i > MAX_ITER:
+            raise RuntimeError("Maximum number of iteration reached. There seems to be a problem with the "
+                               "before/after definition. Please consult the documentation or open an issue"
+                               "on github: https://github.com/matthiasprobst/ssnolib/issues/new.")
+        for k, v in qres.copy().items():
+            if v["before"]:
+                if v["before"] in sorted_list:
+                    # find the element corresponding to v["before"]:
+                    i = sorted_list.index(v["before"])
+                    sorted_list.insert(i, k)
+                    qres.pop(k)
+                # elif str(v["before"]) in (str(SSNO.AnyStandardName), str(SSNO.AnyScalarStandardName)):
+                #     i = sorted_list.index('https://matthiasprobst.github.io/ssno#AnyStandardName')
+                #     sorted_list.insert(i, k)
+                #     qres.pop(k)
+
+            elif v["after"]:
+                if v["after"] in sorted_list:
+                    i = sorted_list.index(v["after"])
+                    sorted_list.insert(i + 1, k)
+                    qres.pop(k)
+                # elif str(v["after"]) in (str(SSNO.AnyStandardName), str(SSNO.AnyScalarStandardName)):
+                #     i = sorted_list.index('https://matthiasprobst.github.io/ssno#AnyStandardName')
+                #     sorted_list.insert(i + 1, k)
+                #     qres.pop(k)
+    return sorted_list
 
 
 @namespaces(ssno="https://matthiasprobst.github.io/ssno#",
@@ -119,6 +153,13 @@ class Qualification(StandardNameModification):
 
 
 @namespaces(ssno="https://matthiasprobst.github.io/ssno#")
+@urirefs(VectorQualification='ssno:VectorQualification')
+class VectorQualification(Qualification):
+    """Special Qualification accounting for VectorStandardNames. Only one such Qualification
+    must exist at max in a StandardNameTable!"""
+
+
+@namespaces(ssno="https://matthiasprobst.github.io/ssno#")
 @urirefs(Character='ssno:Character',
          associatedWith='ssno:associatedWith'
          )
@@ -184,7 +225,8 @@ class StandardNameTable(Dataset):
     # creator: Optional[Union[Person, List[Person], Organization, List[Organization]]] = None  # depr!
     qualifiedAttribution: Optional[Union[Attribution, List[Attribution]]] = Field(default=None,
                                                                                   alias="qualified_attribution")
-    standardNames: Optional[List[StandardName]] = Field(default=None, alias="standard_names")  # ssno:standardNames
+    standardNames: Optional[List[StandardName]] = Field(default_factory=list,
+                                                        alias="standard_names")  # ssno:standardNames
     hasModifier: Optional[List[Union[Qualification, Transformation]]] = Field(default=None,
                                                                               alias="has_modifier")  # ssno:hasModifier
 
@@ -288,6 +330,13 @@ class StandardNameTable(Dataset):
                     q.after = pyid_lookup[id(q.after)].id
                 elif isinstance(q.after, str):
                     assert str(q.after).startswith(("_:", "http")), "Not a URIRef"
+        # at max one VectorQualification!:
+        nvq = len([q for q in qualifications if isinstance(q, VectorQualification)])
+        if nvq > 1:
+            raise ValueError("Only maximal one VectorQualification is allowed in a StandardNameTable.")
+        for q in qualifications:
+            if q.before is None and q.after is None:
+                raise ValueError(f"Neither before nor after property is given for {q.name}")
         qualifications.extend(transformations)
         return qualifications
 
@@ -305,7 +354,13 @@ class StandardNameTable(Dataset):
         if not re.match(general_pattern, standard_name):
             print("General pattern not matched. Must be lowercase and parts may be separated by '_'.")
             return False
-        str_standard_names = [sn.standardName for sn in self.standardNames]
+
+        if self.standardNames is None:
+            return False  # no standard names exist!
+
+        standard_name_dict = {sn.standardName: sn for sn in self.standardNames}
+
+        str_standard_names = list(standard_name_dict.keys())
 
         if standard_name in str_standard_names:
             return True
@@ -313,21 +368,24 @@ class StandardNameTable(Dataset):
         hasModifier = self.hasModifier or []
         qdict = {q.id: q for q in hasModifier if isinstance(q, Qualification)}
         regex_pattern, qualifications = self.get_qualification_regex()
+
         for existing_standard_name in str_standard_names:
             if existing_standard_name in standard_name:
                 # found a corresponding core standard name. replace it in regex pattern:
                 pattern = rf'{regex_pattern.replace("standard_name", existing_standard_name)}'
-                # pattern = r'^(?:toa|tropopause|surface)?(?:_?(?:upward|downward|northward|southward|eastward|westward|x|y))?_?air_pressure(?:_at_(adiabatic_condensation_level|cloud_top|convective_cloud_top|cloud_base|convective_cloud_base|freezing_level|ground_level|maximum_wind_speed_level|sea_floor|sea_ice_base|sea_level|top_of_atmosphere_boundary_layer|top_of_atmosphere_model|top_of_dry_convection))?(?:_in_(air|atmosphere_boundary_layer|mesosphere|sea_ice|sea_water|soil|soil_water|stratosphere|thermosphere|troposphere))?(?:_due_to_(advection|convection|deep_convection|diabatic_processes|diffusion|dry_convection|gravity_wave_drag|gyre|isostatic_adjustment|large_scale_precipitation|longwave_heating|moist_convection|overturning|shallow_convection|shortwave_heating|thermodynamics))?(?:_assuming_(clear_sky|deep_snow|no_snow))?$'
+
                 if re.match(pattern, standard_name):
-                    # TODO: Find out which groups were found:
                     groups = re.match(pattern, standard_name).groups()
                     qs = [qdict[qid] for qid in qualifications]
                     for g, q in zip(groups, qs):
                         if g:
-                            # existing_description = ""
+                            if isinstance(q, VectorQualification):
+                                # A VectorQualification can only qualify a VectorStandardName:
+                                if not isinstance(standard_name_dict[existing_standard_name], VectorStandardName):
+                                    return False
+
                             for s in self.standardNames:
                                 if s.standardName == existing_standard_name:
-                                    # existing_description = s.description
                                     break
                     return True
                 return False
@@ -507,8 +565,13 @@ class StandardNameTable(Dataset):
 
                 SELECT ?qualification ?name ?before ?after ?preposition
                 WHERE {
-                    ?qualification a ssno:Qualification ;
-                                   schema:name ?name .
+                    {
+                        ?qualification a ssno:Qualification ;
+                                       schema:name ?name .
+                    } UNION {
+                        ?qualification a ssno:VectorQualification ;
+                                       schema:name ?name .
+                    }
                     OPTIONAL { ?qualification ssno:before ?before }
                     OPTIONAL { ?qualification ssno:after ?after }
                     OPTIONAL { ?qualification ssno:hasPreposition ?preposition }
@@ -530,19 +593,8 @@ class StandardNameTable(Dataset):
                     'preposition': str(row.preposition) if row.preposition else None
                 }
 
-        sorted_list = ['https://matthiasprobst.github.io/ssno#AnyStandardName', ]
         qres_orig = qres.copy()
-        while len(qres) > 0:
-            for k, v in qres.copy().items():
-                if v["before"] in sorted_list:
-                    # find the element corresponding to v["before"]:
-                    i = sorted_list.index(v["before"])
-                    sorted_list.insert(i, k)
-                    qres.pop(k)
-                elif v["after"] in sorted_list:
-                    i = sorted_list.index(v["after"])
-                    sorted_list.insert(i + 1, k)
-                    qres.pop(k)
+        sorted_list = _generate_ordered_list_of_qualifications(qres)
 
         qualification_dict = {}
         qualifications_output = []
@@ -559,7 +611,7 @@ class StandardNameTable(Dataset):
                 valid_values = [v.value for v in qualification.hasValidValues]
                 if qualification.hasPreposition:
                     _valid_values = [qualification.hasPreposition + "_" + v for v in valid_values]
-                    out += f'(?:{"|".join(_valid_values)})?_?'
+                    out += f'(?:({"|".join(_valid_values)}))?_?'
                 else:
                     out += f'(?:({"|".join(valid_values)}))?_?'
             elif q == "standard_name":
@@ -583,8 +635,13 @@ class StandardNameTable(Dataset):
 
                 SELECT ?qualification ?name ?before ?after ?preposition
                 WHERE {
-                    ?qualification a ssno:Qualification ;
-                                   schema:name ?name .
+                    {
+                        ?qualification a ssno:Qualification ;
+                                       schema:name ?name .
+                    } UNION {
+                        ?qualification a ssno:VectorQualification ;
+                                       schema:name ?name .
+                    }
                     OPTIONAL { ?qualification ssno:before ?before }
                     OPTIONAL { ?qualification ssno:after ?after }
                     OPTIONAL { ?qualification ssno:hasPreposition ?preposition }
@@ -605,19 +662,8 @@ class StandardNameTable(Dataset):
                     'preposition': str(row.preposition) if row.preposition else None
                 }
 
-        sorted_list = ['https://matthiasprobst.github.io/ssno#AnyStandardName', ]
         qres_orig = qres.copy()
-        while len(qres) > 0:
-            for k, v in qres.copy().items():
-                if v["before"] in sorted_list:
-                    # find the element corresponding to v["before"]:
-                    i = sorted_list.index(v["before"])
-                    sorted_list.insert(i, k)
-                    qres.pop(k)
-                elif v["after"] in sorted_list:
-                    i = sorted_list.index(v["after"])
-                    sorted_list.insert(i + 1, k)
-                    qres.pop(k)
+        sorted_list = _generate_ordered_list_of_qualifications(qres)
 
         qualifications_output = []
         for e in sorted_list:
@@ -648,9 +694,10 @@ class StandardNameTable(Dataset):
             The new StandardName object
         """
         if not verify and isinstance(name, StandardName):
-            self.append("standardName", name)
+            self.append("standardNames", name)
         if isinstance(name, StandardName):
             self.verify(name)
+            self.append("standardNames", name)
             return name
 
         new_standard_name = StandardName(standardName=name, unit="dimensionless", description="N.A")
