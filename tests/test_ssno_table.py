@@ -260,7 +260,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
                                      description="component of the vector",
                                      hasValidValues=['x', 'y', "z"])
         medium = ssnolib.Qualification(name="medium", description="medium", hasPreposition='in')
-        medium.after = SSNO.AnyStandardName
+        medium.after = SSNO.AnyVectorStandardName
         comp.before = SSNO.AnyStandardName
 
         snt = StandardNameTable(title='SNT with modifications')

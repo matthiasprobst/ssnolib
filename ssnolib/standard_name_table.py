@@ -70,14 +70,14 @@ class AnnotatedValue(Thing):
          hasValidValues='ssno:hasValidValues')
 class Qualification(StandardNameModification):
     """Implementation of ssno:Qualification"""
-    before: Optional[Union[str, "Qualification"]] = None  # ssno:before
-    after: Optional[Union[str, "Qualification"]] = None  # ssno:after
+    before: Optional[Union[str, HttpUrl, "Qualification"]] = None  # ssno:before
+    after: Optional[Union[str, HttpUrl, "Qualification"]] = None  # ssno:after
     hasPreposition: Optional[str] = None  # ssno:hasPreposition
     hasValidValues: Optional[List[Union[str, AnnotatedValue]]] = None  # ssno:hasValidValues
 
     @field_validator('before')
     @classmethod
-    def _before(cls, before: Union[str, "Qualification"]) -> Union[str, "Qualification"]:
+    def _before(cls, before: Union[str, HttpUrl, "Qualification"]) -> Union[str, "Qualification"]:
         if isinstance(before, str):
             if not before.startswith("_:") and not before.startswith("http"):
                 raise ValueError(f'Expected a URIRef or Qualification, got {before}')
@@ -91,7 +91,7 @@ class Qualification(StandardNameModification):
 
     @field_validator('after')
     @classmethod
-    def _after(cls, after: Union[str, "Qualification"]) -> Union[str, "Qualification"]:
+    def _after(cls, after: Union[str, HttpUrl, "Qualification"]) -> Union[str, "Qualification"]:
         if isinstance(after, str):
             if not after.startswith("_:") and not after.startswith("http"):
                 raise ValueError(f'Expected a URIRef or Qualification, got {after}')

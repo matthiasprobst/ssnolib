@@ -95,3 +95,15 @@ class StandardName(Concept):
             raise ValueError(f"Invalid standard name '{standardName}' according to the core pattern "
                              f"'{config.standard_name_core_pattern}'.")
         return str(standardName)
+
+
+@namespaces(ssno="https://matthiasprobst.github.io/ssno#")
+@urirefs(ScalarStandardName='ssno:ScalarStandardName')
+class ScalarStandardName(StandardName):
+    pass
+
+
+@namespaces(ssno="https://matthiasprobst.github.io/ssno#")
+@urirefs(VectorStandardName='ssno:VectorStandardName')
+class VectorStandardName(StandardName):
+    pass
