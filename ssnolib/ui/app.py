@@ -2,9 +2,16 @@ from flask import Flask, render_template, request
 
 app = Flask(__name__)
 
-@app.route('/', methods=['GET', 'POST'])
+
+@app.route('/')
+def welcome():
+    return render_template('welcome.html')
+
+
+@app.route('/form', methods=['GET', 'POST'])
 def form():
     if request.method == 'POST':
+        # Handle form submission
         # Get general information
         title = request.form.get('title')
         version = request.form.get('version')
@@ -44,8 +51,9 @@ def form():
         valid_values = request.form.getlist('valid_values[]')
         qualification_descriptions = request.form.getlist('qualification_description[]')
         vector_flags = request.form.getlist('vector[]')
-        print(qualification_names)
-        for name, valid_value, desc, is_vector in zip(qualification_names, valid_values, qualification_descriptions, vector_flags):
+
+        for name, valid_value, desc, is_vector in zip(qualification_names, valid_values, qualification_descriptions,
+                                                      vector_flags):
             qualifications.append({
                 'name': name,
                 'valid_value': valid_value,
@@ -53,12 +61,36 @@ def form():
                 'is_vector': is_vector == 'on'  # Convert checkbox value to boolean
             })
 
-
         # Output the data to check
         return render_template('result.html', title=title, version=version, description=description,
                                authors=authors, standard_names=standard_names, qualifications=qualifications)
 
-    return render_template('form.html')
+    # If it's a GET request, check if we are loading an existing standard name
+    is_loading_existing = request.args.get('load') == 'true'
+
+    # Dummy values for the form if loading an existing standard name
+    dummy_data = {
+        'title': 'Existing Title',
+        'version': '1.0',
+        'description': 'This is a description for an existing standard.',
+        'authors': [
+            {'first_name': 'John', 'last_name': 'Doe', 'orcid': '0000-0001-2345-6789', 'email': 'john@example.com'},
+            {'first_name': 'Jane', 'last_name': 'Smith', 'orcid': '0000-0002-3456-7890', 'email': 'jane@example.com'},
+        ],
+        'standard_names': [
+            {'name': 'velocity', 'unit': 'm/s', 'description': 'Velocity vector', 'is_vector': True},
+            {'name': 'y_velocity', 'unit': 'm/s', 'description': 'Velocity in y direction', 'is_vector': False},
+        ],
+        'qualifications': [
+            {'name': 'Qualification 1', 'valid_value': 'Value 1', 'description': 'Description for qualification 1',
+             'is_vector': True},
+            {'name': 'Qualification 2', 'valid_value': 'Value 2', 'description': 'Description for qualification 2',
+             'is_vector': True},
+        ]
+    } if is_loading_existing else None
+
+    return render_template('form.html', dummy_data=dummy_data)
+
 
 if __name__ == '__main__':
     app.run(debug=True)

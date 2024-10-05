@@ -127,10 +127,8 @@ function deleteQualification(button) {
 // Function to update the current configuration display
 function updateConfiguration() {
     const qualificationContainer = document.getElementById('qualification-container');
-    const configurationContainer = document.getElementById('configuration-container');
-    const qualificationHeading = document.getElementById('qualification-heading'); // Select the heading
 
-    configurationContainer.innerHTML = ''; // Clear existing configurations
+    const qualificationHeading = document.getElementById('qualification-heading'); // Select the heading
 
     const qualifications = qualificationContainer.querySelectorAll('.list-group-item');
 
@@ -161,7 +159,6 @@ function updateConfiguration() {
                 }
             }
         });
-        configurationContainer.innerHTML = `<p>${configurationString.trim()}</p>`;
 
         // Update the heading with the configuration
         console.log(configurationString)
@@ -176,7 +173,6 @@ function updateConfiguration() {
             qualificationHeading.innerHTML = `Construction Rule: ${configurationString.trim()}`;
         }
     } else {
-        configurationContainer.innerHTML = `<p>No qualifications added.</p>`;
         qualificationHeading.innerHTML = `Qualifications`; // Reset heading if no qualifications
     }
 }
