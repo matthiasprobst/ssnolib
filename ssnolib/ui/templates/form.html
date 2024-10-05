@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Standard Name Table Form</title>
+
+    <!-- Bootstrap CSS CDN -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS (optional) -->
+    <style>
+        .form-section {
+            margin-bottom: 20px;
+        }
+        .form-section h2 {
+            margin-bottom: 15px;
+            color: #4a4a4a;
+        }
+    </style>
+
+    <script src="static/main.js" defer></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+
+</head>
+<body>
+<div class="container">
+    <h1 class="my-4 text-center">Standard Name Table Form</h1>
+
+    <form method="POST">
+        <div class="form-section">
+            <h2>General Information</h2>
+            <div class="form-group">
+                <label for="title">Title:</label>
+                <input type="text" class="form-control" name="title" required>
+            </div>
+            <div class="form-group">
+                <label for="version">Version:</label>
+                <input type="text" class="form-control" name="version" placeholder="Tip: Use semantic versioning, e.g. v1.0.0. See more at https://semver.org/" title="Tip: Use semantic versioning, e.g. v1.0.0. See more at https://semver.org/" required>
+            </div>
+            <div class="form-group">
+                <label for="description">Description:</label>
+                <textarea class="form-control" name="description" rows="3" required></textarea>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h2>Author(s)</h2>
+            <div id="author-container">
+                <div class="author form-row align-items-center mb-2">
+                    <div class="col-md">
+                        <label>First Name:</label>
+                        <input type="text" class="form-control" name="first_name[]">
+                    </div>
+                    <div class="col-md">
+                        <label>Last Name:</label>
+                        <input type="text" class="form-control" name="last_name[]">
+                    </div>
+                    <div class="col-md">
+                        <label>ORCID ID:</label>
+                        <input type="text" class="form-control" name="orcid[]" placeholder="Format: NNN-NNN-NNN-NNN" required>
+                    </div>
+                    <div class="col-md">
+                        <label>Email:</label>
+                        <input type="email" class="form-control" name="email[]">
+                    </div>
+                    <div class="col-md-1 text-right mt-2">
+                        <button type="button" class="btn btn-danger mt-4" onclick="deleteAuthor(this)">Delete Author
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn btn-secondary" onclick="addAuthor()">Add Author</button>
+        </div>
+
+        <h3 class="mt-4">Qualifications</h3>
+        <label id="qualification-heading"></label>
+        <div id="qualification-container"></div>
+        <button type="button" class="btn btn-primary" onclick="addQualification()">Add Qualification</button>
+
+        <h3 class="mt-4">Current Configuration</h3>
+        <div id="configuration-container" class="mb-4"></div>
+
+        <div class="form-section">
+            <h2>Standard Names</h2>
+            <div id="standard-name-container">
+                <div class="standard-name-row form-row align-items-center mb-2">
+                    <div class="col-md-3">
+                        <label>Name:</label>
+                        <input type="text" class="form-control" name="standard_name[]" required>
+                    </div>
+                    <div class="col-md-1">
+                        <label>Unit:</label>
+                        <input type="text" class="form-control" name="unit[]" required>
+                    </div>
+                    <div class="col-md-5">
+                        <label>Description:</label>
+                        <input type="text" class="form-control" name="name_description[]" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label>Vector:</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="is_vector[]">
+                        </div>
+                    </div>
+                    <div class="col-md-1 text-right mt-2">
+                        <button type="button" class="btn btn-danger mt-4" onclick="deleteStandardName(this)">Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn btn-secondary" onclick="addStandardNameRow()">Add Standard Name</button>
+        </div>
+
+        <div class="text-center my-4">
+            <input type="submit" class="btn btn-primary" value="Submit">
+        </div>
+    </form>
+</div>
+
+    <script>
+        // Initialize Sortable.js on qualification container
+        const qualificationContainer = document.getElementById('qualification-container');
+        new Sortable(qualificationContainer, {
+            animation: 150,
+            onEnd: function() {
+                updateConfiguration();
+            }
+        });
+
+        // Add default qualification entry
+        function addDefaultQualification() {
+            const defaultQualificationDiv = document.createElement('div');
+            defaultQualificationDiv.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center', 'mb-2');
+            defaultQualificationDiv.innerHTML = `
+                <div class="w-100">
+                    <div class="form-row">
+                        <div class="col-md-3">
+                            <label>Name:</label>
+                            <input type="text" class="form-control" name="qualification_name[]" value="AnyStandardName" readonly>
+                        </div>
+                        <div class="col-md-8">
+                            <label>Description:</label>
+                            <input type="text" class="form-control" name="qualification_description[]" value="Any Standard Name. Place the qualifications around it." readonly>
+                        </div>
+                    </div>
+                </div>
+            `;
+            qualificationContainer.appendChild(defaultQualificationDiv);
+        }
+
+        // Call function to add the default qualification
+        addDefaultQualification();
+    </script>
+
+<!-- Bootstrap JS and dependencies -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

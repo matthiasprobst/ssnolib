@@ -15,7 +15,7 @@ from . import config
 from . import plugins
 from .namespace import SSNO
 from .qudt.utils import iri2str
-from .standard_name import StandardName, VectorStandardName
+from .standard_name import StandardName, VectorStandardName, ScalarStandardName
 
 MAX_ITER = 1000
 __this_dir__ = pathlib.Path(__file__).parent
@@ -840,8 +840,8 @@ class StandardNameTable(Dataset):
             f.write(f"\n\n\n## Standard Names\n\n")
 
             if self.standardNames:
-                f.write(f"| Standard Name |     Units     | Description |\n")
-                f.write(f"|---------------|:-------------|:------------|\n")
+                f.write(f"| Standard Name | Vector/Scalar |     Units     | Description |\n")
+                f.write(f"|---------------|:-------------:|:--------------|:------------|\n")
 
                 sorted_standard_names = sorted(self.standardNames, key=lambda x: x.standardName)
                 for sn in sorted_standard_names:
@@ -850,8 +850,12 @@ class StandardNameTable(Dataset):
                         units = 'dimensionless'
                     if units == 'None':
                         units = 'dimensionless'
-                    f.write(f'| {sn.standardName} | {units} | '
-                            f'{sn.description} |\n')
+                    if isinstance(sn, VectorStandardName):
+                        f.write(f'| {sn.standardName} | Vector | {units} | {sn.description} |\n')
+                    elif isinstance(sn, ScalarStandardName):
+                        f.write(f'| {sn.standardName} | Scalar | {units} | {sn.description} |\n')
+                    else:
+                        f.write(f'| {sn.standardName} | ? | {units} | {sn.description} |\n')
             else:
                 f.write("No standard names defined for this table.\n")
         return markdown_filename
