@@ -2,7 +2,6 @@ import json
 import pathlib
 
 from ssnolib import CACHE_DIR
-from ssnolib.context import SSNO as context_url
 from ssnolib.utils import download_file
 
 __this_dir__ = pathlib.Path(__file__).parent
@@ -41,7 +40,7 @@ def generate_namespace_file():
         f.write('from rdflib.namespace import DefinedNamespace, Namespace\n')
         f.write('from rdflib.term import URIRef\n')
         f.write(f'\n\nclass {namespace.upper()}(DefinedNamespace):')
-        f.write('\n    # uri = "https://matthiasprobst.github.io/ssno/#"')
+        f.write('\n    # uri = "https://matthiasprobst.github.io/ssno#"')
         f.write('\n    # Generated with ssnolib')
         for k, v in iris.items():
             f.write(f'\n    {k}: URIRef  # {v["keys"]}')
