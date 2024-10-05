@@ -23,10 +23,6 @@ class Agent(Thing):
     """
     mbox: EmailStr = None  # foaf:mbox
 
-    # def _repr_html_(self) -> str:
-    #     """Returns the HTML representation of the class"""
-    #     return f"{self.__class__.__name__}({self.mbox})"
-
 
 @namespaces(schema='https://schema.org/',
             foaf='http://xmlns.com/foaf/0.1/',
@@ -93,9 +89,7 @@ class Person(Agent):
     lastName: str = None
         Last name (foaf:lastName)
     orcidId: str = None
-        ORCID ID of person (m4i:orcidID)
-    hadRole: HttpUrl
-        prov:hadRole references the Role (i.e. the function of an entity with respect to an activity)
+        ORCID ID of person (m4i:orcidId)
     wasRoleIn: HttpUrl
         prov:wasRoleIn references the association (e.g. between an agent and an activity) in which a role shall be defined. Inverse property of prov:hadRole.
 
@@ -103,7 +97,7 @@ class Person(Agent):
     """
     firstName: str = Field(default=None, alias="first_name")  # foaf:firstName
     lastName: str = Field(default=None, alias="last_name")  # foaf:last_name
-    orcidId: str = Field(default=None, alias="orcid_id")  # m4i:orcidID
+    orcidId: str = Field(default=None, alias="orcid_id")  # m4i:orcidId
     affiliation: Organization = Field(default=None, alias="affiliation")  # schema:affiliation
 
     def to_text(self) -> str:

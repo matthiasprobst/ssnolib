@@ -31,10 +31,41 @@ SNT_JSONLD = """{
     "dcat": "http://www.w3.org/ns/dcat#",
     "dct": "http://purl.org/dc/terms/",
     "prov": "http://www.w3.org/ns/prov#",
-    "ssnolib": "https://matthiasprobst.github.io/ssno#"
+    "ssno": "https://matthiasprobst.github.io/ssno#"
   },
   "@type": "ssno:StandardNameTable",
   "dct:title": "OpenCeFaDB Fan Standard Name Table",
+    "prov:qualifiedAttribution": [
+        {
+            "@type": "prov:Attribution",
+            "prov:agent": {
+                "@type": "prov:Person",
+                "foaf:firstName": "Matthias",
+                "foaf:lastName": "Probst",
+                "m4i:orcidId": "https://orcid.org/0000-0001-8729-0482",
+                "@id": "https://orcid.org/0000-0001-8729-0482"
+            },
+            "prov:hadRole": "http://w3id.org/nfdi4ing/metadata4ing#ContactPerson",
+            "@id": "_:Nb2d044e3f4834c249070f5d48f2a2110"
+        },
+        {
+            "@type": "prov:Attribution",
+            "prov:agent": {
+                "@type": "prov:Person",
+                "foaf:mbox": "john@doe.com",
+                "foaf:firstName": "John",
+                "foaf:lastName": "Doe",
+                "schema:affiliation": {
+                    "@type": "prov:Organization",
+                    "foaf:name": "Awesome Institute",
+                    "@id": "_:N9635d7b0338947ebb87c22da2acfc4c5"
+                },
+                "@id": "_:N74403c73be1c4cd4a724d8dbe8c37c1c"
+            },
+            "prov:hadRole": "http://w3id.org/nfdi4ing/metadata4ing#Supervisor",
+            "@id": "_:Nac1247a4798b4830b19a82feef83bc1b"
+        }
+    ],
   "ssno:standardNames": [
     {
       "@type": "ssno:StandardName",
@@ -81,7 +112,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
     def test_multiple_agents(self):
         agent1 = ssnolib.Person(
             firstName="Matthias", lastName="Probst",
-            orcidID="https://orcid.org/0000-0001-8729-0482",
+            orcidId="https://orcid.org/0000-0001-8729-0482",
             id="https://orcid.org/0000-0001-8729-0482")
         agent2 = ssnolib.Person(
             firstName="John", lastName="Doe")
@@ -109,6 +140,9 @@ class TestSSNOStandardNameTable(unittest.TestCase):
             str(M4I.Supervisor),
             str(snt.qualifiedAttribution[1].hadRole)
         )
+
+    def test_from_jsonld_file(self):
+        snt = StandardNameTable.from_jsonld(__this_dir__ / 'data/simpleSNT.jsonld')
 
     def test_standard_name_table(self):
         sn1 = StandardName(standard_name='x_velocity',

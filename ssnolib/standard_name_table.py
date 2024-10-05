@@ -107,7 +107,7 @@ class Qualification(StandardNameModification):
     before: Optional[Union[str, HttpUrl, "Qualification"]] = None  # ssno:before
     after: Optional[Union[str, HttpUrl, "Qualification"]] = None  # ssno:after
     hasPreposition: Optional[str] = None  # ssno:hasPreposition
-    hasValidValues: Optional[List[Union[str, AnnotatedValue]]] = None  # ssno:hasValidValues
+    hasValidValues: Optional[List[Union[str, Dict, AnnotatedValue]]] = None  # ssno:hasValidValues
 
     @field_validator('before')
     @classmethod
@@ -137,13 +137,18 @@ class Qualification(StandardNameModification):
             raise TypeError(f'Expected a AnyStandardName or Qualification, got {type(after)}')
         return after
 
-    @field_validator('hasValidValues')
+    @field_validator('hasValidValues', mode='before')
     @classmethod
     def _hasValidValues(cls, hasValidValues: Optional[List[Union[str, AnnotatedValue]]] = None) -> List[AnnotatedValue]:
+        if isinstance(hasValidValues, dict):
+            print(hasValidValues)
+            return [AnnotatedValue(**hasValidValues)]
         if hasValidValues:
             for k, v in enumerate(hasValidValues.copy()):
                 if isinstance(v, str):
                     hasValidValues[k] = AnnotatedValue(value=v, annotation="No description available.")
+                elif isinstance(v, dict):
+                    hasValidValues[k] = AnnotatedValue(**v)
         return hasValidValues
 
     def get_full_name(self):
@@ -161,8 +166,8 @@ class VectorQualification(Qualification):
 
 @namespaces(ssno="https://matthiasprobst.github.io/ssno#")
 @urirefs(Character='ssno:Character',
-         associatedWith='ssno:associatedWith'
-         )
+         character='ssno:character',
+         associatedWith='ssno:associatedWith')
 class Character(Thing):
     """Implementation of ssno:Transformation"""
 
@@ -172,6 +177,7 @@ class Character(Thing):
     @field_validator('associatedWith', mode='before')
     @classmethod
     def _associatedWith(cls, associatedWith: Union[str, HttpUrl, Qualification]) -> str:
+        print(f"associatedWith: {associatedWith}")
         if isinstance(associatedWith, str):
             assert str(associatedWith).startswith(("http", "_:"))
         if isinstance(associatedWith, Thing):
@@ -181,7 +187,7 @@ class Character(Thing):
 
 @namespaces(ssno="https://matthiasprobst.github.io/ssno#")
 @urirefs(Transformation='ssno:Transformation',
-         altersUnit='ssno:unitModificationRule',
+         altersUnit='ssno:altersUnit',
          hasCharacter='ssno:hasCharacter'
          )
 class Transformation(StandardNameModification):
@@ -189,6 +195,21 @@ class Transformation(StandardNameModification):
 
     altersUnit: str  # ssno:altersUnit
     hasCharacter: List[Character]  # ssno:hasCharacter
+
+    @field_validator('hasCharacter', mode='before')
+    @classmethod
+    def _hasCharacter(cls, hasCharacter):
+        if isinstance(hasCharacter, dict):
+            return [Character(**hasCharacter)]
+        if isinstance(hasCharacter, list):
+            _characters = []
+            for c in hasCharacter:
+                if isinstance(c, dict):
+                    _characters.append(Character(**c))
+                else:
+                    _characters.append(c)
+            return _characters
+        return hasCharacter
 
 
 @namespaces(ssno="https://matthiasprobst.github.io/ssno#",
@@ -227,8 +248,9 @@ class StandardNameTable(Dataset):
                                                                                   alias="qualified_attribution")
     standardNames: Optional[List[StandardName]] = Field(default_factory=list,
                                                         alias="standard_names")  # ssno:standardNames
-    hasModifier: Optional[List[Union[Qualification, Transformation]]] = Field(default=None,
-                                                                              alias="has_modifier")  # ssno:hasModifier
+    hasModifier: Optional[
+        List[Union[Qualification, VectorQualification, Transformation]]
+    ] = Field(default=None, alias="has_modifier")  # ssno:hasModifier
 
     def __str__(self) -> str:
         if self.identifier:
@@ -308,10 +330,25 @@ class StandardNameTable(Dataset):
 
     @field_validator('hasModifier', mode='before')
     @classmethod
-    def _hasModifier(cls, modifications: List[Union[Qualification, Transformation]]) -> List[
+    def _hasModifier(cls, modifications: List[Union[Qualification, Dict, Transformation]]) -> List[
         Union[Qualification, Transformation]]:
-        qualifications = [m for m in modifications if isinstance(m, Qualification)]
-        transformations = [m for m in modifications if isinstance(m, Transformation)]
+        _modifications = []
+        if isinstance(modifications, list):
+            for m in modifications:
+                if isinstance(m, dict):
+                    if m['type'] == 'https://matthiasprobst.github.io/ssno#Transformation':
+                        _modifications.append(Transformation(**m))
+                    elif m['type'] == 'https://matthiasprobst.github.io/ssno#Qualification':
+                        _modifications.append(Qualification(**m))
+                    elif m['type'] == 'https://matthiasprobst.github.io/ssno#VectorQualification':
+                        _modifications.append(VectorQualification(**m))
+                    else:
+                        raise ValueError(f"Unable to parse {m}")
+                else:
+                    _modifications.append(m)
+
+        qualifications = [m for m in _modifications if isinstance(m, Qualification)]
+        transformations = [m for m in _modifications if isinstance(m, Transformation)]
         # if all(isinstance(m, Qualification) for m in modifications):
         # assign IDs to the qualifications including the ones behind after/before so that no duplicates exist!
         pyid_lookup = {}

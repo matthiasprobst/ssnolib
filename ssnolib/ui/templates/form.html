@@ -33,12 +33,12 @@
         <a class="navbar-brand" href="/">SNT-Config</a>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav">
-<!--                <li class="nav-item">-->
-<!--                    <a class="nav-link" href="/">Home</a>-->
-<!--                </li>-->
-<!--                <li class="nav-item active">-->
-<!--                    <a class="nav-link" href="/">Home</a>-->
-<!--                </li>-->
+                <li class="nav-item active">
+                    <a class="nav-link" href="#">Form</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/JSON-LD">JSON-LD</a>
+                </li>
             </ul>
         </div>
     </nav>
@@ -49,61 +49,125 @@
             <h2>General Information</h2>
             <div class="form-group">
                 <label for="title">Title:</label>
-                <input type="text" class="form-control" name="title" required>
+                <input type="text" class="form-control" name="title" value="{{ data.title  if data else '' }}" required>
             </div>
             <div class="form-group">
                 <label for="version">Version:</label>
                 <input type="text" class="form-control" name="version"
+                       value="{{ data.version  if data else '' }}"
                        placeholder="Tip: Use semantic versioning, e.g. v1.0.0. See more at https://semver.org/"
                        title="Tip: Use semantic versioning, e.g. v1.0.0. See more at https://semver.org/" required>
             </div>
             <div class="form-group">
                 <label for="description">Description:</label>
-                <textarea class="form-control" name="description" rows="3" required></textarea>
+                <textarea class="form-control" name="description" rows="3"
+                          required>{{ data.description  if data else '' }}</textarea>
             </div>
         </div>
 
         <div class="form-section">
             <h2>Author(s)</h2>
             <div id="author-container">
-                <div class="author form-row align-items-center mb-2">
-                    <div class="col-md">
-                        <label>First Name:</label>
-                        <input type="text" class="form-control" name="first_name[]">
+                {% if data %}
+                    {% for author in data.authors %}
+                        <div class="author form-row align-items-center mb-2">
+                            <div class="col-md">
+                                <label>First Name:</label>
+                                <input type="text" class="form-control" name="first_name[]" value="{{ author.firstName }}">
+                            </div>
+                            <div class="col-md">
+                                <label>Last Name:</label>
+                                <input type="text" class="form-control" name="last_name[]" value="{{ author.lastName }}" >
+                            </div>
+                            <div class="col-md">
+                                <label>ORCID ID:</label>
+                                <input type="text" class="form-control" name="orcid[]"
+                                       placeholder="Format: NNN-NNN-NNN-NNN"
+                                        value="{{ author.orcidId }}">
+                            </div>
+                            <div class="col-md">
+                                <label>Email:</label>
+                                <input type="email" class="form-control" name="email[] "value="{{ author.mbox }}" >
+                            </div>
+                            <div class="col-md-1 text-right mt-2">
+                                <button type="button" class="btn btn-danger mt-4" onclick="deleteAuthor(this)">Delete Author
+                                </button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="form-row align-items-center mb-2">
+                        <div class="col-md">
+                            <label>First Name:</label>
+                            <input type="text" class="form-control" name="first_name[]">
+                        </div>
+                        <div class="col-md">
+                            <label>Last Name:</label>
+                            <input type="text" class="form-control" name="last_name[]">
+                        </div>
+                        <div class="col-md">
+                            <label>ORCID ID:</label>
+                            <input type="text" class="form-control" name="orcid[]">
+                        </div>
+                        <div class="col-md">
+                            <label>Email:</label>
+                            <input type="email" class="form-control" name="email[]">
+                        </div>
+                        <div class="col-md-1 text-right mt-2">
+                            <button type="button" class="btn btn-danger" onclick="deleteAuthor(this)">Delete Author</button>
+                        </div>
                     </div>
-                    <div class="col-md">
-                        <label>Last Name:</label>
-                        <input type="text" class="form-control" name="last_name[]">
-                    </div>
-                    <div class="col-md">
-                        <label>ORCID ID:</label>
-                        <input type="text" class="form-control" name="orcid[]" placeholder="Format: NNN-NNN-NNN-NNN"
-                               required>
-                    </div>
-                    <div class="col-md">
-                        <label>Email:</label>
-                        <input type="email" class="form-control" name="email[]">
-                    </div>
-                    <div class="col-md-1 text-right mt-2">
-                        <button type="button" class="btn btn-danger mt-4" onclick="deleteAuthor(this)">Delete Author
-                        </button>
-                    </div>
-                </div>
+                {% endif %}
             </div>
             <button type="button" class="btn btn-secondary" onclick="addAuthor()">Add Author</button>
         </div>
 
         <h3 class="mt-4">Qualifications</h3>
         <label id="qualification-heading"></label>
-        <div id="qualification-container"></div>
+        <div id="qualification-container">
+
+                {% if data %}
+                    {% for qualification in data.qualifications %}
+                        <div class="w-100">
+                            <div class="form-row">
+                                <div class="col-md-3">
+                                    <label>Name:</label>
+                                    <input type="text" class="form-control" name="qualification_name[]" required oninput="updateConfiguration()">
+                                </div>
+                                <div class="col-md-3">
+                                    <label>Valid Values:</label>
+                                    <input type="text" class="form-control" name="valid_values[]" placeholder="Comma sep. list, e.g. x,y,z" required>
+                                </div>
+                                <div class="col-md-2">
+                                    <label>Preposition:</label>
+                                    <input type="text" class="form-control" name="preposition[]" placeholder='E.g. "at", "assuming", ...' required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label>Description:</label>
+                                    <input type="text" class="form-control" name="qualification_description[]" required>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-check d-flex align-items-center">
+                                        <input class="form-check-input" type="checkbox" name="vector[]" id="vectorCheckbox">
+                                        <label class="form-check-label ml-2" for="vectorCheckbox">
+                                            Vector?
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+        </div>
         <button type="button" class="btn btn-primary" onclick="addQualification()">Add Qualification</button>
 
 
         <div class="form-section">
             <h3 class="mt-4">Standard Names</h3>
             <div id="standard-name-container">
-                {% if dummy_data %}
-                {% for standard in dummy_data.standard_names %}
+                {% if data %}
+                {% for standard in data.standard_names %}
                 <div class="form-row align-items-center mb-2">
                     <div class="col-md-3">
                         <label>Name:</label>

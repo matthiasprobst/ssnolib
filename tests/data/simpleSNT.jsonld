@@ -1,0 +1,123 @@
+{
+    "@context": {
+        "owl": "http://www.w3.org/2002/07/owl#",
+        "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+        "dcat": "http://www.w3.org/ns/dcat#",
+        "dcterms": "http://purl.org/dc/terms/",
+        "prov": "http://www.w3.org/ns/prov#",
+        "ssno": "https://matthiasprobst.github.io/ssno#",
+        "foaf": "http://xmlns.com/foaf/0.1/",
+        "m4i": "http://w3id.org/nfdi4ing/metadata4ing#",
+        "schema": "http://schema.org/",
+        "skos": "http://www.w3.org/2004/02/skos/core#"
+    },
+    "@type": "ssno:StandardNameTable",
+    "dcterms:title": "SNT from scratch",
+    "dcterms:description": "A table defined as part of a tutorial",
+    "dcat:version": "v1",
+    "prov:qualifiedAttribution": [
+        {
+            "@type": "prov:Attribution",
+            "prov:agent": {
+                "@type": "prov:Person",
+                "foaf:firstName": "Matthias",
+                "foaf:lastName": "Probst",
+                "m4i:orcidId": "https://orcid.org/0000-0001-8729-0482",
+                "@id": "https://orcid.org/0000-0001-8729-0482"
+            },
+            "prov:hadRole": "http://w3id.org/nfdi4ing/metadata4ing#ContactPerson",
+            "@id": "_:Nbe63a1bdee074676b782403ca1c30720"
+        },
+        {
+            "@type": "prov:Attribution",
+            "prov:agent": {
+                "@type": "prov:Person",
+                "foaf:mbox": "john@doe.com",
+                "foaf:firstName": "John",
+                "foaf:lastName": "Doe",
+                "schema:affiliation": {
+                    "@type": "prov:Organization",
+                    "foaf:name": "Awesome Institute",
+                    "@id": "_:N3e4dcafd0ae34acfbcfaebff102a2cdf"
+                },
+                "@id": "_:N32006e43787b4c8d8419e3dd3e4bda5d"
+            },
+            "prov:hadRole": "http://w3id.org/nfdi4ing/metadata4ing#Supervisor",
+            "@id": "_:N963cfb58a71941c48299dd5541bc0225"
+        }
+    ],
+    "ssno:standardNames": [
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "air_density",
+            "ssno:unit": "http://qudt.org/vocab/unit/KiloGM-PER-M3",
+            "ssno:description": "The density of air",
+            "@id": "_:N02ca7abe9cc0468f91a59fa2ddd32cfb"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "coordinate",
+            "ssno:unit": "http://qudt.org/vocab/unit/M",
+            "ssno:description": "The spatial coordinate vector.",
+            "@id": "_:Nb39153f1a9aa4a1fbb9cb4549d9e4373"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "velocity",
+            "ssno:unit": "http://qudt.org/vocab/unit/M-PER-SEC",
+            "ssno:description": "The velocity vector of an object or fluid.",
+            "@id": "_:N340bd4d571f144519d2176829022c392"
+        }
+    ],
+    "ssno:hasModifier": [
+        {
+            "@type": "ssno:VectorQualification",
+            "schema:name": "component",
+            "dcterms:description": "The component of a vector",
+            "ssno:before": "https://matthiasprobst.github.io/ssno#AnyStandardName",
+            "ssno:hasValidValues": [
+                {
+                    "@type": "ssno:AnnotatedValue",
+                    "ssno:value": "x",
+                    "ssno:annotation": "No description available.",
+                    "@id": "_:Naad2ad743b1142a3af05943e32fd33ff"
+                },
+                {
+                    "@type": "ssno:AnnotatedValue",
+                    "ssno:value": "y",
+                    "ssno:annotation": "No description available.",
+                    "@id": "_:N805a57d5fafb44c0807a76bcdbfe6e7b"
+                },
+                {
+                    "@type": "ssno:AnnotatedValue",
+                    "ssno:value": "z",
+                    "ssno:annotation": "No description available.",
+                    "@id": "_:N9a980e216a4b4525afbd5eb859a8902c"
+                }
+            ],
+            "@id": "_:N50d697d0d0a34a21ae6bba3c6896b8a9"
+        },
+        {
+            "@type": "ssno:Transformation",
+            "schema:name": "C_derivative_of_X",
+            "dcterms:description": "derivative of X with respect to distance in the component direction, which may be x, y or z.",
+            "ssno:altersUnit": "[X]/[C]",
+            "ssno:hasCharacter": [
+                {
+                    "@type": "ssno:Character",
+                    "ssno:character": "X",
+                    "ssno:associatedWith": "https://matthiasprobst.github.io/ssno#AnyStandardName",
+                    "@id": "_:N7e8a7b531bfd43df9cca2f3ca0aad4bf"
+                },
+                {
+                    "@type": "ssno:Character",
+                    "ssno:character": "C",
+                    "ssno:associatedWith": "_:N50d697d0d0a34a21ae6bba3c6896b8a9",
+                    "@id": "_:N34cb74304ccb4600bf49e22b279fbb6c"
+                }
+            ],
+            "@id": "_:N357e20d392004221a600be9099dc314c"
+        }
+    ],
+    "@id": "_:N4e7cf1b7b37640749be79315d3cc1526"
+}

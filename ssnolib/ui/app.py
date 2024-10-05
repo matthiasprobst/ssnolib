@@ -1,5 +1,10 @@
-from flask import Flask, render_template, request
+import pathlib
 
+from flask import Flask, render_template, request, redirect
+
+import ssnolib
+from ssnolib import StandardNameTable
+import json
 app = Flask(__name__)
 
 
@@ -69,7 +74,7 @@ def form():
     is_loading_existing = request.args.get('load') == 'true'
 
     # Dummy values for the form if loading an existing standard name
-    dummy_data = {
+    data = {
         'title': 'Existing Title',
         'version': '1.0',
         'description': 'This is a description for an existing standard.',
@@ -89,7 +94,73 @@ def form():
         ]
     } if is_loading_existing else None
 
-    return render_template('form.html', dummy_data=dummy_data)
+    return render_template('form.html', data=data)
+
+
+@app.route('/JSON-LD')
+def json_ld():
+    # Placeholder for the actual data retrieval logic
+    # Here, we're using a dummy configuration for demonstration
+    config_data = {
+        '@context': 'http://schema.org',
+        '@type': 'StandardName',
+        'title': 'Example Standard Name',
+        'version': '1.0',
+        'description': 'An example description of the standard name.',
+        'authors': [
+            {'@type': 'Person', 'name': 'John Doe'},
+            {'@type': 'Person', 'name': 'Jane Smith'}
+        ],
+        'standardNames': [
+            {'@type': 'DefinedTerm', 'name': 'Standard Name 1'},
+            {'@type': 'DefinedTerm', 'name': 'Standard Name 2'}
+        ]
+    }
+
+    return render_template('jsonld.html', config_data=config_data)
+
+
+@app.route('/loadJSONLD', methods=['POST'])
+def loadJSONLD():
+    # Get the uploaded file
+    json_content = json.load(request.files['jsonld_file'])
+    try:
+        snt = StandardNameTable.from_jsonld(data=json_content, limit=1)
+        print("could read it")
+        # Example of extracting data from JSON-LD
+        if not isinstance(snt.qualifiedAttribution, list):
+            qualifiedAttribution = [snt.qualifiedAttribution]
+        else:
+            qualifiedAttribution = snt.qualifiedAttribution
+
+        authors = []
+        for qa in qualifiedAttribution:
+            if isinstance(qa.agent, ssnolib.Person):
+                authors.append(qa.agent.model_dump(exclude_none=True))
+        print(snt.hasModifier)
+        modifier = snt.hasModifier or []
+        qualifications = [m for m in modifier if isinstance(m, ssnolib.VectorQualification)]
+
+        print(qualifications)
+        title = snt.title
+        version = snt.version
+        description = snt.description
+        standard_names = []
+        data = {
+            'title': title,
+            'version': version,
+            'description': description,
+            'authors': authors,
+            'qualifications': qualifications,
+            'standard_names': standard_names
+        }
+
+        # Render the form with pre-filled data
+        return render_template('form.html', data=data)
+    except Exception as e:
+        pass
+    # Redirect back to the welcome page if the file is not valid
+    return redirect('/')
 
 
 if __name__ == '__main__':
