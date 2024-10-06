@@ -154,8 +154,9 @@ class Attribution(Thing):
     @classmethod
     def _agent(cls, agent):
         if isinstance(agent, dict):
-            if "Organization" in agent.get("type", "None"):
+            _type = str(agent.get("type", agent.get("@type", "")))
+            if "Organization" in _type:
                 return Organization(**agent)
-            elif "Person" in agent.get("type", "None"):
+            elif "Person" in _type:
                 return Person(**agent)
         return agent

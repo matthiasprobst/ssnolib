@@ -283,11 +283,12 @@ class StandardNameTable(Dataset):
         if isinstance(modifications, list):
             for m in modifications:
                 if isinstance(m, dict):
-                    if m['type'] == 'https://matthiasprobst.github.io/ssno#Transformation':
+                    _type = str(m.get("type", m.get("@type", "")))
+                    if "Transformation" in _type:
                         _modifications.append(Transformation(**m))
-                    elif m['type'] == 'https://matthiasprobst.github.io/ssno#Qualification':
+                    elif "Qualification" in _type:
                         _modifications.append(Qualification(**m))
-                    elif m['type'] == 'https://matthiasprobst.github.io/ssno#VectorQualification':
+                    elif "VectorQualification" in _type:
                         _modifications.append(VectorQualification(**m))
                     else:
                         raise ValueError(f"Unable to parse {m}")
@@ -335,9 +336,10 @@ class StandardNameTable(Dataset):
 
         def _parseStandardNameType(stdname):
             if isinstance(stdname, dict):
-                if "VectorStandardName" in str(stdname["type"]):
+                _type = str(stdname.get("type", stdname.get("@type", "")))
+                if "VectorStandardName" in _type:
                     return VectorStandardName(**stdname)
-                elif "ScalarStandardName" in str(stdname["type"]):
+                elif "ScalarStandardName" in _type:
                     return ScalarStandardName(**stdname)
                 else:
                     return StandardName(**stdname)
