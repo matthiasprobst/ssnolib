@@ -1,10 +1,12 @@
-import pathlib
+import json
 
 from flask import Flask, render_template, request, redirect
+from tornado import version
 
 import ssnolib
-from ssnolib import StandardNameTable
-import json
+from ssnolib import StandardNameTable, VectorStandardName
+from ssnolib.qudt.utils import iri2str
+
 app = Flask(__name__)
 
 
@@ -97,25 +99,60 @@ def form():
     return render_template('form.html', data=data)
 
 
-@app.route('/JSON-LD')
+@app.route('/JSON-LD', methods=['POST'])
 def json_ld():
+    def parseAuthors(firstnames, lastNames, orcidIDs, mboxs):
+        authors = []
+        for (first_name, last_name, orcid, mbox) in zip(firstnames, lastNames, orcidIDs, mboxs):
+            person_dict = dict(
+                firstName=first_name if first_name != '' else None,
+                lastName=last_name if last_name != '' else None,
+                orcidId=orcid if orcid != '' else None,
+                mbox=mbox if "@" in mbox else None
+            )
+            for k, v in person_dict.copy().items():
+                if v is None:
+                    person_dict.pop(k)
+            authors.append(ssnolib.Person(**person_dict))
+        qualifiedAttributions = []
+        for author in authors:
+            qualifiedAttributions.append(ssnolib.Attribution(agent=author))
+        return qualifiedAttributions
+    snt = StandardNameTable(
+        title=request.form.get("title"),
+        version=request.form.get("version"),
+        description=request.form.get("description"),
+        qualifiedAttribution=parseAuthors(
+            request.form.getlist("person.firstName[]"),
+            request.form.getlist("person.lastName[]"),
+            request.form.getlist("person.orcidId[]"),
+            request.form.getlist("person.mbox[]"),
+        ),
+        # standardNames=[
+        #     VectorStandardName(
+        #         standardName=sn.get("name"),
+        #         unit=sn.get("unit"),
+        #         description=sn.get("description"),
+        #     ) for sn in request.form.get("standardNames")
+    )
+    config_data = json.loads(snt.model_dump_jsonld())
     # Placeholder for the actual data retrieval logic
     # Here, we're using a dummy configuration for demonstration
-    config_data = {
-        '@context': 'http://schema.org',
-        '@type': 'StandardName',
-        'title': 'Example Standard Name',
-        'version': '1.0',
-        'description': 'An example description of the standard name.',
-        'authors': [
-            {'@type': 'Person', 'name': 'John Doe'},
-            {'@type': 'Person', 'name': 'Jane Smith'}
-        ],
-        'standardNames': [
-            {'@type': 'DefinedTerm', 'name': 'Standard Name 1'},
-            {'@type': 'DefinedTerm', 'name': 'Standard Name 2'}
-        ]
-    }
+    # config_data = {
+    #     '@context': 'http://schema.org',
+    #     '@type': 'StandardName',
+    #     'title': 'Example Standard Name',
+    #     'version': '1.0',
+    #     'description': 'An example description of the standard name.',
+    #     'authors': [
+    #         {'@type': 'Person', 'name': 'John Doe'},
+    #         {'@type': 'Person', 'name': 'Jane Smith'}
+    #     ],
+    #     'standardNames': [
+    #         {'@type': 'DefinedTerm', 'name': 'Standard Name 1'},
+    #         {'@type': 'DefinedTerm', 'name': 'Standard Name 2'}
+    #     ]
+    # }
 
     return render_template('jsonld.html', config_data=config_data)
 
@@ -126,7 +163,7 @@ def loadJSONLD():
     json_content = json.load(request.files['jsonld_file'])
     try:
         snt = StandardNameTable.from_jsonld(data=json_content, limit=1)
-        print("could read it")
+
         # Example of extracting data from JSON-LD
         if not isinstance(snt.qualifiedAttribution, list):
             qualifiedAttribution = [snt.qualifiedAttribution]
@@ -137,22 +174,28 @@ def loadJSONLD():
         for qa in qualifiedAttribution:
             if isinstance(qa.agent, ssnolib.Person):
                 authors.append(qa.agent.model_dump(exclude_none=True))
-        print(snt.hasModifier)
+                authors[-1]["hadRole"] = qa.hadRole.rsplit("#", 1)[-1]
         modifier = snt.hasModifier or []
-        qualifications = [m for m in modifier if isinstance(m, ssnolib.VectorQualification)]
+        qualifications = [m for m in modifier if isinstance(m, (ssnolib.VectorQualification,
+                                                                ssnolib.ScalarStandardName,
+                                                                ssnolib.StandardName))]
 
-        print(qualifications)
         title = snt.title
         version = snt.version
         description = snt.description
-        standard_names = []
+        standard_names = snt.standardNames
+
         data = {
             'title': title,
             'version': version,
             'description': description,
             'authors': authors,
             'qualifications': qualifications,
-            'standard_names': standard_names
+            'standard_names': [
+                {'standardName': sn.standardName, 'unit_str': iri2str.get(sn.unit, 'N.A.'), 'unit': sn.unit,
+                 'description': sn.description,
+                 'is_vector': isinstance(sn, VectorStandardName)} for sn
+                in standard_names]
         }
 
         # Render the form with pre-filled data

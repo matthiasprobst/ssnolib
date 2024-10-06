@@ -141,7 +141,6 @@ class Qualification(StandardNameModification):
     @classmethod
     def _hasValidValues(cls, hasValidValues: Optional[List[Union[str, AnnotatedValue]]] = None) -> List[AnnotatedValue]:
         if isinstance(hasValidValues, dict):
-            print(hasValidValues)
             return [AnnotatedValue(**hasValidValues)]
         if hasValidValues:
             for k, v in enumerate(hasValidValues.copy()):
@@ -246,8 +245,9 @@ class StandardNameTable(Dataset):
     # creator: Optional[Union[Person, List[Person], Organization, List[Organization]]] = None  # depr!
     qualifiedAttribution: Optional[Union[Attribution, List[Attribution]]] = Field(default=None,
                                                                                   alias="qualified_attribution")
-    standardNames: Optional[List[StandardName]] = Field(default_factory=list,
-                                                        alias="standard_names")  # ssno:standardNames
+    standardNames: Optional[List[Union[StandardName, VectorStandardName, ScalarStandardName]]] = Field(
+        default_factory=list,
+        alias="standard_names")  # ssno:standardNames
     hasModifier: Optional[
         List[Union[Qualification, VectorQualification, Transformation]]
     ] = Field(default=None, alias="has_modifier")  # ssno:hasModifier
@@ -379,10 +379,24 @@ class StandardNameTable(Dataset):
 
     @field_validator('standardNames', mode='before')
     @classmethod
-    def _standard_names(cls, standardNames: Union[StandardName, List[StandardName]]) -> List[StandardName]:
+    def _standard_names(cls, standardNames: Union[
+        StandardName, List[Union[StandardName, VectorStandardName, ScalarStandardName]]]) -> List[StandardName]:
         if not isinstance(standardNames, list):
-            return [standardNames]
-        return standardNames
+            _standardNames = [standardNames]
+        else:
+            _standardNames = standardNames
+
+        def _parseStandardNameType(stdname):
+            if isinstance(stdname, dict):
+                if "VectorStandardName" in str(stdname["type"]):
+                    return VectorStandardName(**stdname)
+                elif "ScalarStandardName" in str(stdname["type"]):
+                    return ScalarStandardName(**stdname)
+                else:
+                    return StandardName(**stdname)
+            return stdname
+
+        return [_parseStandardNameType(sn) for sn in _standardNames]
 
     def verify_name(self, standard_name: str):
         """Verifies a string standard name"""

@@ -5,6 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JSON-LD Representation</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script>
+        // Function to copy the JSON-LD content to the clipboard
+        function copyToClipboard() {
+            const jsonLdContent = document.getElementById('jsonld-content').textContent;
+            navigator.clipboard.writeText(jsonLdContent).then(() => {
+                alert('JSON-LD copied to clipboard!');
+            }).catch(err => {
+                alert('Failed to copy text: ', err);
+            });
+        }
+    </script>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -23,7 +34,9 @@
 
     <div class="container mt-4">
         <h2>JSON-LD Representation</h2>
-        <pre>{{ config_data | tojson(indent=2) }}</pre>
+        <!-- Copy to Clipboard Button -->
+        <button class="btn btn-primary mb-3" onclick="copyToClipboard()">Copy to Clipboard</button>
+        <pre id="jsonld-content">{{ config_data | tojson(indent=2) }}</pre>
     </div>
 </body>
 </html>

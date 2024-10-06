@@ -55,14 +55,14 @@
             "@id": "_:N02ca7abe9cc0468f91a59fa2ddd32cfb"
         },
         {
-            "@type": "ssno:StandardName",
+            "@type": "ssno:VectorStandardName",
             "ssno:standardName": "coordinate",
             "ssno:unit": "http://qudt.org/vocab/unit/M",
             "ssno:description": "The spatial coordinate vector.",
             "@id": "_:Nb39153f1a9aa4a1fbb9cb4549d9e4373"
         },
         {
-            "@type": "ssno:StandardName",
+            "@type": "ssno:VectorStandardName",
             "ssno:standardName": "velocity",
             "ssno:unit": "http://qudt.org/vocab/unit/M-PER-SEC",
             "ssno:description": "The velocity vector of an object or fluid.",

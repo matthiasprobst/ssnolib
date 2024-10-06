@@ -8,19 +8,43 @@ function addAuthor() {
     newAuthorDiv.innerHTML = `
         <div class="col-md">
             <label>First Name:</label>
-            <input type="text" class="form-control" name="first_name[]" required>
+            <input type="text" class="form-control" name="person.firstName[]" required>
         </div>
         <div class="col-md">
             <label>Last Name:</label>
-            <input type="text" class="form-control" name="last_name[]" required>
+            <input type="text" class="form-control" name="person.lastName[]" required>
         </div>
         <div class="col-md">
             <label>ORCID ID:</label>
-            <input type="text" class="form-control" name="orcid[]" required>
+            <input type="text" class="form-control" name="person.orcidId[]" required>
+        </div>
+        <div class="col-md">
+            <label>Role:</label>
+            <select class="form-control" name="person.role[]" required>
+                <option value="" disabled selected>Select a role</option>
+                <option value="ContactPerson">Contact Person</option>
+                <option value="DataCollector">Data Collector</option>
+                <option value="DataCurator">Data Curator</option>
+                <option value="DataManager">Data Manager</option>
+                <option value="Distributor">Distributor</option>
+                <option value="Editor">Editor</option>
+                <option value="Other">Other</option>
+                <option value="Producer">Producer</option>
+                <option value="ProjectLeader">Project Leader</option>
+                <option value="ProjectManager">Project Manager</option>
+                <option value="ProjectMember">Project Member</option>
+                <option value="RelatedPerson">Related Person</option>
+                <option value="Researcher">Researcher</option>
+                <option value="RightsHolder">Rights Holder</option>
+                <option value="Sponsor">Sponsor</option>
+                <option value="Supervisor">Supervisor</option>
+                <option value="WorkPackageLeader">Workpackage Leader</option>
+                <!-- Add more roles as needed -->
+            </select>
         </div>
         <div class="col-md">
             <label>Email:</label>
-            <input type="email" class="form-control" name="email[]" required>
+            <input type="email" class="form-control" name="person.mbox[]" required>
         </div>
         <div class="col-md-1 text-right mt-2">
             <button type="button" class="btn btn-danger" onclick="deleteAuthor(this)">Delete Author</button>
@@ -94,8 +118,8 @@ function addQualification() {
                     <input type="text" class="form-control" name="valid_values[]" placeholder="Comma sep. list, e.g. x,y,z" required>
                 </div>
                 <div class="col-md-2">
-                    <label>Preposition:</label>
-                    <input type="text" class="form-control" name="preposition[]" placeholder='E.g. "at", "assuming", ...' required>
+                    <label>Preposition (optional):</label>
+                    <input type="text" class="form-control" name="preposition[]" placeholder='E.g. "at", "assuming", ...'>
                 </div>
                 <div class="col-md-3">
                     <label>Description:</label>
@@ -131,6 +155,7 @@ function updateConfiguration() {
     const qualificationHeading = document.getElementById('qualification-heading'); // Select the heading
 
     const qualifications = qualificationContainer.querySelectorAll('.list-group-item');
+    console.log(qualifications)
 
     // Static "AnyStandardName" line
     const defaultLine = "AnyStandardName";
@@ -138,6 +163,7 @@ function updateConfiguration() {
     // Collect all qualifications
     const configItems = [];
     qualifications.forEach((qualification, index) => {
+        console.log(`${qualification} ${index}`)
         const name = qualification.querySelector('input[name="qualification_name[]"]')?.value;
 
         const vectorText = name; // Use name as vector if checked

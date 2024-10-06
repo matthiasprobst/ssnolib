@@ -142,7 +142,9 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         )
 
     def test_from_jsonld_file(self):
-        snt = StandardNameTable.from_jsonld(__this_dir__ / 'data/simpleSNT.jsonld')
+        snt = StandardNameTable.from_jsonld(__this_dir__ / 'data/simpleSNT.jsonld', limit=1)
+        qualifications = [q for q in snt.hasModifier if isinstance(q, ssnolib.Qualification)]
+        self.assertEqual(1, len(qualifications))
 
     def test_standard_name_table(self):
         sn1 = StandardName(standard_name='x_velocity',
