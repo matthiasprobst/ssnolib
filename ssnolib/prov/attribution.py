@@ -149,3 +149,13 @@ class Attribution(Thing):
     def _hadRole(cls, hadRole: HttpUrl):
         HttpUrl(hadRole)
         return str(hadRole)
+
+    @field_validator('agent', mode='before')
+    @classmethod
+    def _agent(cls, agent):
+        if isinstance(agent, dict):
+            if "Organization" in agent.get("type", "None"):
+                return Organization(**agent)
+            elif "Person" in agent.get("type", "None"):
+                return Person(**agent)
+        return agent

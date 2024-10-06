@@ -66,14 +66,15 @@
         </div>
 
         <div class="form-section">
-            <h2>Author(s)</h2>
-            <div id="author-container">
+            <h2>Author(s) and Organization(s)</h2>
+            <div id="author-and-organization-container">
                 {% if data %}
-                {% for author in data.authors %}
+                {% for author in data.persons %}
                 <div class="author form-row align-items-center mb-2">
                     <div class="col-md">
                         <label>First Name:</label>
-                        <input type="text" class="form-control" name="person.firstName[]" value="{{ author.firstName }}">
+                        <input type="text" class="form-control" name="person.firstName[]"
+                               value="{{ author.firstName }}">
                     </div>
                     <div class="col-md">
                         <label>Last Name:</label>
@@ -87,25 +88,42 @@
                     </div>
                     <div class="col-md">
                         <label>Role:</label>
-                        <select class="form-control" name="person.role[]" required>
-                            <option value="" disabled>Select role</option>
-                            <option value="Contact Person" {% if author.hadRole == 'ContactPerson' %}selected{% endif %}>Contact Person</option>
-                            <option value="DataCollector" {% if author.hadRole == 'DataCollector' %}selected{% endif %}>Data Collector</option>
-                            <option value=DataCurator {% if author.hadRole == 'DataCurator' %}selected{% endif %}>Data Curator</option>
-                            <option value=DataManager {% if author.hadRole == 'DataManager' %}selected{% endif %}>Data Manager</option>
-                            <option value=Distributor {% if author.hadRole == 'Distributor' %}selected{% endif %}>Distributor</option>
-                            <option value=Editor {% if author.hadRole == 'Editor' %}selected{% endif %}>Editor</option>
-                            <option value=Other {% if author.hadRole == 'Other' %}selected{% endif %}>Other</option>
-                            <option value=Producer {% if author.hadRole == 'Producer' %}selected{% endif %}>Producer</option>
-                            <option value=ProjectLeader {% if author.hadRole == 'ProjectLeader' %}selected{% endif %}>Project Leader</option>
-                            <option value=ProjectManager {% if author.hadRole == 'ProjectManager' %}selected{% endif %}>Project Manager</option>
-                            <option value=ProjectMember {% if author.hadRole == 'ProjectMember' %}selected{% endif %}>Project Member</option>
-                            <option value=RelatedPerson {% if author.hadRole == 'RelatedPerson' %}selected{% endif %}>Related Person</option>
-                            <option value=Researcher {% if author.hadRole == 'Researcher' %}selected{% endif %}>Researcher</option>
-                            <option value=RightsHolder {% if author.hadRole == 'RightsHolder' %}selected{% endif %}>Rights Holder</option>
-                            <option value=Sponsor {% if author.hadRole == 'Sponsor' %}selected{% endif %}>Sponsor</option>
-                            <option value=Supervisor {% if author.hadRole == 'Supervisor' %}selected{% endif %}>Supervisor</option>
-                            <option value="WorkPackageLeader" {% if author.hadRole == 'WorkPackageLeader' %}selected{% endif %}>Workpackage Leader</option>
+                        <select class="form-control" name="person.hadRole[]">
+                            <option value="" >Select role</option>
+                            <option value="Contact Person" {% if author.hadRole==
+                            'ContactPerson' %}selected{% endif %}>Contact Person</option>
+                            <option value="DataCollector" {% if author.hadRole==
+                            'DataCollector' %}selected{% endif %}>Data Collector</option>
+                            <option value=DataCurator {% if author.hadRole==
+                            'DataCurator' %}selected{% endif %}>Data Curator</option>
+                            <option value=DataManager {% if author.hadRole==
+                            'DataManager' %}selected{% endif %}>Data Manager</option>
+                            <option value=Distributor {% if author.hadRole==
+                            'Distributor' %}selected{% endif %}>Distributor</option>
+                            <option value=Editor {% if author.hadRole==
+                            'Editor' %}selected{% endif %}>Editor</option>
+                            <option value=Other {% if author.hadRole==
+                            'Other' %}selected{% endif %}>Other</option>
+                            <option value=Producer {% if author.hadRole==
+                            'Producer' %}selected{% endif %}>Producer</option>
+                            <option value=ProjectLeader {% if author.hadRole==
+                            'ProjectLeader' %}selected{% endif %}>Project Leader</option>
+                            <option value=ProjectManager {% if author.hadRole==
+                            'ProjectManager' %}selected{% endif %}>Project Manager</option>
+                            <option value=ProjectMember {% if author.hadRole==
+                            'ProjectMember' %}selected{% endif %}>Project Member</option>
+                            <option value=RelatedPerson {% if author.hadRole==
+                            'RelatedPerson' %}selected{% endif %}>Related Person</option>
+                            <option value=Researcher {% if author.hadRole==
+                            'Researcher' %}selected{% endif %}>Researcher</option>
+                            <option value=RightsHolder {% if author.hadRole==
+                            'RightsHolder' %}selected{% endif %}>Rights Holder</option>
+                            <option value=Sponsor {% if author.hadRole==
+                            'Sponsor' %}selected{% endif %}>Sponsor</option>
+                            <option value=Supervisor {% if author.hadRole==
+                            'Supervisor' %}selected{% endif %}>Supervisor</option>
+                            <option value="WorkPackageLeader" {% if author.hadRole==
+                            'WorkPackageLeader' %}selected{% endif %}>Workpackage Leader</option>
                         </select>
                     </div>
                     <div class="col-md">
@@ -118,79 +136,111 @@
                     </div>
                 </div>
                 {% endfor %}
-                {% else %}
-                <div class="form-row align-items-center mb-2">
+                {% for organization in data.organizations %}
+                <div class="organization form-row align-items-center mb-2">
                     <div class="col-md">
-                        <label>First Name:</label>
-                        <input type="text" class="form-control" name="first_name[]">
+                        <label>Name:</label>
+                        <input type="text" class="form-control" name="organization.name[]"
+                               value="{{ organization.name if organization.name else '' }}">
                     </div>
                     <div class="col-md">
-                        <label>Last Name:</label>
-                        <input type="text" class="form-control" name="last_name[]">
+                        <label>URL:</label>
+                        <input type="url" class="form-control" name="organization.url[]"
+                               value="{{ organization.url if organization.url else '' }}">
                     </div>
                     <div class="col-md">
-                        <label>ORCID ID:</label>
-                        <input type="text" class="form-control" name="orcid[]">
+                        <label>ROR ID:</label>
+                        <input type="text" class="form-control" name="organization.hasRorId[]"
+                               placeholder="e.g. https://ror.org/63z3oa416"
+                               value="{{ organization.hasRorId if organization.hasRorId else '' }}">
+                    </div>
+                    <div class="col-md">
+                        <label>Role:</label>
+                        {% if organization.hadRole %}
+                        <select class="form-control" name="organization.hadRole[]">
+                            <option value="">Select role</option>
+                            <option value="HostingInstitution" {% if organization.hadRole==
+                            'HostingInstitution' %}selected{% endif %}>Hosting Institution</option>
+                            <option value="RegistrationAgency" {% if organization.hadRole==
+                            'RegistrationAgency' %}selected{% endif %}>Registration Agency</option>
+                            <option value=RegistrationAuthority {% if organization.hadRole==
+                            'RegistrationAuthority' %}selected{% endif %}>RegistrationAuthority</option>
+                            <option value="ResearchGroup" {% if organization.hadRole==
+                            'ResearchGroup' %}selected{% endif %}>Research Group</option>
+                        </select>
+                        {% else %}
+                        <select class="form-control" name="organization.hadRole[]">
+                            <option value="" selected>Select a role</option>
+                            <option value="HostingInstitution">Hosting Institution</option>
+                            <option value="RegistrationAgency">Data Collector</option>
+                            <option value="RegistrationAuthority">Registration Authority</option>
+                            <option value="ResearchGroup">Research Group</option>
+                        </select>
+                        {% endif %}
                     </div>
                     <div class="col-md">
                         <label>Email:</label>
-                        <input type="email" class="form-control" name="email[]">
+                        <input type="email" class="form-control" name="organization.mbox[]"
+                               value="{{ organization.mbox if organization.mbox else ''}}">
                     </div>
                     <div class="col-md-1 text-right mt-2">
-                        <button type="button" class="btn btn-danger" onclick="deleteAuthor(this)">Delete Author</button>
+                        <button type="button" class="btn btn-danger mt-4" onclick="deleteAuthor(this)">Delete Author
+                        </button>
                     </div>
                 </div>
+                {% endfor %}
                 {% endif %}
             </div>
             <button type="button" class="btn btn-secondary" onclick="addAuthor()">Add Author</button>
+            <button type="button" class="btn btn-secondary" onclick="addOrganization()">Add Organization</button>
         </div>
 
         <h3 class="mt-4">Qualifications</h3>
         <label id="qualification-heading"></label>
         <div id="qualification-container">
             {% if data %}
-                {% for qualification in data.qualifications %}
-                <div class="list-group-item d-flex justify-content-between align-items-center mb-2">
-                    <div class="w-100">
-                        <div class="form-row">
-                            <div class="col-md-3">
-                                <label>Name:</label>
-                                <input type="text" class="form-control" name="qualification_name[]" required
-                                       value="{{ qualification.name }}" oninput="updateConfiguration()">
-                            </div>
-                            <div class="col-md-3">
-                                <label>Valid Values:</label>
-                                <input type="text" class="form-control" name="valid_values[]"
-                                       value="{{ qualification.hasValidValues | map(attribute='value') | join(', ') }}"
-                                       placeholder="Comma sep. list, e.g. x,y,z" required>
-                            </div>
-                            <div class="col-md-2">
-                                <label>Preposition (optional):</label>
-                                <input type="text" class="form-control" name="preposition[]"
-                                       placeholder='E.g. "at", "assuming", ...'
-                                       value="{{ qualification.hasPreposition if qualification.hasPreposition else '' }}">
-                            </div>
-                            <div class="col-md-3">
-                                <label>Description:</label>
-                                <input type="text" class="form-control" name="qualification_description[]"
-                                       value="{{ qualification.description }}" required>
-                            </div>
-                            <div class="col-md-2">
-                                <div class="form-check d-flex align-items-center">
-                                    <input class="form-check-input" type="checkbox" name="vector[]" id="vectorCheckbox" {%
-                                           if
-                                    'Vector' in qualification.__class__.__name__ %}checked{% endif %}>
-                                    <label class="form-check-label ml-2" for="vectorCheckbox">
-                                        Vector?
-                                    </label>
-                                </div>
+            {% for qualification in data.qualifications %}
+            <div class="list-group-item d-flex justify-content-between align-items-center mb-2">
+                <div class="w-100">
+                    <div class="form-row">
+                        <div class="col-md-3">
+                            <label>Name:</label>
+                            <input type="text" class="form-control" name="qualification_name[]" required
+                                   value="{{ qualification.name }}" oninput="updateConfiguration()">
+                        </div>
+                        <div class="col-md-3">
+                            <label>Valid Values:</label>
+                            <input type="text" class="form-control" name="valid_values[]"
+                                   value="{{ qualification.hasValidValues | map(attribute='value') | join(', ') }}"
+                                   placeholder="Comma sep. list, e.g. x,y,z" required>
+                        </div>
+                        <div class="col-md-2">
+                            <label>Preposition (optional):</label>
+                            <input type="text" class="form-control" name="preposition[]"
+                                   placeholder='E.g. "at", "assuming", ...'
+                                   value="{{ qualification.hasPreposition if qualification.hasPreposition else '' }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label>Description:</label>
+                            <input type="text" class="form-control" name="qualification_description[]"
+                                   value="{{ qualification.description }}" required>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-check d-flex align-items-center">
+                                <input class="form-check-input" type="checkbox" name="vector[]" id="vectorCheckbox" {%
+                                       if
+                                'Vector' in qualification.__class__.__name__ %}checked{% endif %}>
+                                <label class="form-check-label ml-2" for="vectorCheckbox">
+                                    Vector?
+                                </label>
                             </div>
                         </div>
                     </div>
-                     <button type="button" class="btn btn-danger btn-sm" onclick="deleteQualification(this)">Delete</button>
                 </div>
+                <button type="button" class="btn btn-danger btn-sm" onclick="deleteQualification(this)">Delete</button>
+            </div>
 
-                {% endfor %}
+            {% endfor %}
             {% endif %}
 
         </div>
@@ -205,12 +255,14 @@
                 <div class="form-row align-items-center mb-2">
                     <div class="col-md-3">
                         <label>Name:</label>
-                        <input type="text" class="form-control" name="standard_name[]" value="{{ standard.standardName }}"
+                        <input type="text" class="form-control" name="standard_name[]"
+                               value="{{ standard.standardName }}"
                                required>
                     </div>
                     <div class="col-md-1">
                         <label>Unit:</label>
-                        <input type="text" class="form-control" name="unit[]" value="{{ standard.unit_str }}" title="{{ standard.unit }}" required>
+                        <input type="text" class="form-control" name="unit[]" value="{{ standard.unit_str }}"
+                               title="{{ standard.unit }}" required>
                     </div>
                     <div class="col-md-5">
                         <label>Description:</label>

@@ -1,7 +1,7 @@
 
 // Function to add new author fields with Bootstrap classes and "Delete" button at the end of the row
 function addAuthor() {
-    const authorContainer = document.getElementById('author-container');
+    const authorContainer = document.getElementById('author-and-organization-container');
     const newAuthorDiv = document.createElement('div');
     newAuthorDiv.classList.add('form-row', 'align-items-center', 'mb-2');
 
@@ -12,7 +12,7 @@ function addAuthor() {
         </div>
         <div class="col-md">
             <label>Last Name:</label>
-            <input type="text" class="form-control" name="person.lastName[]" required>
+            <input type="text" class="form-control" name="person.lastName[]">
         </div>
         <div class="col-md">
             <label>ORCID ID:</label>
@@ -20,8 +20,8 @@ function addAuthor() {
         </div>
         <div class="col-md">
             <label>Role:</label>
-            <select class="form-control" name="person.role[]" required>
-                <option value="" disabled selected>Select a role</option>
+            <select class="form-control" name="person.hadRole[]">
+                <option value="" selected>Select a role</option>
                 <option value="ContactPerson">Contact Person</option>
                 <option value="DataCollector">Data Collector</option>
                 <option value="DataCurator">Data Curator</option>
@@ -44,7 +44,7 @@ function addAuthor() {
         </div>
         <div class="col-md">
             <label>Email:</label>
-            <input type="email" class="form-control" name="person.mbox[]" required>
+            <input type="email" class="form-control" name="person.mbox[]">
         </div>
         <div class="col-md-1 text-right mt-2">
             <button type="button" class="btn btn-danger" onclick="deleteAuthor(this)">Delete Author</button>
@@ -52,6 +52,48 @@ function addAuthor() {
     `;
     authorContainer.appendChild(newAuthorDiv);
 }
+
+// Function to add new organization fields with Bootstrap classes and "Delete" button at the end of the row
+function addOrganization() {
+    const organizationContainer = document.getElementById('author-and-organization-container');
+    const newOrganizationDiv = document.createElement('div');
+    newOrganizationDiv.classList.add('form-row', 'align-items-center', 'mb-2');
+
+    newOrganizationDiv.innerHTML = `
+        <div class="col-md">
+            <label>Name:</label>
+            <input type="text" class="form-control" name="organization.name[]" required>
+        </div>
+        <div class="col-md">
+            <label>URL:</label>
+            <input type="url" class="form-control" name="organization.url[]">
+        </div>
+        <div class="col-md">
+            <label>ROR ID:</label>
+            <input type="text" class="form-control" name="organization.hasRorId[]">
+        </div>
+        <div class="col-md">
+            <label>Role:</label>
+            <select class="form-control" name="organization.hadRole[]">
+                <option value="" selected>Select a role</option>
+                <option value="HostingInstitution">Hosting Institution</option>
+                <option value="RegistrationAgency">Data Collector</option>
+                <option value="RegistrationAuthority">Registration Authority</option>
+                <option value="ResearchGroup">Research Group</option>
+            </select>
+        </div>
+        <div class="col-md">
+            <label>Email:</label>
+            <input type="email" class="form-control" name="organization.mbox[]">
+        </div>
+        <div class="col-md-1 text-right mt-2">
+            <button type="button" class="btn btn-danger" onclick="deleteOrganization(this)">Delete Organization</button>
+        </div>
+    `;
+    organizationContainer.appendChild(newOrganizationDiv);
+}
+
+
 
 // Function to add new standard name rows with Bootstrap classes and "Delete" button at the end of the row
 function addStandardNameRow() {
@@ -90,6 +132,12 @@ function addStandardNameRow() {
 function deleteAuthor(button) {
     const authorRow = button.parentNode.parentNode;
     authorRow.remove();
+}
+
+// Function to delete an author row
+function deleteOrganization(button) {
+    const orgaRow = button.parentNode.parentNode;
+    orgaRow.remove();
 }
 
 

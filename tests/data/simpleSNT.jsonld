@@ -26,7 +26,7 @@
                 "@id": "https://orcid.org/0000-0001-8729-0482"
             },
             "prov:hadRole": "http://w3id.org/nfdi4ing/metadata4ing#ContactPerson",
-            "@id": "_:Nbe63a1bdee074676b782403ca1c30720"
+            "@id": "_:N30a3178eca124349852d8151763ea6fa"
         },
         {
             "@type": "prov:Attribution",
@@ -38,12 +38,21 @@
                 "schema:affiliation": {
                     "@type": "prov:Organization",
                     "foaf:name": "Awesome Institute",
-                    "@id": "_:N3e4dcafd0ae34acfbcfaebff102a2cdf"
+                    "@id": "_:N53378f6b96354a19ab9c9f9f6283eed9"
                 },
-                "@id": "_:N32006e43787b4c8d8419e3dd3e4bda5d"
+                "@id": "_:N0ec5f2b80afc4f1c8c1e722ccdb12fde"
             },
             "prov:hadRole": "http://w3id.org/nfdi4ing/metadata4ing#Supervisor",
-            "@id": "_:N963cfb58a71941c48299dd5541bc0225"
+            "@id": "_:N687706ec6cce4d6d83111ea3d16e6f98"
+        },
+        {
+            "@type": "prov:Attribution",
+            "prov:agent": {
+                "@type": "prov:Organization",
+                "foaf:name": "Awesome Institute",
+                "@id": "_:N53378f6b96354a19ab9c9f9f6283eed9"
+            },
+            "@id": "_:N48977781c4a4488cb7c3677bd6f5e5cb"
         }
     ],
     "ssno:standardNames": [
@@ -52,21 +61,21 @@
             "ssno:standardName": "air_density",
             "ssno:unit": "http://qudt.org/vocab/unit/KiloGM-PER-M3",
             "ssno:description": "The density of air",
-            "@id": "_:N02ca7abe9cc0468f91a59fa2ddd32cfb"
+            "@id": "_:N848e15139d2149df8a5d3525ea80de31"
         },
         {
-            "@type": "ssno:VectorStandardName",
+            "@type": "ssno:StandardName",
             "ssno:standardName": "coordinate",
             "ssno:unit": "http://qudt.org/vocab/unit/M",
             "ssno:description": "The spatial coordinate vector.",
-            "@id": "_:Nb39153f1a9aa4a1fbb9cb4549d9e4373"
+            "@id": "_:Nf14cede1f61c42f0b15a994069d9e7e6"
         },
         {
-            "@type": "ssno:VectorStandardName",
+            "@type": "ssno:StandardName",
             "ssno:standardName": "velocity",
             "ssno:unit": "http://qudt.org/vocab/unit/M-PER-SEC",
             "ssno:description": "The velocity vector of an object or fluid.",
-            "@id": "_:N340bd4d571f144519d2176829022c392"
+            "@id": "_:N1165fe11db5b495fa249f256e699ea07"
         }
     ],
     "ssno:hasModifier": [
@@ -80,22 +89,22 @@
                     "@type": "ssno:AnnotatedValue",
                     "ssno:value": "x",
                     "ssno:annotation": "No description available.",
-                    "@id": "_:Naad2ad743b1142a3af05943e32fd33ff"
+                    "@id": "_:Nb6f520af7bc442ab9a2f13ab2c81728a"
                 },
                 {
                     "@type": "ssno:AnnotatedValue",
                     "ssno:value": "y",
                     "ssno:annotation": "No description available.",
-                    "@id": "_:N805a57d5fafb44c0807a76bcdbfe6e7b"
+                    "@id": "_:Ne6c9c3de6e6f4120abff88e300db0e00"
                 },
                 {
                     "@type": "ssno:AnnotatedValue",
                     "ssno:value": "z",
                     "ssno:annotation": "No description available.",
-                    "@id": "_:N9a980e216a4b4525afbd5eb859a8902c"
+                    "@id": "_:N30f5a02543574f95869b6632dbb5b849"
                 }
             ],
-            "@id": "_:N50d697d0d0a34a21ae6bba3c6896b8a9"
+            "@id": "_:Nec4fcfccb8b946b5b4b5848c0cd7a61c"
         },
         {
             "@type": "ssno:Transformation",
@@ -107,17 +116,17 @@
                     "@type": "ssno:Character",
                     "ssno:character": "X",
                     "ssno:associatedWith": "https://matthiasprobst.github.io/ssno#AnyStandardName",
-                    "@id": "_:N7e8a7b531bfd43df9cca2f3ca0aad4bf"
+                    "@id": "_:N3c5f74b5069d427f86880007ec4dbde0"
                 },
                 {
                     "@type": "ssno:Character",
                     "ssno:character": "C",
-                    "ssno:associatedWith": "_:N50d697d0d0a34a21ae6bba3c6896b8a9",
-                    "@id": "_:N34cb74304ccb4600bf49e22b279fbb6c"
+                    "ssno:associatedWith": "_:Nec4fcfccb8b946b5b4b5848c0cd7a61c",
+                    "@id": "_:N34ebd07b862f431ead8ddcd0eef54d1b"
                 }
             ],
-            "@id": "_:N357e20d392004221a600be9099dc314c"
+            "@id": "_:N44316cacceb0439888cbc9cc8319f85d"
         }
     ],
-    "@id": "_:N4e7cf1b7b37640749be79315d3cc1526"
+    "@id": "_:Ncce6d954fcc3479e97e1957cecca304f"
 }

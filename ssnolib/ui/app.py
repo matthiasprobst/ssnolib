@@ -1,11 +1,13 @@
 import json
 
+from IPython.core.release import authors
 from flask import Flask, render_template, request, redirect
 from tornado import version
 
 import ssnolib
 from ssnolib import StandardNameTable, VectorStandardName
 from ssnolib.qudt.utils import iri2str
+from ssnolib.standard_name_table import ROLE2IRI
 
 app = Flask(__name__)
 
@@ -17,93 +19,40 @@ def welcome():
 
 @app.route('/form', methods=['GET', 'POST'])
 def form():
-    if request.method == 'POST':
-        # Handle form submission
-        # Get general information
-        title = request.form.get('title')
-        version = request.form.get('version')
-        description = request.form.get('description')
 
-        # Get author information
-        authors = []
-        first_names = request.form.getlist('first_name[]')
-        last_names = request.form.getlist('last_name[]')
-        orcids = request.form.getlist('orcid[]')
-        emails = request.form.getlist('email[]')
+    # # If it's a GET request, check if we are loading an existing standard name
+    # is_loading_existing = request.args.get('load') == 'true'
+    #
+    # # Dummy values for the form if loading an existing standard name
+    # data = {
+    #     'title': 'Existing Title',
+    #     'version': '1.0',
+    #     'description': 'This is a description for an existing standard.',
+    #     'authors': [
+    #         {'first_name': 'John', 'last_name': 'Doe', 'orcid': '0000-0001-2345-6789', 'email': 'john@example.com'},
+    #         {'first_name': 'Jane', 'last_name': 'Smith', 'orcid': '0000-0002-3456-7890', 'email': 'jane@example.com'},
+    #     ],
+    #     'standard_names': [
+    #         {'name': 'velocity', 'unit': 'm/s', 'description': 'Velocity vector', 'is_vector': True},
+    #         {'name': 'y_velocity', 'unit': 'm/s', 'description': 'Velocity in y direction', 'is_vector': False},
+    #     ],
+    #     'qualifications': [
+    #         {'name': 'Qualification 1', 'valid_value': 'Value 1', 'description': 'Description for qualification 1',
+    #          'is_vector': True},
+    #         {'name': 'Qualification 2', 'valid_value': 'Value 2', 'description': 'Description for qualification 2',
+    #          'is_vector': True},
+    #     ]
+    # } if is_loading_existing else None
 
-        for first_name, last_name, orcid, email in zip(first_names, last_names, orcids, emails):
-            authors.append({
-                'first_name': first_name,
-                'last_name': last_name,
-                'orcid': orcid,
-                'email': email
-            })
-
-        # Get standard names
-        standard_names = []
-        names = request.form.getlist('standard_name[]')
-        units = request.form.getlist('unit[]')
-        name_descriptions = request.form.getlist('name_description[]')
-
-        for name, unit, name_description in zip(names, units, name_descriptions):
-            standard_names.append({
-                'name': name,
-                'unit': unit,
-                'description': name_description
-            })
-
-        # Get qualifications
-        qualifications = []
-        qualification_names = request.form.getlist('qualification_name[]')
-        valid_values = request.form.getlist('valid_values[]')
-        qualification_descriptions = request.form.getlist('qualification_description[]')
-        vector_flags = request.form.getlist('vector[]')
-
-        for name, valid_value, desc, is_vector in zip(qualification_names, valid_values, qualification_descriptions,
-                                                      vector_flags):
-            qualifications.append({
-                'name': name,
-                'valid_value': valid_value,
-                'description': desc,
-                'is_vector': is_vector == 'on'  # Convert checkbox value to boolean
-            })
-
-        # Output the data to check
-        return render_template('result.html', title=title, version=version, description=description,
-                               authors=authors, standard_names=standard_names, qualifications=qualifications)
-
-    # If it's a GET request, check if we are loading an existing standard name
-    is_loading_existing = request.args.get('load') == 'true'
-
-    # Dummy values for the form if loading an existing standard name
-    data = {
-        'title': 'Existing Title',
-        'version': '1.0',
-        'description': 'This is a description for an existing standard.',
-        'authors': [
-            {'first_name': 'John', 'last_name': 'Doe', 'orcid': '0000-0001-2345-6789', 'email': 'john@example.com'},
-            {'first_name': 'Jane', 'last_name': 'Smith', 'orcid': '0000-0002-3456-7890', 'email': 'jane@example.com'},
-        ],
-        'standard_names': [
-            {'name': 'velocity', 'unit': 'm/s', 'description': 'Velocity vector', 'is_vector': True},
-            {'name': 'y_velocity', 'unit': 'm/s', 'description': 'Velocity in y direction', 'is_vector': False},
-        ],
-        'qualifications': [
-            {'name': 'Qualification 1', 'valid_value': 'Value 1', 'description': 'Description for qualification 1',
-             'is_vector': True},
-            {'name': 'Qualification 2', 'valid_value': 'Value 2', 'description': 'Description for qualification 2',
-             'is_vector': True},
-        ]
-    } if is_loading_existing else None
-
-    return render_template('form.html', data=data)
+    return render_template('form.html', data={})
 
 
 @app.route('/JSON-LD', methods=['POST'])
 def json_ld():
-    def parseAuthors(firstnames, lastNames, orcidIDs, mboxs):
+    def parseAuthors(firstnames, lastNames, hadRoles, orcidIDs, mboxes):
         authors = []
-        for (first_name, last_name, orcid, mbox) in zip(firstnames, lastNames, orcidIDs, mboxs):
+        roles = []
+        for (first_name, last_name, role, orcid, mbox) in zip(firstnames, lastNames, hadRoles, orcidIDs, mboxes):
             person_dict = dict(
                 firstName=first_name if first_name != '' else None,
                 lastName=last_name if last_name != '' else None,
@@ -114,20 +63,59 @@ def json_ld():
                 if v is None:
                     person_dict.pop(k)
             authors.append(ssnolib.Person(**person_dict))
+            roles.append(role)
         qualifiedAttributions = []
-        for author in authors:
-            qualifiedAttributions.append(ssnolib.Attribution(agent=author))
+        for (role, author) in zip(roles, authors):
+            if role:
+                qualifiedAttributions.append(ssnolib.Attribution(agent=author, hadRole=ROLE2IRI[role.lower()]))
+            else:
+                qualifiedAttributions.append(ssnolib.Attribution(agent=author))
         return qualifiedAttributions
+
+    def parseOrganizations(names, urls, rorIDs, hadRoles, mboxes):
+        organizations = []
+        roles = []
+        for (name, url, rorID, role, mbox) in zip(names, urls, rorIDs, hadRoles, mboxes):
+            organization_dict = dict(
+                name=name if name != '' else None,
+                url=url if url != '' else None,
+                role=role if role != '' else None,
+                mbox=mbox if "@" in mbox else None
+            )
+            for k, v in organization_dict.copy().items():
+                if v is None:
+                    organization_dict.pop(k)
+            organizations.append(ssnolib.Organization(**organization_dict))
+            roles.append(role)
+        qualifiedAttributions = []
+        for (role, organization) in zip(roles, organizations):
+            if role:
+                qualifiedAttributions.append(ssnolib.Attribution(agent=organization, hadRole=ROLE2IRI[role.lower()]))
+            else:
+                qualifiedAttributions.append(ssnolib.Attribution(agent=organization))
+        return qualifiedAttributions
+
+
+    qa_persons = parseAuthors(
+            request.form.getlist("person.firstName[]"),
+            request.form.getlist("person.lastName[]"),
+            request.form.getlist("person.hadRole[]"),
+            request.form.getlist("person.orcidId[]"),
+            request.form.getlist("person.mbox[]"),
+        )
+    qa_orgas = parseOrganizations(
+            request.form.getlist("organization.name[]"),
+            request.form.getlist("organization.url[]"),
+            request.form.getlist("organization.hasRorId[]"),
+            request.form.getlist("organization.hadRole[]"),
+            request.form.getlist("organization.mbox[]"),
+        )
+    qa_persons.extend(qa_orgas)
     snt = StandardNameTable(
         title=request.form.get("title"),
         version=request.form.get("version"),
         description=request.form.get("description"),
-        qualifiedAttribution=parseAuthors(
-            request.form.getlist("person.firstName[]"),
-            request.form.getlist("person.lastName[]"),
-            request.form.getlist("person.orcidId[]"),
-            request.form.getlist("person.mbox[]"),
-        ),
+        qualifiedAttribution=qa_persons,
         # standardNames=[
         #     VectorStandardName(
         #         standardName=sn.get("name"),
@@ -170,11 +158,17 @@ def loadJSONLD():
         else:
             qualifiedAttribution = snt.qualifiedAttribution
 
-        authors = []
+        persons = []
+        organizations = []
         for qa in qualifiedAttribution:
             if isinstance(qa.agent, ssnolib.Person):
-                authors.append(qa.agent.model_dump(exclude_none=True))
-                authors[-1]["hadRole"] = qa.hadRole.rsplit("#", 1)[-1]
+                persons.append(qa.agent.model_dump(exclude_none=True))
+                if qa.hadRole:
+                    persons[-1]["hadRole"] = qa.hadRole.rsplit("#", 1)[-1]
+            elif isinstance(qa.agent, ssnolib.Organization):
+                organizations.append(qa.agent.model_dump(exclude_none=True))
+                if qa.hadRole:
+                    organizations[-1]["hadRole"] = qa.hadRole.rsplit("#", 1)[-1]
         modifier = snt.hasModifier or []
         qualifications = [m for m in modifier if isinstance(m, (ssnolib.VectorQualification,
                                                                 ssnolib.ScalarStandardName,
@@ -189,7 +183,8 @@ def loadJSONLD():
             'title': title,
             'version': version,
             'description': description,
-            'authors': authors,
+            'persons': persons,
+            'organizations': organizations,
             'qualifications': qualifications,
             'standard_names': [
                 {'standardName': sn.standardName, 'unit_str': iri2str.get(sn.unit, 'N.A.'), 'unit': sn.unit,

@@ -37,6 +37,8 @@ ROLE_LOOKUP: Dict[str, str] = {
     str(M4I.WorkPackageLeader): "Workpackage leader",
 }
 
+ROLE2IRI = {v.lower(): k for k, v in ROLE_LOOKUP.items()}
+
 
 def _generate_ordered_list_of_qualifications(qres):
     sorted_list = ['https://matthiasprobst.github.io/ssno#AnyStandardName', ]
@@ -243,11 +245,13 @@ class StandardNameTable(Dataset):
     description: Optional[str] = None
     identifier: Optional[str] = None
     # creator: Optional[Union[Person, List[Person], Organization, List[Organization]]] = None  # depr!
-    qualifiedAttribution: Optional[Union[Attribution, List[Attribution]]] = Field(default=None,
-                                                                                  alias="qualified_attribution")
+    qualifiedAttribution: Optional[Union[Attribution, List[Attribution]]] = Field(
+        default=None,
+        alias="qualified_attribution")
     standardNames: Optional[List[Union[StandardName, VectorStandardName, ScalarStandardName]]] = Field(
         default_factory=list,
-        alias="standard_names")  # ssno:standardNames
+        alias="standard_names"
+    )  # ssno:standardNames
     hasModifier: Optional[
         List[Union[Qualification, VectorQualification, Transformation]]
     ] = Field(default=None, alias="has_modifier")  # ssno:hasModifier
@@ -259,74 +263,17 @@ class StandardNameTable(Dataset):
             return self.title
         return ''
 
-    def append(self, field_name: str, field):
-        self.__pydantic_validator__.validate_assignment(self.model_construct(), field_name, field)
-        obj = getattr(self, field_name)
-        if obj is None:
-            setattr(self, field_name, [field, ])
-            return
-        if not isinstance(obj, list):
-            raise TypeError("Can only append to list objects.")
-        obj.append(field)
-        setattr(self, field_name, obj)
-
+    @field_validator('qualifiedAttribution', mode='before')
     @classmethod
-    def parse(cls,
-              source: Union[str, pathlib.Path, Distribution],
-              fmt: str = None,
-              qudt_lookup: Optional[Dict[str, URIRef]] = None,
-              **kwargs):
-        """Call the reader plugin for the given format.
-        Format will select the reader plugin to use. Currently, 'xml' is supported.
-
-        Parameters
-        ----------
-        source: Union[str, pathlib.Path, Distribution]
-            The source of the Standard Name Table. This can be a file path, URL or a Distribution object.
-        qudt_lookup: Optional[Dict[str, URIRef]]
-            Additional lookup table for QUDT units to translate string units like 'm/s' into QUDT URIs.
-            The ontolutils package provides a lookup table for QUDT units but may not include all units of the
-            parsed Standard Name Table. By providing this additional lookup table, the parser can translate
-            the missing units into QUDT URIs.
-        fmt: str=None
-            The format of the source. If not provided, the format is determined based on the suffix of the source.
-        kwargs
-            Additional keyword arguments passed to the reader plugin.
-        """
-        from ontolutils.utils import qudt_units
-
-        original_qudt_lookup = qudt_units.qudt_lookup
-        if qudt_lookup:
-            qudt_units.qudt_lookup.update(qudt_lookup)
-
-        if isinstance(source, (str, pathlib.Path)):
-            filename = source
-            if fmt is None:
-                filename = source
-                fmt = pathlib.Path(source).suffix[1:].lower()
-        else:
-            if fmt is None:
-                fmt = source.mediaType
-            filename = source.download()
-        reader = plugins.get(fmt, None)
-        if reader is None:
-            raise ValueError(
-                f'No plugin found for the file. The reader was determined based on the suffix: {fmt}. '
-                'You may overwrite this by providing the parameter fmt'
-            )
-
-        data: Dict = reader(filename).parse(**kwargs)
-
-        # unfortunately, we need to remove all units which we could not parse...
-        standardNames = []
-        for sn in data["standardNames"].copy():
-            try:
-                standardNames.append(StandardName(**sn))
-            except ValidationError as e:
-                warnings.warn(f"Could not parse {sn}. {e}", UserWarning)
-        data["standardNames"] = standardNames
-        qudt_units.qudt_lookup = original_qudt_lookup
-        return cls(**data)
+    def _qualifiedAttribution(cls, qualifiedAttribution):
+        if not isinstance(qualifiedAttribution, list):
+            qualifiedAttribution = [qualifiedAttribution]
+        for i, q in enumerate(qualifiedAttribution.copy()):
+            if isinstance(q, dict):
+                qualifiedAttribution[i] = Attribution(**q)
+        if len(qualifiedAttribution) == 1:
+            return qualifiedAttribution[0]
+        return qualifiedAttribution
 
     @field_validator('hasModifier', mode='before')
     @classmethod
@@ -397,6 +344,75 @@ class StandardNameTable(Dataset):
             return stdname
 
         return [_parseStandardNameType(sn) for sn in _standardNames]
+
+    def append(self, field_name: str, field):
+        self.__pydantic_validator__.validate_assignment(self.model_construct(), field_name, field)
+        obj = getattr(self, field_name)
+        if obj is None:
+            setattr(self, field_name, [field, ])
+            return
+        if not isinstance(obj, list):
+            raise TypeError("Can only append to list objects.")
+        obj.append(field)
+        setattr(self, field_name, obj)
+
+    @classmethod
+    def parse(cls,
+              source: Union[str, pathlib.Path, Distribution],
+              fmt: str = None,
+              qudt_lookup: Optional[Dict[str, URIRef]] = None,
+              **kwargs):
+        """Call the reader plugin for the given format.
+        Format will select the reader plugin to use. Currently, 'xml' is supported.
+
+        Parameters
+        ----------
+        source: Union[str, pathlib.Path, Distribution]
+            The source of the Standard Name Table. This can be a file path, URL or a Distribution object.
+        qudt_lookup: Optional[Dict[str, URIRef]]
+            Additional lookup table for QUDT units to translate string units like 'm/s' into QUDT URIs.
+            The ontolutils package provides a lookup table for QUDT units but may not include all units of the
+            parsed Standard Name Table. By providing this additional lookup table, the parser can translate
+            the missing units into QUDT URIs.
+        fmt: str=None
+            The format of the source. If not provided, the format is determined based on the suffix of the source.
+        kwargs
+            Additional keyword arguments passed to the reader plugin.
+        """
+        from ontolutils.utils import qudt_units
+
+        original_qudt_lookup = qudt_units.qudt_lookup
+        if qudt_lookup:
+            qudt_units.qudt_lookup.update(qudt_lookup)
+
+        if isinstance(source, (str, pathlib.Path)):
+            filename = source
+            if fmt is None:
+                filename = source
+                fmt = pathlib.Path(source).suffix[1:].lower()
+        else:
+            if fmt is None:
+                fmt = source.mediaType
+            filename = source.download()
+        reader = plugins.get(fmt, None)
+        if reader is None:
+            raise ValueError(
+                f'No plugin found for the file. The reader was determined based on the suffix: {fmt}. '
+                'You may overwrite this by providing the parameter fmt'
+            )
+
+        data: Dict = reader(filename).parse(**kwargs)
+
+        # unfortunately, we need to remove all units which we could not parse...
+        standardNames = []
+        for sn in data["standardNames"].copy():
+            try:
+                standardNames.append(StandardName(**sn))
+            except ValidationError as e:
+                warnings.warn(f"Could not parse {sn}. {e}", UserWarning)
+        data["standardNames"] = standardNames
+        qudt_units.qudt_lookup = original_qudt_lookup
+        return cls(**data)
 
     def verify_name(self, standard_name: str):
         """Verifies a string standard name"""

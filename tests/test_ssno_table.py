@@ -145,6 +145,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         snt = StandardNameTable.from_jsonld(__this_dir__ / 'data/simpleSNT.jsonld', limit=1)
         qualifications = [q for q in snt.hasModifier if isinstance(q, ssnolib.Qualification)]
         self.assertEqual(1, len(qualifications))
+        print(snt.qualifiedAttribution)
 
     def test_standard_name_table(self):
         sn1 = StandardName(standard_name='x_velocity',
@@ -164,7 +165,6 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         snt = StandardNameTable(standardNames=[sn1, sn2])
         with open('snt.json', 'w') as f:
             f.write(snt.model_dump_jsonld())
-
 
         snt_loaded = list(StandardNameTable.from_jsonld(data=snt.model_dump_jsonld(), limit=None))
         self.assertEqual(len(snt_loaded), 1)
