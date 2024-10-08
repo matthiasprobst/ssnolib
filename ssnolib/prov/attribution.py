@@ -51,7 +51,7 @@ class Organization(Agent):
     """
     name: str  # foaf:name
     url: Union[str, HttpUrl] = None
-    hasRorId: Union[str, HttpUrl] = Field(alias="ror_id", default=None)
+    hasRorId: Union[str, HttpUrl] = Field(alias="ror_id", default=None, use_as_id=True)
 
     def to_text(self) -> str:
         """Return the text representation of the class"""
@@ -97,7 +97,7 @@ class Person(Agent):
     """
     firstName: str = Field(default=None, alias="first_name")  # foaf:firstName
     lastName: str = Field(default=None, alias="last_name")  # foaf:last_name
-    orcidId: str = Field(default=None, alias="orcid_id")  # m4i:orcidId
+    orcidId: str = Field(default=None, alias="orcid_id", use_as_id=True)  # m4i:orcidId
     affiliation: Organization = Field(default=None, alias="affiliation")  # schema:affiliation
 
     def to_text(self) -> str:

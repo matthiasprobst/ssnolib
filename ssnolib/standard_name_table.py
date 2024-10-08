@@ -1,3 +1,4 @@
+import json
 import pathlib
 import re
 import warnings
@@ -11,6 +12,7 @@ from rdflib import URIRef
 
 from ssnolib.dcat import Dataset, Distribution
 from ssnolib.prov import Person, Organization, Attribution
+from ssnolib.utils import build_simple_sparql_query, WHERE, parse_and_exclude_none
 from . import config
 from . import plugins
 from .namespace import SSNO
@@ -982,3 +984,229 @@ class StandardNameTable(Dataset):
             f.write(output)
 
         return html_filename
+
+
+def parse_table(source=None, data=None, fmt: Optional[str] = None):
+    """Instantiates a table from a file."""
+    if source is None and data is None:
+        raise ValueError("Either source or data must be provided.")
+    if source:
+        filename = pathlib.Path(source)
+        assert filename.exists(), f"File {filename} does not exist."
+        fmt = fmt.strip('.').lower() or filename.stem.strip('.').lower()
+        if fmt not in ("jsonld",):
+            raise ValueError(f"Unknown format {fmt}.")
+        with open(filename, 'r', encoding='utf-8') as f:
+            return parse_table(source=None, data=json.load(f), fmt=fmt)
+
+    # get namespaces:
+    prefixes = StandardNameTable.get_context()
+    prefixes.update({"schema": "http://schema.org/"})
+    prefixes.update({"foaf": "http://xmlns.com/foaf/0.1/"})
+
+    g = rdflib.Graph()
+    g.parse(data=data,
+            format='json-ld',
+            context=prefixes)
+
+    sparql = build_simple_sparql_query(
+        prefixes=prefixes,
+        wheres=[WHERE("?id", "a", "ssno:StandardNameTable"),
+                WHERE("?id", "dcterms:title", "?title", is_optional=True),
+                WHERE("?id", "dcat:version", "?version", is_optional=True),
+                WHERE("?id", "dcterms:description", "?description", is_optional=True)]
+    )
+
+    snts = []
+    for row in sparql.query(g):
+        # for stn_id, title, version, description in res:
+        snt_id = row['id'].n3()
+        snt_dict = dict(id=snt_id, title=row['title'], version=row['version'], description=row['description'])
+        snts.append(StandardNameTable(**parse_and_exclude_none(snt_dict)))
+
+    for snt in snts:
+        snt_id = snt.id
+        qualifiedAttribution = []
+
+        sparql = build_simple_sparql_query(
+            prefixes=prefixes,
+            wheres=[
+                WHERE(snt_id, "a", "ssno:StandardNameTable"),
+                WHERE(snt_id, "prov:qualifiedAttribution", "?qaid"),
+                WHERE("?qaid", "a", "prov:Attribution"),
+                WHERE("?qaid", "prov:agent", "?agentID"),
+                WHERE("?qaid", "prov:hadRole", "?hadRole", is_optional=True),
+                WHERE("?agentID", "a", "prov:Person"),
+                WHERE("?agentID", "foaf:firstName", "?firstName", is_optional=True),
+                WHERE("?agentID", "foaf:lastName", "?lastName", is_optional=True),
+                WHERE("?agentID", "foaf:mbox", "?mbox", is_optional=True),
+                WHERE("?agentID", "prov:orcidId", "?orcidId", is_optional=True),
+            ]
+        )
+
+        for res in sparql.query(g):
+            person_dict = dict(id=res['agentID'],
+                               firstName=res['firstName'],
+                               lastName=res['lastName'],
+                               mbox=res['mbox'],
+                               orcidId=res['orcidId'])
+            attribution = Attribution(agent=Person(**parse_and_exclude_none(person_dict)))
+            if res['hadRole']:
+                attribution.hadRole = res['hadRole'].value
+            qualifiedAttribution.append(attribution)
+
+        sparql = build_simple_sparql_query(
+            prefixes=prefixes,
+            wheres=[
+                WHERE(snt_id, "a", "ssno:StandardNameTable"),
+                WHERE(snt_id, "prov:qualifiedAttribution", "?qaid"),
+                WHERE("?qaid", "a", "prov:Attribution"),
+                WHERE("?qaid", "prov:agent", "?agentID"),
+                WHERE("?qaid", "prov:hadRole", "?hadRole", is_optional=True),
+                WHERE("?agentID", "a", "prov:Organization"),
+                WHERE("?agentID", "foaf:name", "?name", is_optional=True),
+                WHERE("?agentID", "foaf:mbox", "?mbox", is_optional=True),
+                WHERE("?agentID", "prov:hasRorId", "?hasRorId", is_optional=True),
+            ]
+        )
+
+        for res in sparql.query(g):
+            orga_dict = dict(name=res['name'], mbox=res['mbox'], hasRorId=res['hasRorId'])
+            attribution = Attribution(
+                id=res['agentID'].n3(),
+                agent=Organization(**{k: v.value for k, v in orga_dict.items() if v})
+            )
+            if res['hadRole']:
+                attribution.hadRole = res['hadRole']
+            qualifiedAttribution.append(attribution)
+
+        if qualifiedAttribution:
+            print(f" > {len(qualifiedAttribution)} qualified attributions:")
+            for i, attribution in enumerate(qualifiedAttribution):
+                print(f"   {i + 1}: {attribution.model_dump(exclude_none=True)}")
+        else:
+            print(f" > Not qualified attributions found.")
+
+        # jetzt qualifications holen:
+        hasModifier = []
+        for _type in ("ssno:Qualification", "ssno:VectorQualification"):
+            sparql = build_simple_sparql_query(
+                prefixes=prefixes,
+                wheres=[
+                    WHERE(snt_id, "ssno:hasModifier", "?modifierID"),
+                    WHERE("?modifierID", "a", _type),
+                    WHERE("?modifierID", "schema:name", "?name"),
+                    WHERE("?modifierID", "ssno:before", "?before", is_optional=True),
+                    WHERE("?modifierID", "ssno:after", "?after", is_optional=True),
+                    WHERE("?modifierID", "dcterms:description", "?description", is_optional=True)
+                ]
+            )
+            for res in sparql.query(g):
+                modifierID = res['modifierID'].n3()
+                # now look for the valid values:
+                sparql_valid_values = build_simple_sparql_query(
+                    prefixes=prefixes,
+                    wheres=[
+                        WHERE(modifierID, "ssno:hasValidValues", "?hasValidValuesID"),
+                        WHERE("?hasValidValuesID", "a", "ssno:AnnotatedValue"),
+                        WHERE("?hasValidValuesID", "ssno:value", "?value"),
+                        WHERE("?hasValidValuesID", "ssno:annotation", "?annotation", is_optional=True),
+                    ]
+                )
+                hasValidValues = []
+                for valid_values in sparql_valid_values.query(g):
+                    annotation_dict = dict(value=valid_values['value'], annotation=valid_values['annotation'])
+                    hasValidValues.append(AnnotatedValue(**{k: v.value for k, v in annotation_dict.items() if v}))
+
+                hasModifier_dict = dict(name=res['name'].value, description=res['description'].value)
+                if res['before']:
+                    if isinstance(res['before'], rdflib.BNode):
+                        hasModifier_dict['before'] = res['before'].n3()
+                    else:
+                        hasModifier_dict['before'] = res['before'].value
+                else:
+                    assert res['after'], "Missing ssno:after"
+                    if isinstance(res['after'], rdflib.BNode):
+                        hasModifier_dict['after'] = res['after'].n3()
+                    else:
+                        hasModifier_dict['after'] = res['after'].value
+
+                if _type == "ssno:VectorQualification":
+                    hasModifier.append(
+                        VectorQualification(
+                            id=modifierID,
+                            **{k: v for k, v in hasModifier_dict.items() if v}
+                        )
+                    )
+                else:
+                    hasModifier.append(
+                        Qualification(
+                            id=modifierID,
+                            **{k: v for k, v in hasModifier_dict.items() if v}
+                        )
+                    )
+
+        sparql_transformation = build_simple_sparql_query(
+            prefixes=prefixes,
+            wheres=[
+                WHERE(snt_id, "ssno:hasModifier", "?modifierID"),
+                WHERE("?modifierID", "a", "ssno:Transformation"),
+                WHERE("?modifierID", "schema:name", "?name"),
+                WHERE("?modifierID", "dcterms:description", "?description", is_optional=True),
+                WHERE("?modifierID", "ssno:altersUnit", "?altersUnit", is_optional=True)
+            ]
+        )
+
+        hasCharacter = []
+        for res in sparql_transformation.query(g):
+            modifierID = res['modifierID'].n3()
+            # now look for the valid values:
+            sparql_hasCharacter = build_simple_sparql_query(
+                prefixes=prefixes,
+                wheres=[
+                    WHERE(modifierID, "ssno:hasCharacter", "?hasCharacterID"),
+                    WHERE("?hasCharacterID", "a", "ssno:Character"),
+                    WHERE("?hasCharacterID", "ssno:character", "?character"),
+                    WHERE("?hasCharacterID", "ssno:associatedWith", "?associatedWith"),
+                ]
+            )
+            for character in sparql_hasCharacter.query(g):
+                hasCharacter.append(
+                    Character(character=character["character"].value, associatedWith=character["associatedWith"].value))
+            hasModifier.append(
+                Transformation(name=res['name'].value, description=res['description'], altersUnit=res['altersUnit'],
+                               hasCharacter=hasCharacter)
+            )
+        if hasModifier:
+            snt.hasModifier = hasModifier
+
+        sparql_get_standard_names = f"""
+            PREFIX owl: <http://www.w3.org/2002/07/owl#>
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX dcat: <http://www.w3.org/ns/dcat#>
+            PREFIX dcterms: <http://purl.org/dc/terms/>
+            PREFIX prov: <http://www.w3.org/ns/prov#>
+            PREFIX ssno: <https://matthiasprobst.github.io/ssno#>
+            SELECT ?standardname ?unit ?description
+            WHERE {{
+                {snt_id} a ssno:StandardNameTable .
+                {snt_id} ssno:standardNames ?snid .
+                ?snid ssno:standardName ?standardname .
+                ?snid ssno:unit ?unit .
+                ?snid ssno:description ?description .
+            }}
+        """
+        res = g.query(sparql_get_standard_names)
+        standardNames = []
+        for n, u, d in res:
+            standardNames.append(StandardName(standardName=str(n), unit=str(u), description=str(d)))
+        print(f" > {len(standardNames)} standard names found")
+        snt.standardNames = standardNames
+
+        if qualifiedAttribution:
+            if len(qualifiedAttribution) == 1:
+                snt.qualifiedAttribution = qualifiedAttribution[0]
+            else:
+                snt.qualifiedAttribution = qualifiedAttribution
+
+    return snts[0]

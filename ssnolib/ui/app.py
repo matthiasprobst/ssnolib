@@ -1,8 +1,6 @@
 import json
 
-from IPython.core.release import authors
 from flask import Flask, render_template, request, redirect
-from tornado import version
 
 import ssnolib
 from ssnolib import StandardNameTable, VectorStandardName
@@ -19,7 +17,6 @@ def welcome():
 
 @app.route('/form', methods=['GET', 'POST'])
 def form():
-
     # # If it's a GET request, check if we are loading an existing standard name
     # is_loading_existing = request.args.get('load') == 'true'
     #
@@ -95,21 +92,20 @@ def json_ld():
                 qualifiedAttributions.append(ssnolib.Attribution(agent=organization))
         return qualifiedAttributions
 
-
     qa_persons = parseAuthors(
-            request.form.getlist("person.firstName[]"),
-            request.form.getlist("person.lastName[]"),
-            request.form.getlist("person.hadRole[]"),
-            request.form.getlist("person.orcidId[]"),
-            request.form.getlist("person.mbox[]"),
-        )
+        request.form.getlist("person.firstName[]"),
+        request.form.getlist("person.lastName[]"),
+        request.form.getlist("person.hadRole[]"),
+        request.form.getlist("person.orcidId[]"),
+        request.form.getlist("person.mbox[]"),
+    )
     qa_orgas = parseOrganizations(
-            request.form.getlist("organization.name[]"),
-            request.form.getlist("organization.url[]"),
-            request.form.getlist("organization.hasRorId[]"),
-            request.form.getlist("organization.hadRole[]"),
-            request.form.getlist("organization.mbox[]"),
-        )
+        request.form.getlist("organization.name[]"),
+        request.form.getlist("organization.url[]"),
+        request.form.getlist("organization.hasRorId[]"),
+        request.form.getlist("organization.hadRole[]"),
+        request.form.getlist("organization.mbox[]"),
+    )
     qa_persons.extend(qa_orgas)
     snt = StandardNameTable(
         title=request.form.get("title"),
@@ -150,13 +146,20 @@ def loadJSONLD():
     # Get the uploaded file
     json_content = json.load(request.files['jsonld_file'])
     try:
-        snt = StandardNameTable.from_jsonld(data=json_content, limit=1)
+        snt = ssnolib.parse_table(data=json_content)
+        # snt = StandardNameTable.from_jsonld(data=json_content, limit=1)
 
         # Example of extracting data from JSON-LD
         if not isinstance(snt.qualifiedAttribution, list):
-            qualifiedAttribution = [snt.qualifiedAttribution]
+            if snt.qualifiedAttribution is not None:
+                qualifiedAttribution = [snt.qualifiedAttribution]
+            else:
+                qualifiedAttribution = []
         else:
-            qualifiedAttribution = snt.qualifiedAttribution
+            if snt.qualifiedAttribution is not None:
+                qualifiedAttribution = snt.qualifiedAttribution
+            else:
+                qualifiedAttribution = []
 
         persons = []
         organizations = []

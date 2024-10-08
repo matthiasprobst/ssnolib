@@ -194,6 +194,19 @@ class TestSSNOStandardNameTable(unittest.TestCase):
    "https://matthiasprobst.github.io/ssno#description": "Pressure is force per unit area. Absolute air pressure is pressure deviation to a total vacuum."}"""
         sn = StandardName.from_jsonld(data=json.loads(sn_jsonld))
 
+    def test_standard_name_table_from_large_jsonld(self):
+        snt = ssnolib.parse_table(__this_dir__ / "data/cf.jsonld", fmt='jsonld')
+        self.assertEqual("cf-standard-name-table", snt.title)
+        self.assertEqual("86", snt.version)
+
+    def test_standard_name_alternative_parsing(self):
+        snt = ssnolib.parse_table(__this_dir__ / "data/simpleSNT.jsonld", fmt='jsonld')
+        self.assertEqual("SNT from scratch", snt.title)
+        self.assertEqual("v1", snt.version)
+        self.assertEqual(2, len(snt.hasModifier))
+        self.assertEqual(3, len(snt.standardNames))
+
+
     def test_standard_name_table_from_jsonld(self):
         snt_jsonld_filename = pathlib.Path(__this_dir__, 'snt.json')
         with open(snt_jsonld_filename, 'w') as f:
