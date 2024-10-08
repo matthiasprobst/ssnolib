@@ -199,11 +199,15 @@ function deleteQualification(button) {
 // Function to update the current configuration display
 function updateConfiguration() {
     const qualificationContainer = document.getElementById('qualification-container');
-
     const qualificationHeading = document.getElementById('qualification-heading'); // Select the heading
+    const qualificationDropdowns = document.querySelectorAll('.qualification-dropdown');
+
+        // Reset each dropdown
+    qualificationDropdowns.forEach(dropdown => {
+        dropdown.innerHTML = '<option value="" disabled selected>Select a Qualification</option>'; // Reset each dropdown
+    });
 
     const qualifications = qualificationContainer.querySelectorAll('.list-group-item');
-    console.log(qualifications)
 
     // Static "AnyStandardName" line
     const defaultLine = "AnyStandardName";
@@ -211,20 +215,32 @@ function updateConfiguration() {
     // Collect all qualifications
     const configItems = [];
     qualifications.forEach((qualification, index) => {
-        console.log(`${qualification} ${index}`)
         const name = qualification.querySelector('input[name="qualification_name[]"]')?.value;
 
         const vectorText = name; // Use name as vector if checked
         configItems.push(vectorText); // Collect items for configuration
+
     });
+
+    console.log('---')
+    qualifications.forEach((qualification, index) => {
+        const name = qualification.querySelector('input[name="qualification_name[]"]')?.value;
+        console.log(qualificationDropdowns)
+
+        // Add qualification to all dropdowns
+        qualificationDropdowns.forEach(dropdown => {
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = name;
+            dropdown.appendChild(option);
+        });
+    }
+    )
 
     let configurationString = ''; // Initialize configuration string
     // Adding "AnyStandardName" at the end or dynamically based on the positions
-    console.log("configItems")
-    console.log(configItems)
     if (configItems.length > 0) {
         configItems.forEach((item, index) => {
-        console.log(`${item} ${index}`)
             if (item === "AnyStandardName") {
                 configurationString += "AnyStandardName"; // Append first item
             } else {
@@ -235,7 +251,6 @@ function updateConfiguration() {
         });
 
         // Update the heading with the configuration
-        console.log(configurationString)
         if (configurationString.trim() == 'AnyStandardName') {
             if (configItems.length > 1) {
                 qualificationHeading.innerHTML = 'Construction Rule: Waiting for the qualification to get a name...';

@@ -176,6 +176,15 @@ def loadJSONLD():
         qualifications = [m for m in modifier if isinstance(m, (ssnolib.VectorQualification,
                                                                 ssnolib.ScalarStandardName,
                                                                 ssnolib.StandardName))]
+        transformations = [m for m in modifier if isinstance(m, ssnolib.Transformation)]
+        transformations_dict = [t.model_dump(exclude_none=True) for t in transformations]
+        for i, transformation in enumerate(transformations):
+            for j, character in enumerate(transformation.hasCharacter):
+                if character.associatedWith.startswith('_:'):
+                    for q in qualifications:
+                        if q.id == character.associatedWith:
+                            transformations_dict[i]["hasCharacter"][j]["associatedWith"] = q.name
+                            break
 
         title = snt.title
         version = snt.version
@@ -189,6 +198,7 @@ def loadJSONLD():
             'persons': persons,
             'organizations': organizations,
             'qualifications': qualifications,
+            'transformations': transformations_dict,
             'standard_names': [
                 {'standardName': sn.standardName, 'unit_str': iri2str.get(sn.unit, 'N.A.'), 'unit': sn.unit,
                  'description': sn.description,

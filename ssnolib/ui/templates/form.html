@@ -89,7 +89,7 @@
                     <div class="col-md">
                         <label>Role:</label>
                         <select class="form-control" name="person.hadRole[]">
-                            <option value="" >Select role</option>
+                            <option value="">Select role</option>
                             <option value="Contact Person" {% if author.hadRole==
                             'ContactPerson' %}selected{% endif %}>Contact Person</option>
                             <option value="DataCollector" {% if author.hadRole==
@@ -193,6 +193,53 @@
             </div>
             <button type="button" class="btn btn-secondary" onclick="addAuthor()">Add Author</button>
             <button type="button" class="btn btn-secondary" onclick="addOrganization()">Add Organization</button>
+        </div>
+
+        <h3 class="mt-4">Transformations</h3>
+        <label id="transformation-heading"></label>
+        <div id="transformation-container">
+            {% for transformation in data.transformations %}
+            <div class="list-group-item d-flex justify-content-between align-items-center mb-2">
+                <div class="w-100">
+                    <div class="form-row">
+                        <div class="col-md-3">
+                            <label>Name:</label>
+                            <input type="text" class="form-control" name="transformation_name[]" required
+                                   value="{{ transformation.name }}" oninput="updateConfiguration()">
+                        </div>
+                        <div class="col-md-3">
+                            <label>Alters Unit:</label>
+                            <input type="text" class="form-control" name="transformation_altersUnit[]" required
+                                   value="{{ transformation.altersUnit }}" oninput="updateConfiguration()">
+                        </div>
+                        <div class="col-md-3">
+                            <label>Description:</label>
+                            <textarea class="form-control" name="transformation_description[]" rows="3"
+                                      required>{{ transformation.description  if data else '' }}</textarea>
+                        </div>
+                    </div>
+                    {% for character in transformation.hasCharacter %}
+                    <div class="form-row">
+                        <div class="col-md-3">
+                            <label>Character:</label>
+                            <input type="text" class="form-control" name="transformation_character_character[]" required
+                                   value="{{ character.character }}" oninput="updateConfiguration()">
+                        </div>
+                        <div class="col-md-3">
+                            <label>associatedWith:</label>
+                            <select class="form-control qualification-dropdown" id="associatedWithDropdown" name="transformation_character_associatedWith[]">
+                                <option value="">Select an association</option>
+                                <option value="AnyStandardName" {% if character.associatedWith=='https://matthiasprobst.github.io/ssno#AnyStandardName' %}selected{% endif %}>Any Standard Name</option>
+                                {% for qualification in data.qualifications %}
+                                    <option value={{ qualification.name }} {% if character.associatedWith == qualification.name %}selected{% endif %}> {{ qualification.name }} </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
         </div>
 
         <h3 class="mt-4">Qualifications</h3>
