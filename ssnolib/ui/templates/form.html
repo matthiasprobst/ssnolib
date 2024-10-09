@@ -233,7 +233,7 @@
                     {% for character in transformation.hasCharacter %}
                         <div class="form-row" id="characters-row-{{ inner_loop.index}}-{{ character.character }}">
                             <div class="col-md-1">
-                                <label>Character:</label>
+                                <label>Char:</label>
                                 <input type="text"
                                        id="transformation_character_character-{{ inner_loop.index}}-{{ character.character }}"
                                        class="form-control"
@@ -243,7 +243,7 @@
                                        value="{{ character.character }}">
                             </div>
                             <div class="col-md-4">
-                                <label>associatedWith:</label>
+                                <label>associated with:</label>
                                 <select class="form-control qualification-dropdown" id="associatedWithDropdown" name="transformation_character_associatedWith[]">
                                     <option value="">Select an association</option>
                                     <option value="AnyStandardName" {% if character.associatedWith=='https://matthiasprobst.github.io/ssno#AnyStandardName' %}selected{% endif %}>Any Standard Name</option>
@@ -255,7 +255,6 @@
                         </div>
                     {% endfor %}
                     </div>
-                    <button type="button" class="btn btn-secondary" onclick="addCharacter()">Add Character</button>
                 </div>
                 <div class="col-md-2 text-right mt-2">
                     <button type="button" class="btn btn-danger mt-4" onclick="deleteTransformation(this)">Delete Transformation

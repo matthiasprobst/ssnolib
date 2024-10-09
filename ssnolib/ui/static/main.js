@@ -89,7 +89,7 @@ function addTransformation() {
     inputName.classList.add('form-control');
     inputName.name = 'transformation_name[]';
     inputName.required = true;
-    inputName.oninput = function() { onTransformationNameChange(inputName.id, counter); };
+    inputName.oninput = function() { onTransformationNameChange(inputName.id, containerIndex); };
     colMd3Name.appendChild(labelName);
     colMd3Name.appendChild(inputName);
 
@@ -124,16 +124,14 @@ function addTransformation() {
     formRow.appendChild(colMd3AltersUnit);
     formRow.appendChild(colMd4Description);
 
-    const uniqueId = generateUniqueId('characters-container');
+    const containerID = generateUniqueId('characters-container');
+    const containerIndex = counter
 
-    const addButton = document.createElement('button');
-    addButton.type = 'button';
-    addButton.classList.add('btn', 'btn-secondary');
-    addButton.textContent = 'Add Character';
-    addButton.onclick = function() { addCharacter(uniqueId); };
+    const charactersContainerDiv = document.createElement('div');
+    charactersContainerDiv.id = containerID;
 
     innerDiv.appendChild(formRow);
-    innerDiv.appendChild(addButton);
+    innerDiv.appendChild(charactersContainerDiv);
 
     const colMd2Delete = document.createElement('div');
     colMd2Delete.classList.add('col-md-2', 'text-right', 'mt-2');
@@ -159,12 +157,12 @@ function addCharacter(containerId){
 
     newCharacterDiv.innerHTML = `
     <div class="col-md-1">
-        <label>Character:</label>
+        <label>Char:</label>
         <input type="text" class="form-control" name="transformation_character_character[]" required
                value="">
     </div>
     <div class="col-md-4">
-        <label>associatedWith:</label>
+        <label>associated with:</label>
         <select class="form-control qualification-dropdown" id="associatedWithDropdown" name="transformation_character_associatedWith[]">
             <option value="">Select an association</option>
             <option value="AnyStandardName" {% if character.associatedWith=='https://matthiasprobst.github.io/ssno#AnyStandardName' %}selected{% endif %}>Any Standard Name</option>
@@ -438,7 +436,8 @@ function onTransformationNameChange(parentElement, idx){
             // Add the character input fields
             const characterContainer = document.getElementById(`characters-container-${idx}`);
 
-            console.log(`Adding ${characterRowID}`);
+
+            console.log(`Adding ${characterRowID} to ${characterContainer.id}`);
             const newCharacterDiv = document.createElement('div');
             newCharacterDiv.classList.add('form-row');
             newCharacterDiv.id = characterRowID;
@@ -446,7 +445,7 @@ function onTransformationNameChange(parentElement, idx){
             const colmd1Div = document.createElement('div');
             colmd1Div.classList.add('col-md-1');
             const label = document.createElement('label');
-            label.textContent = 'Character:';
+            label.textContent = 'Char:';
             const input = document.createElement('input');
             input.type = 'text';
             input.id = `transformation_character_character-${idx}-${letter}`;
@@ -461,7 +460,7 @@ function onTransformationNameChange(parentElement, idx){
             const colmd4Div = document.createElement('div');
             colmd4Div.classList.add('col-md-4');
             const labelAssociatedWith = document.createElement('label');
-            labelAssociatedWith.textContent = 'associatedWith:';
+            labelAssociatedWith.textContent = 'associated with:';
             const selectAssociatedWith = document.createElement('select');
             selectAssociatedWith.classList.add('form-control', 'qualification-dropdown');
             selectAssociatedWith.id = 'associatedWithDropdown';
@@ -484,7 +483,7 @@ function onTransformationNameChange(parentElement, idx){
     for (let i = 65; i <= 90; i++) {
         const letter = String.fromCharCode(i);
         if (!capitalLetters.includes(letter)) {
-            console.log(`Checking for ${letter} in ${capitalLetters}`);
+
             const foundID = document.getElementById(`characters-row-${idx}-${letter}`);
             if (foundID) {
                 console.log(`Removing div ${foundID.id} for ${letter} because it is ${letter} not in ${capitalLetters}`);
