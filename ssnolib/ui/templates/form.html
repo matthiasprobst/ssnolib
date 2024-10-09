@@ -273,31 +273,7 @@
             {% for qualification in data.qualifications %}
             <div class="list-group-item d-flex justify-content-between align-items-center mb-2">
                 <div class="w-100">
-                    <div class="form-row">
-                        <div class="col-md-3">
-                            <label>Name:</label>
-                            <input type="text" class="form-control" name="qualification_name[]" required
-                                   value="{{ qualification.name }}" oninput="updateConfiguration()">
-                        </div>
-                        <div class="col-md-3">
-                            <label>Valid Values:</label>
-                            <input type="text"
-                                   class="form-control"
-                                   name="valid_values[]"
-                                   value="{{ qualification.hasValidValues | map(attribute='value') | join(', ') }}"
-                                   placeholder="Comma sep. list, e.g. x,y,z" required>
-                        </div>
-                        <div class="col-md-2">
-                            <label>Preposition (optional):</label>
-                            <input type="text" class="form-control" name="preposition[]"
-                                   placeholder='E.g. "at", "assuming", ...'
-                                   value="{{ qualification.hasPreposition if qualification.hasPreposition else '' }}">
-                        </div>
-                        <div class="col-md-3">
-                            <label>Description:</label>
-                            <input type="text" class="form-control" name="qualification_description[]"
-                                   value="{{ qualification.description }}" required>
-                        </div>
+                    <div class="form-row" id="qualification-form-row-vector-{{ loop.index }}">
                         <div class="col-md-2">
                             <div class="form-check d-flex align-items-center">
                                 <input class="form-check-input" type="checkbox" name="vector[]" id="vectorCheckbox" {%
@@ -309,6 +285,62 @@
                             </div>
                         </div>
                     </div>
+                    <div class="form-row" id="qualification-form-row-{{ loop.index }}">
+                        <div class="col-md-2">
+                            <label for="preposition-input-{{ loop.index }}">Preposition (opt.):</label>
+                            <input type="text"
+                                   id="preposition-input-{{ loop.index }}"
+                                   class="form-control"
+                                   name="preposition[]"
+                                   placeholder='E.g. "at", "assuming", ...'
+                                   value="{{ qualification.hasPreposition if qualification.hasPreposition else ' ' }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="qualification-name-input-{{ loop.index }}">Name:</label>
+                            <input type="text"
+                                   id="qualification-name-input-{{ loop.index }}"
+                                   class="form-control"
+                                   name="qualification_name[]"
+                                   required
+                                   value="{{ qualification.name }}" oninput="updateConfiguration()">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="hasValidValues-input-{{ loop.index }}">Valid Values for "{{ qualification.name }}":</label>
+                            <input type="text"
+                                   id="hasValidValues-input-{{ loop.index }}"
+                                   class="form-control"
+                                   name="valid_values[]"
+                                   value="{{ qualification.hasValidValues | map(attribute='value') | join(', ') }}"
+                                   placeholder="Comma sep. list, e.g. x,y,z" required>
+                        </div>
+                        <div class="col-md">
+                            <label>Description:</label>
+                            <input type="text" class="form-control" name="qualification_description[]"
+                                   value="{{ qualification.description }}" required>
+                        </div>
+                    </div>
+                    {% for valid_value in qualification.hasValidValues %}
+                    <div class="form-row">
+                        <div class="col-md-1">
+                            <label for="hasValidValues-value-{{ loop.index }}">Value:</label>
+                            <input type="text"
+                                   id="hasValidValues-value-{{ loop.index }}"
+                                   class="form-control"
+                                   name="valid_values[]"
+                                   value="{{ valid_value.value }}"
+                                   placeholder="Comma sep. list, e.g. x,y,z" required>
+                        </div>
+                        <div class="col-md">
+                            <label for="hasValidValues-annotation-{{ loop.index }}">Annotation:</label>
+                            <input type="text"
+                                   id="hasValidValues-annotation-{{ loop.index }}"
+                                   class="form-control"
+                                   name="valid_values[]"
+                                   value="{{ valid_value.annotation }}"
+                                   placeholder="Comma sep. list, e.g. x,y,z" required>
+                        </div>
+                    </div>
+                    {% endfor %}
                 </div>
                 <button type="button" class="btn btn-danger btn-sm" onclick="deleteQualification(this)">Delete</button>
             </div>
