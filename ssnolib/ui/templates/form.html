@@ -199,18 +199,29 @@
         <label id="transformation-heading"></label>
         <div id="transformation-container">
             {% for transformation in data.transformations %}
+            {% set inner_loop = loop %}
             <div class="list-group-item d-flex justify-content-between align-items-center mb-2">
                 <div class="w-100">
                     <div class="form-row">
                         <div class="col-md-3">
                             <label title="Please use capital letters for associated characters.">Name:</label>
-                            <input type="text" class="form-control" name="transformation_name[]" required
-                                   value="{{ transformation.name }}">
+                            <input type="text"
+                                   id="transformation_name_field-{{ inner_loop.index }}"
+                                   class="form-control"
+                                   name="transformation_name[]"
+                                   required
+                                   value="{{ transformation.name }}"
+                                   oninput="onTransformationNameChange(this.id, {{ inner_loop.index }})">
                         </div>
                         <div class="col-md-3">
                             <label title="Put characters in square brackets, e.g. [X]/[C]">Alters Unit:</label>
-                            <input type="text" class="form-control" name="transformation_altersUnit[]" required
-                                   value="{{ transformation.altersUnit }}">
+                            <input type="text"
+                                   id="transformation_alterUnit-{{ inner_loop.index }}"
+                                   class="form-control"
+                                   name="transformation_altersUnit[]"
+                                   required
+                                   value="{{ transformation.altersUnit }}"
+                                   onfocusout="onChangeAltersUnit(this.id, `transformation_name_field-{{ loop.index }}`)">
                         </div>
                         <div class="col-md-4">
                             <label>Description:</label>
@@ -218,12 +229,17 @@
                                       required>{{ transformation.description  if data else '' }}</textarea>
                         </div>
                     </div>
-                    <div id="characters-container ">
+                    <div id="characters-container-{{ inner_loop.index }}">
                     {% for character in transformation.hasCharacter %}
-                        <div class="form-row">
+                        <div class="form-row" id="characters-row-{{ inner_loop.index}}-{{ character.character }}">
                             <div class="col-md-1">
                                 <label>Character:</label>
-                                <input type="text" class="form-control" name="transformation_character_character[]" required
+                                <input type="text"
+                                       id="transformation_character_character-{{ inner_loop.index}}-{{ character.character }}"
+                                       class="form-control"
+                                       name="transformation_character_character[]"
+                                       required
+                                       disabled
                                        value="{{ character.character }}">
                             </div>
                             <div class="col-md-4">
@@ -235,10 +251,6 @@
                                         <option value={{ qualification.name }} {% if character.associatedWith == qualification.name %}selected{% endif %}> {{ qualification.name }} </option>
                                     {% endfor %}
                                 </select>
-                            </div>
-                            <div class="col-md-4">
-                                <button type="button" class="btn btn-danger mt-4" onclick="deleteTransformation(this)">Delete Character
-                                </button>
                             </div>
                         </div>
                     {% endfor %}
@@ -270,7 +282,9 @@
                         </div>
                         <div class="col-md-3">
                             <label>Valid Values:</label>
-                            <input type="text" class="form-control" name="valid_values[]"
+                            <input type="text"
+                                   class="form-control"
+                                   name="valid_values[]"
                                    value="{{ qualification.hasValidValues | map(attribute='value') | join(', ') }}"
                                    placeholder="Comma sep. list, e.g. x,y,z" required>
                         </div>

@@ -1,4 +1,13 @@
 
+
+let counter = 1000;
+
+function generateUniqueId(prefix = 'id') {
+    counter += 1;
+    return `${prefix}-${counter}`;
+}
+
+
 // Function to add new author fields with Bootstrap classes and "Delete" button at the end of the row
 function addAuthor() {
     const authorContainer = document.getElementById('author-and-organization-container');
@@ -62,32 +71,81 @@ function addTransformation() {
     const newTransformationDiv = document.createElement('div');
     newTransformationDiv.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center', 'mb-2');
 
-    newTransformationDiv.innerHTML = `
-        <div class="w-100">
-            <div class="form-row">
-                <div class="col-md-3">
-                    <label>Name:</label>
-                    <input type="text" class="form-control" name="transformation_name[]" required
-                           value="">
-                </div>
-                <div class="col-md-3">
-                    <label>Alters Unit:</label>
-                    <input type="text" class="form-control" name="transformation_altersUnit[]" required
-                           value="">
-                </div>
-                <div class="col-md-4">
-                    <label>Description:</label>
-                    <textarea class="form-control" name="transformation_description[]" rows="3"
-                              required>{{ transformation.description  if data else '' }}</textarea>
-                </div>
-            </div>
-            <button type="button" class="btn btn-secondary" onclick="addCharacter()">Add Character</button>
-        </div>
-        <div class="col-md-2 text-right mt-2">
-            <button type="button" class="btn btn-danger mt-4" onclick="deleteTransformation(this)">Delete Transformation
-            </button>
-        </div>
-    `;
+    const innerDiv = document.createElement('div');
+    innerDiv.classList.add('w-100');
+
+    const formRow = document.createElement('div');
+    formRow.classList.add('form-row');
+
+    const transformationID = generateUniqueId('transformation_name_field');
+
+    const colMd3Name = document.createElement('div');
+    colMd3Name.classList.add('col-md-3');
+    const labelName = document.createElement('label');
+    labelName.textContent = 'Name:';
+    const inputName = document.createElement('input');
+    inputName.type = 'text';
+    inputName.id = transformationID;
+    inputName.classList.add('form-control');
+    inputName.name = 'transformation_name[]';
+    inputName.required = true;
+    inputName.oninput = function() { onTransformationNameChange(inputName.id, counter); };
+    colMd3Name.appendChild(labelName);
+    colMd3Name.appendChild(inputName);
+
+    const colMd3AltersUnit = document.createElement('div');
+    colMd3AltersUnit.classList.add('col-md-3');
+    const labelAltersUnit = document.createElement('label');
+    labelAltersUnit.textContent = 'Alters Unit:';
+
+    const inputAltersUnit = document.createElement('input');
+    inputAltersUnit.type = 'text';
+    inputAltersUnit.id = generateUniqueId('transformation_alterUnit');
+    inputAltersUnit.classList.add('form-control');
+    inputAltersUnit.name = 'transformation_altersUnit[]';
+    inputAltersUnit.oninput = function() { onChangeAltersUnit(inputAltersUnit.id, inputName.id); };
+    inputAltersUnit.required = true;
+    colMd3AltersUnit.appendChild(labelAltersUnit);
+    colMd3AltersUnit.appendChild(inputAltersUnit);
+
+    const colMd4Description = document.createElement('div');
+    colMd4Description.classList.add('col-md-4');
+    const labelDescription = document.createElement('label');
+    labelDescription.textContent = 'Description:';
+    const textareaDescription = document.createElement('textarea');
+    textareaDescription.classList.add('form-control');
+    textareaDescription.name = 'transformation_description[]';
+    textareaDescription.rows = 3;
+    textareaDescription.required = true;
+    colMd4Description.appendChild(labelDescription);
+    colMd4Description.appendChild(textareaDescription);
+
+    formRow.appendChild(colMd3Name);
+    formRow.appendChild(colMd3AltersUnit);
+    formRow.appendChild(colMd4Description);
+
+    const uniqueId = generateUniqueId('characters-container');
+
+    const addButton = document.createElement('button');
+    addButton.type = 'button';
+    addButton.classList.add('btn', 'btn-secondary');
+    addButton.textContent = 'Add Character';
+    addButton.onclick = function() { addCharacter(uniqueId); };
+
+    innerDiv.appendChild(formRow);
+    innerDiv.appendChild(addButton);
+
+    const colMd2Delete = document.createElement('div');
+    colMd2Delete.classList.add('col-md-2', 'text-right', 'mt-2');
+    const deleteButton = document.createElement('button');
+    deleteButton.type = 'button';
+    deleteButton.classList.add('btn', 'btn-danger', 'mt-4');
+    deleteButton.textContent = 'Delete Transformation';
+    deleteButton.onclick = function() { deleteTransformation(deleteButton); };
+    colMd2Delete.appendChild(deleteButton);
+
+    newTransformationDiv.appendChild(innerDiv);
+    newTransformationDiv.appendChild(colMd2Delete);
 
     transformationContainer.appendChild(newTransformationDiv);
     updateConfiguration();
@@ -221,6 +279,7 @@ function deleteStandardName(button) {
     const standardNameRow = button.parentNode.parentNode;
     standardNameRow.remove();
 }
+
 function addQualification() {
     const qualificationContainer = document.getElementById('qualification-container');
     const newQualificationDiv = document.createElement('div');
@@ -289,9 +348,7 @@ function updateConfiguration() {
 
     });
 
-    console.log('---')
     qualificationDropdowns.forEach(dropdown => {
-        console.log(dropdown)
         // Get the current selection:
         const selectedValue = dropdown.value;
         // Reset dropdown:
@@ -302,7 +359,6 @@ function updateConfiguration() {
 //        dropdown.appendChild(option);
         qualifications.forEach((qualification, index) => {
             const qualificationName = qualification.querySelector('input[name="qualification_name[]"]').value;
-            console.log(`qualificationName: ${qualificationName}`)
             const option = document.createElement('option');
             option.value = qualificationName
             option.textContent = qualificationName
@@ -359,5 +415,125 @@ function updateConfiguration() {
         }
     } else {
         qualificationHeading.innerHTML = `Qualifications`; // Reset heading if no qualifications
+    }
+}
+
+function getCapitalLetters(input) {
+    return input.match(/[A-Z]/g) || [];
+}
+
+function onTransformationNameChange(parentElement, idx){
+    const transformationName = document.getElementById(parentElement);
+    console.log(transformationName.value);
+    console.log(`index: ${idx}`);
+    const capitalLetters = getCapitalLetters(transformationName.value);
+    console.log(capitalLetters);
+
+    // check if the character input fields exist
+    // loop through the characters and update the associatedWith field
+    capitalLetters.forEach(letter => {
+        const characterRowID = `characters-row-${idx}-${letter}`;
+        const foundID = document.getElementById(characterRowID)
+        if (!foundID) {
+            // Add the character input fields
+            const characterContainer = document.getElementById(`characters-container-${idx}`);
+
+            console.log(`Adding ${characterRowID}`);
+            const newCharacterDiv = document.createElement('div');
+            newCharacterDiv.classList.add('form-row');
+            newCharacterDiv.id = characterRowID;
+
+            const colmd1Div = document.createElement('div');
+            colmd1Div.classList.add('col-md-1');
+            const label = document.createElement('label');
+            label.textContent = 'Character:';
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.id = `transformation_character_character-${idx}-${letter}`;
+            input.classList.add('form-control');
+            input.name = `transformation_character_character-${idx}[]`;
+            input.required = true;
+            input.disabled = true;
+            input.value = letter;
+            colmd1Div.appendChild(label);
+            colmd1Div.appendChild(input);
+
+            const colmd4Div = document.createElement('div');
+            colmd4Div.classList.add('col-md-4');
+            const labelAssociatedWith = document.createElement('label');
+            labelAssociatedWith.textContent = 'associatedWith:';
+            const selectAssociatedWith = document.createElement('select');
+            selectAssociatedWith.classList.add('form-control', 'qualification-dropdown');
+            selectAssociatedWith.id = 'associatedWithDropdown';
+            selectAssociatedWith.name = `transformation_character_associatedWith-${idx}[]`;
+            const option = document.createElement('option');
+            option.value = '';
+            option.textContent = 'Select an association';
+            selectAssociatedWith.appendChild(option);
+            colmd4Div.appendChild(labelAssociatedWith);
+            colmd4Div.appendChild(selectAssociatedWith);
+
+            newCharacterDiv.appendChild(colmd1Div);
+            newCharacterDiv.appendChild(colmd4Div);
+            characterContainer.appendChild(newCharacterDiv);
+        }
+    });
+
+    // loop over all letters from A...Z and check if they are in the transformation name
+    // if they are not, delete the character input fields
+    for (let i = 65; i <= 90; i++) {
+        const letter = String.fromCharCode(i);
+        if (!capitalLetters.includes(letter)) {
+            console.log(`Checking for ${letter} in ${capitalLetters}`);
+            const foundID = document.getElementById(`characters-row-${idx}-${letter}`);
+            if (foundID) {
+                console.log(`Removing div ${foundID.id} for ${letter} because it is ${letter} not in ${capitalLetters}`);
+                foundID.remove();
+            }
+        }
+    }
+
+}
+
+function onChangeAltersUnit(alterUnitID, transformationNameID){
+    console.log(`Updating ${alterUnitID}`);
+
+    const altersUnit = document.getElementById(alterUnitID);
+    console.log(altersUnit.value);
+    const capitalLetters = getCapitalLetters(altersUnit.value);
+    console.log(capitalLetters);
+
+    // check if capital letters are in letters found in the name field:
+    const transformationName = document.getElementById(transformationNameID);
+    const expectedCapitalLetters = getCapitalLetters(transformationName.value);
+
+    console.log(`Comparing ${capitalLetters} with ${expectedCapitalLetters}`);
+    if (capitalLetters.length > 0){
+        if (expectedCapitalLetters.length > 0){
+            if (capitalLetters.length > expectedCapitalLetters.length){
+                alert(`The letters in the "Alters Unit" field do not match the letters in the "Name" field. Please correct this.`);
+                // Keep what is not a problem:
+                            // Filter out non-matching letters
+            const filteredValue = altersUnit.value.split('').filter(char => {
+                return !/[A-Z]/.test(char) || expectedCapitalLetters.includes(char);
+            }).join('');
+
+            // Set the filtered value back to the input
+            altersUnit.value = filteredValue;
+            }
+        }
+    }
+
+    const unmatchedLetters = [];
+
+    capitalLetters.forEach(letter => {
+        const regex = new RegExp(`\\[${letter}\\]`);
+        if (!regex.test(altersUnit.value)) {
+            unmatchedLetters.push(letter);
+        }
+    });
+
+    if (unmatchedLetters.length > 0) {
+        alert(`The following capital letters are not surrounded by square brackets: ${unmatchedLetters.join(', ')}`);
     }
 }

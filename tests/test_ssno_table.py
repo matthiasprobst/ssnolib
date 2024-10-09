@@ -205,6 +205,12 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         self.assertEqual("v1", snt.version)
         self.assertEqual(2, len(snt.hasModifier))
         self.assertEqual(3, len(snt.standardNames))
+        qualifications = [q for q in snt.hasModifier if isinstance(q, ssnolib.VectorQualification)]
+        self.assertEqual(1, len(qualifications))
+        self.assertEqual("component", qualifications[0].name)
+        self.assertEqual("The component of a vector", qualifications[0].description)
+        self.assertEqual(3, len(qualifications[0].hasValidValues))
+
 
 
     def test_standard_name_table_from_jsonld(self):

@@ -1135,6 +1135,7 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
                     hasModifier.append(
                         VectorQualification(
                             id=modifierID,
+                            hasValidValues=hasValidValues,
                             **{k: v for k, v in hasModifier_dict.items() if v}
                         )
                     )
