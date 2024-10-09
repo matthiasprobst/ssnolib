@@ -191,8 +191,8 @@
                 {% endfor %}
                 {% endif %}
             </div>
-            <button type="button" class="btn btn-secondary" onclick="addAuthor()">Add Author</button>
-            <button type="button" class="btn btn-secondary" onclick="addOrganization()">Add Organization</button>
+            <button type="button" class="btn btn-primary" onclick="addAuthor()">Add Author</button>
+            <button type="button" class="btn btn-primary" onclick="addOrganization()">Add Organization</button>
         </div>
 
         <h3 class="mt-4">Transformations</h3>
@@ -203,44 +203,57 @@
                 <div class="w-100">
                     <div class="form-row">
                         <div class="col-md-3">
-                            <label>Name:</label>
+                            <label title="Please use capital letters for associated characters.">Name:</label>
                             <input type="text" class="form-control" name="transformation_name[]" required
-                                   value="{{ transformation.name }}" oninput="updateConfiguration()">
+                                   value="{{ transformation.name }}">
                         </div>
                         <div class="col-md-3">
-                            <label>Alters Unit:</label>
+                            <label title="Put characters in square brackets, e.g. [X]/[C]">Alters Unit:</label>
                             <input type="text" class="form-control" name="transformation_altersUnit[]" required
-                                   value="{{ transformation.altersUnit }}" oninput="updateConfiguration()">
+                                   value="{{ transformation.altersUnit }}">
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <label>Description:</label>
                             <textarea class="form-control" name="transformation_description[]" rows="3"
                                       required>{{ transformation.description  if data else '' }}</textarea>
                         </div>
                     </div>
+                    <div id="characters-container ">
                     {% for character in transformation.hasCharacter %}
-                    <div class="form-row">
-                        <div class="col-md-3">
-                            <label>Character:</label>
-                            <input type="text" class="form-control" name="transformation_character_character[]" required
-                                   value="{{ character.character }}" oninput="updateConfiguration()">
+                        <div class="form-row">
+                            <div class="col-md-1">
+                                <label>Character:</label>
+                                <input type="text" class="form-control" name="transformation_character_character[]" required
+                                       value="{{ character.character }}">
+                            </div>
+                            <div class="col-md-4">
+                                <label>associatedWith:</label>
+                                <select class="form-control qualification-dropdown" id="associatedWithDropdown" name="transformation_character_associatedWith[]">
+                                    <option value="">Select an association</option>
+                                    <option value="AnyStandardName" {% if character.associatedWith=='https://matthiasprobst.github.io/ssno#AnyStandardName' %}selected{% endif %}>Any Standard Name</option>
+                                    {% for qualification in data.qualifications %}
+                                        <option value={{ qualification.name }} {% if character.associatedWith == qualification.name %}selected{% endif %}> {{ qualification.name }} </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <button type="button" class="btn btn-danger mt-4" onclick="deleteTransformation(this)">Delete Character
+                                </button>
+                            </div>
                         </div>
-                        <div class="col-md-3">
-                            <label>associatedWith:</label>
-                            <select class="form-control qualification-dropdown" id="associatedWithDropdown" name="transformation_character_associatedWith[]">
-                                <option value="">Select an association</option>
-                                <option value="AnyStandardName" {% if character.associatedWith=='https://matthiasprobst.github.io/ssno#AnyStandardName' %}selected{% endif %}>Any Standard Name</option>
-                                {% for qualification in data.qualifications %}
-                                    <option value={{ qualification.name }} {% if character.associatedWith == qualification.name %}selected{% endif %}> {{ qualification.name }} </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
                     {% endfor %}
+                    </div>
+                    <button type="button" class="btn btn-secondary" onclick="addCharacter()">Add Character</button>
+                </div>
+                <div class="col-md-2 text-right mt-2">
+                    <button type="button" class="btn btn-danger mt-4" onclick="deleteTransformation(this)">Delete Transformation
+                    </button>
                 </div>
             </div>
+
             {% endfor %}
         </div>
+        <button type="button" class="btn btn-primary" onclick="addTransformation()">Add Transformation</button>
 
         <h3 class="mt-4">Qualifications</h3>
         <label id="qualification-heading"></label>

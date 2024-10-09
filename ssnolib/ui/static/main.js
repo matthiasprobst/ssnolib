@@ -53,6 +53,74 @@ function addAuthor() {
     authorContainer.appendChild(newAuthorDiv);
 }
 
+
+
+
+// Function to add new qualification fields with Bootstrap classes and delete button
+function addTransformation() {
+    const transformationContainer = document.getElementById('transformation-container');
+    const newTransformationDiv = document.createElement('div');
+    newTransformationDiv.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center', 'mb-2');
+
+    newTransformationDiv.innerHTML = `
+        <div class="w-100">
+            <div class="form-row">
+                <div class="col-md-3">
+                    <label>Name:</label>
+                    <input type="text" class="form-control" name="transformation_name[]" required
+                           value="">
+                </div>
+                <div class="col-md-3">
+                    <label>Alters Unit:</label>
+                    <input type="text" class="form-control" name="transformation_altersUnit[]" required
+                           value="">
+                </div>
+                <div class="col-md-4">
+                    <label>Description:</label>
+                    <textarea class="form-control" name="transformation_description[]" rows="3"
+                              required>{{ transformation.description  if data else '' }}</textarea>
+                </div>
+            </div>
+            <button type="button" class="btn btn-secondary" onclick="addCharacter()">Add Character</button>
+        </div>
+        <div class="col-md-2 text-right mt-2">
+            <button type="button" class="btn btn-danger mt-4" onclick="deleteTransformation(this)">Delete Transformation
+            </button>
+        </div>
+    `;
+
+    transformationContainer.appendChild(newTransformationDiv);
+    updateConfiguration();
+}
+
+
+function addCharacter(containerId){
+    const characterContainer = document.getElementById(containerId);
+    const newCharacterDiv = document.createElement('div');
+    newCharacterDiv.classList.add('form-row');
+
+    newCharacterDiv.innerHTML = `
+    <div class="col-md-1">
+        <label>Character:</label>
+        <input type="text" class="form-control" name="transformation_character_character[]" required
+               value="">
+    </div>
+    <div class="col-md-4">
+        <label>associatedWith:</label>
+        <select class="form-control qualification-dropdown" id="associatedWithDropdown" name="transformation_character_associatedWith[]">
+            <option value="">Select an association</option>
+            <option value="AnyStandardName" {% if character.associatedWith=='https://matthiasprobst.github.io/ssno#AnyStandardName' %}selected{% endif %}>Any Standard Name</option>
+        </select>
+    </div>
+    <div class="col-md-4">
+        <button type="button" class="btn btn-danger mt-4" onclick="deleteTransformation(this)">Delete Character
+        </button>
+    </div>
+    `;
+    characterContainer.appendChild(newCharacterDiv);
+    updateConfiguration();
+}
+
 // Function to add new organization fields with Bootstrap classes and "Delete" button at the end of the row
 function addOrganization() {
     const organizationContainer = document.getElementById('author-and-organization-container');
@@ -135,6 +203,12 @@ function deleteAuthor(button) {
 }
 
 // Function to delete an author row
+function deleteTransformation(button) {
+    const authorRow = button.parentNode.parentNode;
+    authorRow.remove();
+}
+
+// Function to delete an author row
 function deleteOrganization(button) {
     const orgaRow = button.parentNode.parentNode;
     orgaRow.remove();
@@ -147,8 +221,6 @@ function deleteStandardName(button) {
     const standardNameRow = button.parentNode.parentNode;
     standardNameRow.remove();
 }
-
-// Function to add new qualification fields with Bootstrap classes and delete button
 function addQualification() {
     const qualificationContainer = document.getElementById('qualification-container');
     const newQualificationDiv = document.createElement('div');
@@ -202,11 +274,6 @@ function updateConfiguration() {
     const qualificationHeading = document.getElementById('qualification-heading'); // Select the heading
     const qualificationDropdowns = document.querySelectorAll('.qualification-dropdown');
 
-        // Reset each dropdown
-    qualificationDropdowns.forEach(dropdown => {
-        dropdown.innerHTML = '<option value="" disabled selected>Select a Qualification</option>'; // Reset each dropdown
-    });
-
     const qualifications = qualificationContainer.querySelectorAll('.list-group-item');
 
     // Static "AnyStandardName" line
@@ -223,19 +290,48 @@ function updateConfiguration() {
     });
 
     console.log('---')
-    qualifications.forEach((qualification, index) => {
-        const name = qualification.querySelector('input[name="qualification_name[]"]')?.value;
-        console.log(qualificationDropdowns)
-
-        // Add qualification to all dropdowns
-        qualificationDropdowns.forEach(dropdown => {
+    qualificationDropdowns.forEach(dropdown => {
+        console.log(dropdown)
+        // Get the current selection:
+        const selectedValue = dropdown.value;
+        // Reset dropdown:
+        dropdown.innerHTML = '<option value="" disabled selected>Select an Association</option>'; // Reset each dropdown
+//        const option = document.createElement('option');
+//        option.value = "AnyStandardName";
+//        option.textContent = "Any Standard Name";
+//        dropdown.appendChild(option);
+        qualifications.forEach((qualification, index) => {
+            const qualificationName = qualification.querySelector('input[name="qualification_name[]"]').value;
+            console.log(`qualificationName: ${qualificationName}`)
             const option = document.createElement('option');
-            option.value = name;
-            option.textContent = name;
+            option.value = qualificationName
+            option.textContent = qualificationName
+            if (qualificationName === selectedValue) {
+                option.selected = true; // Retain the selected option
+            }
+
             dropdown.appendChild(option);
         });
-    }
-    )
+    });
+//    qualifications.forEach((qualification, index) => {
+//        const name = qualification.querySelector('input[name="qualification_name[]"]')?.value;
+//        console.log(qualificationDropdowns)
+//        const selectedValue = dropdown.value;
+//
+//        // Add the qualifications as options, preserving the selection
+//        configItems.forEach(qualificationName => {
+//            const option = document.createElement('option');
+//            option.value = name;
+//            option.textContent = qualificationName;
+//
+//            if (qualificationName === selectedValue) {
+//                option.selected = true; // Retain the selected option
+//            }
+//
+//            dropdown.appendChild(option);
+//        });
+//    }
+//    )
 
     let configurationString = ''; // Initialize configuration string
     // Adding "AnyStandardName" at the end or dynamically based on the positions
