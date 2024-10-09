@@ -2,7 +2,10 @@
 
 let counter = 1000;
 
-function generateUniqueId(prefix = 'id') {
+function generateUniqueId(prefix = 'id', index=null) {
+    if (index) {
+        return `${prefix}-${index}`;
+    }
     counter += 1;
     return `${prefix}-${counter}`;
 }
@@ -283,39 +286,141 @@ function addQualification() {
     const newQualificationDiv = document.createElement('div');
     newQualificationDiv.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center', 'mb-2');
 
-    newQualificationDiv.innerHTML = `
-        <div class="w-100">
-            <div class="form-row">
-                <div class="col-md-3">
-                    <label>Name:</label>
-                    <input type="text" class="form-control" name="qualification_name[]" required oninput="updateConfiguration()">
-                </div>
-                <div class="col-md-3">
-                    <label>Valid Values:</label>
-                    <input type="text" class="form-control" name="valid_values[]" placeholder="Comma sep. list, e.g. x,y,z" required>
-                </div>
-                <div class="col-md-2">
-                    <label>Preposition (optional):</label>
-                    <input type="text" class="form-control" name="preposition[]" placeholder='E.g. "at", "assuming", ...'>
-                </div>
-                <div class="col-md-3">
-                    <label>Description:</label>
-                    <input type="text" class="form-control" name="qualification_description[]" required>
-                </div>
-                <div class="col-md-2">
-                    <div class="form-check d-flex align-items-center">
-                        <input class="form-check-input" type="checkbox" name="vector[]" id="vectorCheckbox">
-                        <label class="form-check-label ml-2" for="vectorCheckbox">
-                            Vector?
-                        </label>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <button type="button" class="btn btn-danger btn-sm" onclick="deleteQualification(this)">Delete</button>
-    `;
+    const w100div = document.createElement('div');
+    w100div.classList.add('w-100');
 
+    const formRowVector = document.createElement('div');
+    formRowVector.classList.add('form-row');
+    formRowVector.id = generateUniqueId('qualification-form-row-vector');
+    const rowIndex = counter;
+
+    const divVector = document.createElement('div');
+    divVector.classList.add('col-md-1');
+    formRowVector.appendChild(divVector);
+
+    const formCheckDiv = document.createElement('div');
+    formCheckDiv.classList.add('form-check', 'd-flex', 'align-items-center');
+    divVector.appendChild(formCheckDiv);
+
+    const vectorCheckbox = document.createElement('input');
+    vectorCheckbox.classList.add('form-check-input');
+    vectorCheckbox.type = 'checkbox';
+    vectorCheckbox.name = 'vector[]';
+    vectorCheckbox.id = generateUniqueId('vectorCheckbox', rowIndex);
+    formCheckDiv.appendChild(vectorCheckbox);
+
+    const labelVector = document.createElement('label');
+    labelVector.classList.add('form-check-label', 'ml-2');
+    labelVector.htmlFor = vectorCheckbox.id;
+    labelVector.textContent = 'Vector?';
+    formCheckDiv.appendChild(labelVector);
+
+    const dummyDiv = document.createElement('div');
+    dummyDiv.classList.add('col-md-10');
+    formRowVector.appendChild(dummyDiv);
+
+    const divButtonDelete = document.createElement('div');
+    divButtonDelete.classList.add('col-md', 'text-right', 'mt-2');
+    const buttonDelete = document.createElement('button');
+    buttonDelete.type = 'button';
+    buttonDelete.classList.add('btn', 'btn-danger', 'btn-sm');
+    buttonDelete.textContent = 'Delete';
+    buttonDelete.onclick = function() { deleteQualification(buttonDelete); };
+    divButtonDelete.appendChild(buttonDelete);
+    formRowVector.appendChild(divButtonDelete);
+
+    const formRowQualification = document.createElement('div');
+    formRowQualification.classList.add('form-row');
+    formRowQualification.id = generateUniqueId('qualification-form-row', rowIndex);
+
+    const labelQPrepo = document.createElement('label');
+    labelQPrepo.textContent = 'Preposition (opt.):';
+    const inputQPrepo = document.createElement('input');
+    inputQPrepo.type = 'text';
+    inputQPrepo.id=generateUniqueId('qualification-form-row', rowIndex); // take existing ID, dont increment
+    inputQPrepo.classList.add('form-control');
+    inputQPrepo.name = 'preposition[]';
+    inputQPrepo.placeholder = 'E.g. "at", "assuming", ...';
+
+    const labelQName = document.createElement('label');
+    labelQName.textContent = 'Name:';
+    labelQName.id = generateUniqueId('qualification-name-input', rowIndex);
+    const inputQName = document.createElement('input');
+    inputQName.type = 'text';
+    inputQName.id = generateUniqueId('qualification-name-input', rowIndex);
+    inputQName.classList.add('form-control');
+    inputQName.name = 'qualification_name[]';
+    inputQName.required = true;
+    inputQName.oninput = function() { updateConfiguration(); };
+
+    const labelQValidValues = document.createElement('label');
+    labelQValidValues.textContent = 'Valid Values:';
+    const inputQValidValues = document.createElement('input');
+    inputQValidValues.type = 'text';
+    inputQValidValues.classList.add('form-control');
+    inputQValidValues.name = 'valid_values[]';
+    inputQValidValues.placeholder = 'Comma sep. list, e.g. x,y,z';
+    inputQValidValues.required = true;
+
+    const labelQDescription = document.createElement('label');
+    labelQDescription.textContent = 'Description:';
+    const inputQDescription = document.createElement('input');
+    inputQDescription.type = 'text';
+    inputQDescription.classList.add('form-control');
+    inputQDescription.name = 'qualification_description[]';
+    inputQDescription.required = true;
+
+    const divQPrepo = document.createElement('div');
+    divQPrepo.classList.add('col-md-2');
+    const divQName = document.createElement('div');
+    divQName.classList.add('col-md-3');
+    const divQValidValues = document.createElement('div');
+    divQValidValues.classList.add('col-md-3');
+    const divQDescription = document.createElement('div');
+    divQDescription.classList.add('col-md');
+
+    formRowQualification.appendChild(divQPrepo);
+    formRowQualification.appendChild(divQName);
+    formRowQualification.appendChild(divQValidValues);
+    formRowQualification.appendChild(divQDescription);
+
+    divQPrepo.appendChild(labelQPrepo);
+    divQPrepo.appendChild(inputQPrepo);
+    divQName.appendChild(labelQName);
+    divQName.appendChild(inputQName);
+    divQValidValues.appendChild(labelQValidValues);
+    divQValidValues.appendChild(inputQValidValues);
+    divQDescription.appendChild(labelQDescription);
+    divQDescription.appendChild(inputQDescription);
+
+    w100div.appendChild(formRowVector);
+    w100div.appendChild(formRowQualification);
+    newQualificationDiv.appendChild(w100div);
+
+//    newQualificationDiv.innerHTML = `
+//            <div class="form-row">
+//                <div class="col-md-3">
+//                    <label>Name:</label>
+//                    <input type="text" class="form-control" name="qualification_name[]" required oninput="updateConfiguration()">
+//                </div>
+//                <div class="col-md-3">
+//                    <label>Valid Values:</label>
+//                    <input type="text" class="form-control" name="valid_values[]" placeholder="Comma sep. list, e.g. x,y,z" required>
+//                </div>
+//                <div class="col-md-2">
+//                    <label>Preposition (optional):</label>
+//                    <input type="text" class="form-control" name="preposition[]" placeholder='E.g. "at", "assuming", ...'>
+//                </div>
+//                <div class="col-md-3">
+//                    <label>Description:</label>
+//                    <input type="text" class="form-control" name="qualification_description[]" required>
+//                </div>
+//            </div>
+//    `;
     qualificationContainer.appendChild(newQualificationDiv);
+
+
+//        <button type="button" class="btn btn-danger btn-sm" onclick="deleteQualification(this)">Delete</button>
     updateConfiguration();
 }
 
