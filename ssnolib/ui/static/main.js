@@ -284,15 +284,19 @@ function deleteStandardName(button) {
 function addQualification() {
     const qualificationContainer = document.getElementById('qualification-container');
     const newQualificationDiv = document.createElement('div');
-    newQualificationDiv.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center', 'mb-2');
+    newQualificationDiv.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center', 'mb-2', 'qualification-item');
+    newQualificationDiv.id = generateUniqueId('qualification-item');
+    const rowIndex = counter;
 
     const w100div = document.createElement('div');
     w100div.classList.add('w-100');
 
+    console.log("Adding w100div")
+    console.log(w100div);
+
     const formRowVector = document.createElement('div');
     formRowVector.classList.add('form-row');
-    formRowVector.id = generateUniqueId('qualification-form-row-vector');
-    const rowIndex = counter;
+    formRowVector.id = generateUniqueId('qualification-form-row-vector', rowIndex);
 
     const divVector = document.createElement('div');
     divVector.classList.add('col-md-1');
@@ -356,11 +360,13 @@ function addQualification() {
     const labelQValidValues = document.createElement('label');
     labelQValidValues.textContent = 'Valid Values:';
     const inputQValidValues = document.createElement('input');
+    inputQValidValues.id = generateUniqueId('hasValidValues-input', rowIndex);
     inputQValidValues.type = 'text';
     inputQValidValues.classList.add('form-control');
     inputQValidValues.name = 'valid_values[]';
     inputQValidValues.placeholder = 'Comma sep. list, e.g. x,y,z';
     inputQValidValues.required = true;
+    inputQValidValues.oninput =function() { onValidValuesChange(this.id, rowIndex) };
 
     const labelQDescription = document.createElement('label');
     labelQDescription.textContent = 'Description:';
@@ -397,26 +403,6 @@ function addQualification() {
     w100div.appendChild(formRowQualification);
     newQualificationDiv.appendChild(w100div);
 
-//    newQualificationDiv.innerHTML = `
-//            <div class="form-row">
-//                <div class="col-md-3">
-//                    <label>Name:</label>
-//                    <input type="text" class="form-control" name="qualification_name[]" required oninput="updateConfiguration()">
-//                </div>
-//                <div class="col-md-3">
-//                    <label>Valid Values:</label>
-//                    <input type="text" class="form-control" name="valid_values[]" placeholder="Comma sep. list, e.g. x,y,z" required>
-//                </div>
-//                <div class="col-md-2">
-//                    <label>Preposition (optional):</label>
-//                    <input type="text" class="form-control" name="preposition[]" placeholder='E.g. "at", "assuming", ...'>
-//                </div>
-//                <div class="col-md-3">
-//                    <label>Description:</label>
-//                    <input type="text" class="form-control" name="qualification_description[]" required>
-//                </div>
-//            </div>
-//    `;
     qualificationContainer.appendChild(newQualificationDiv);
 
 
@@ -426,7 +412,8 @@ function addQualification() {
 
 // Function to delete a qualification row
 function deleteQualification(button) {
-    button.parentElement.remove();
+    console.log(button.parentElement);
+    button.parentElement.parentElement.parentElement.parentElement.remove();
     updateConfiguration();
 }
 
@@ -436,7 +423,7 @@ function updateConfiguration() {
     const qualificationHeading = document.getElementById('qualification-heading'); // Select the heading
     const qualificationDropdowns = document.querySelectorAll('.qualification-dropdown');
 
-    const qualifications = qualificationContainer.querySelectorAll('.list-group-item');
+    const qualifications = qualificationContainer.querySelectorAll('.qualification-item');
 
     // Static "AnyStandardName" line
     const defaultLine = "AnyStandardName";
@@ -444,6 +431,7 @@ function updateConfiguration() {
     // Collect all qualifications
     const configItems = [];
     qualifications.forEach((qualification, index) => {
+
         const name = qualification.querySelector('input[name="qualification_name[]"]')?.value;
 
         const vectorText = name; // Use name as vector if checked
@@ -456,10 +444,6 @@ function updateConfiguration() {
         const selectedValue = dropdown.value;
         // Reset dropdown:
         dropdown.innerHTML = '<option value="" disabled selected>Select an Association</option>'; // Reset each dropdown
-//        const option = document.createElement('option');
-//        option.value = "AnyStandardName";
-//        option.textContent = "Any Standard Name";
-//        dropdown.appendChild(option);
         qualifications.forEach((qualification, index) => {
             const qualificationName = qualification.querySelector('input[name="qualification_name[]"]').value;
             const option = document.createElement('option');
@@ -468,29 +452,9 @@ function updateConfiguration() {
             if (qualificationName === selectedValue) {
                 option.selected = true; // Retain the selected option
             }
-
             dropdown.appendChild(option);
         });
     });
-//    qualifications.forEach((qualification, index) => {
-//        const name = qualification.querySelector('input[name="qualification_name[]"]')?.value;
-//        console.log(qualificationDropdowns)
-//        const selectedValue = dropdown.value;
-//
-//        // Add the qualifications as options, preserving the selection
-//        configItems.forEach(qualificationName => {
-//            const option = document.createElement('option');
-//            option.value = name;
-//            option.textContent = qualificationName;
-//
-//            if (qualificationName === selectedValue) {
-//                option.selected = true; // Retain the selected option
-//            }
-//
-//            dropdown.appendChild(option);
-//        });
-//    }
-//    )
 
     let configurationString = ''; // Initialize configuration string
     // Adding "AnyStandardName" at the end or dynamically based on the positions
@@ -523,6 +487,83 @@ function updateConfiguration() {
 
 function getCapitalLetters(input) {
     return input.match(/[A-Z]/g) || [];
+}
+
+function onValidValuesChange(parentElement, idx){
+    console.log(`Updating ${parentElement} for ${idx}`);
+    const validValues = document.getElementById(parentElement);
+    const validValuesArray = validValues.value.split(',');
+    // strip whitespace:
+    validValuesArray.forEach((value, index) => {
+        validValuesArray[index] = value.trim();
+    });
+
+    // check if the valid value input fields exist
+    // loop through the valid values and update the associatedWith field
+    validValuesArray.forEach(validValue => {
+        console.log(`Checking ${validValue}`);
+        const hasValidValueID = `hasValidValues-value-${validValue}-${idx}`;
+        const foundID = document.getElementById(hasValidValueID)
+         if (foundID == null && validValue !== '') {
+                console.log(`DEBUG ${hasValidValueID}`);
+                console.log(`DEBUG ${foundID}`);
+                console.log("Adding new valid value input field with id: " + hasValidValueID);
+                console.log(idx)
+                const listGroupItem = document.getElementById(`qualification-item-${idx}`);
+                const newFormRow = document.createElement('div');
+                newFormRow.classList.add('form-row');
+                newFormRow.classList.add(`hasValidValues-row-${idx}`);
+                const newColdMd1 = document.createElement('div');
+                newColdMd1.classList.add('col-md-1');
+                const label = document.createElement('label');
+                label.textContent = 'Value:';
+                label.forHTML = hasValidValueID;
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.id = hasValidValueID;
+                input.classList.add('form-control');
+                input.name = `hasValidValues[]`;
+                input.required = true;
+                input.disabled = true;
+                input.value = validValue;
+                newColdMd1.appendChild(label);
+                newColdMd1.appendChild(input);
+
+                const newColdMd = document.createElement('div');
+                newColdMd.classList.add('col-md');
+                const labelAnnotation = document.createElement('label');
+                labelAnnotation.textContent = 'Annotation:';
+                labelAnnotation.forHTML = `hasValidValues-annotation-${validValue}-${idx}`;
+                const inputAnnotation = document.createElement('input');
+                inputAnnotation.type = 'text';
+                inputAnnotation.classList.add('form-control');
+                inputAnnotation.name = "hasValidValuesAnnotation[]";
+                inputAnnotation.required = true;
+                inputAnnotation.id = `hasValidValues-annotation-${validValue}-${idx}`;
+                newColdMd.appendChild(labelAnnotation);
+                newColdMd.appendChild(inputAnnotation);
+
+                newFormRow.appendChild(newColdMd1);
+                newFormRow.appendChild(newColdMd);
+
+                console.log(listGroupItem);
+                const listGroup = listGroupItem.getElementsByClassName("w-100")[0];
+                listGroup.appendChild(newFormRow);
+         }
+    });
+
+    // loop over all components with class hasValidValueClass and check if their value is in the valid values:
+    // if they are not, delete the valid value input fields
+    const hasValidValueClass = `form-row hasValidValues-row-${idx}`;
+    const hasValidValuesClasses = document.getElementsByClassName(hasValidValueClass);
+    for (let i = 0; i < hasValidValuesClasses.length; i++) {
+        const hasValidValue = hasValidValuesClasses[i];
+        const value = hasValidValue.querySelector('input').value;
+        if (!validValuesArray.includes(value)) {
+            hasValidValue.remove();
+        }
+    }
+
 }
 
 function onTransformationNameChange(parentElement, idx){
