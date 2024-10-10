@@ -2,7 +2,7 @@ from ._version import __version__
 from .namespace import SSNO
 from .prov import Person, Organization
 from .standard_name import StandardName, ScalarStandardName, VectorStandardName
-from .standard_name_table import StandardNameTable, Qualification, VectorQualification, Transformation, Character, parse_table
+from .standard_name_table import StandardNameTable, Qualification, VectorQualification, Transformation, Character, parse_table, ValidQualificationValue
 from .prov.attribution import Attribution
 from .utils import get_cache_dir
 
@@ -20,4 +20,5 @@ __all__ = ('__version__',
            'Person',
            'Organization',
            'CONTEXT',
+           'ValidQualificationValue',
            )

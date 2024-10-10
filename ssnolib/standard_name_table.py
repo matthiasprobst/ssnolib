@@ -91,13 +91,14 @@ class StandardNameModification(Thing):
         return f'{self.__class__.__name__}("{self.name}")'
 
 
-@namespaces(ssno="https://matthiasprobst.github.io/ssno#")
-@urirefs(AnnotatedValue='ssno:AnnotatedValue',
-         value='ssno:value',
-         annotation='ssno:annotation')
-class AnnotatedValue(Thing):
-    value: str
-    annotation: str
+@namespaces(ssno="https://matthiasprobst.github.io/ssno#",
+            dcterms="http://purl.org/dc/terms/")
+@urirefs(ValidQualificationValue='ssno:ValidQualificationValue',
+         qualificationValue='ssno:qualificationValue',
+         description='dcterms:description')
+class ValidQualificationValue(Thing):
+    qualificationValue: str
+    description: str
 
 
 @namespaces(ssno="https://matthiasprobst.github.io/ssno#")
@@ -111,7 +112,7 @@ class Qualification(StandardNameModification):
     before: Optional[Union[str, HttpUrl, "Qualification"]] = None  # ssno:before
     after: Optional[Union[str, HttpUrl, "Qualification"]] = None  # ssno:after
     hasPreposition: Optional[str] = None  # ssno:hasPreposition
-    hasValidValues: Optional[List[Union[str, Dict, AnnotatedValue]]] = None  # ssno:hasValidValues
+    hasValidValues: Optional[List[Union[str, Dict, ValidQualificationValue]]] = None  # ssno:hasValidValues
 
     @field_validator('before')
     @classmethod
@@ -143,15 +144,17 @@ class Qualification(StandardNameModification):
 
     @field_validator('hasValidValues', mode='before')
     @classmethod
-    def _hasValidValues(cls, hasValidValues: Optional[List[Union[str, AnnotatedValue]]] = None) -> List[AnnotatedValue]:
+    def _hasValidValues(cls, hasValidValues: Optional[List[Union[str, ValidQualificationValue]]] = None) -> List[
+        ValidQualificationValue]:
         if isinstance(hasValidValues, dict):
-            return [AnnotatedValue(**hasValidValues)]
+            return [ValidQualificationValue(**hasValidValues)]
         if hasValidValues:
             for k, v in enumerate(hasValidValues.copy()):
                 if isinstance(v, str):
-                    hasValidValues[k] = AnnotatedValue(value=v, annotation="No description available.")
+                    hasValidValues[k] = ValidQualificationValue(qualificationValue=v,
+                                                                description="No description available.")
                 elif isinstance(v, dict):
-                    hasValidValues[k] = AnnotatedValue(**v)
+                    hasValidValues[k] = ValidQualificationValue(**v)
         return hasValidValues
 
     def get_full_name(self):
@@ -679,7 +682,7 @@ class StandardNameTable(Dataset):
         for q in qualifications_output:
             qualification = qualifications.get(q, None)
             if qualification:
-                valid_values = [v.value for v in qualification.hasValidValues]
+                valid_values = [v.qualificationValue for v in qualification.hasValidValues]
                 if qualification.hasPreposition:
                     _valid_values = [qualification.hasPreposition + "_" + v for v in valid_values]
                     out += f'(?:({"|".join(_valid_values)}))?_?'
@@ -889,7 +892,7 @@ class StandardNameTable(Dataset):
                 f.write(f"{qualification_expl_string}\n")
                 for q in qualifications:
                     f.write(f"\n\n#### {q.name.capitalize()}\n")
-                    f.write(f"Valid values: {', '.join([v.value for v in q.hasValidValues])}\n")
+                    f.write(f"Valid values: {', '.join([v.qualificationValue for v in q.hasValidValues])}\n")
                     if q.description:
                         f.write(f"\n{q.description}\n")
                     else:
@@ -993,7 +996,11 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
     if source:
         filename = pathlib.Path(source)
         assert filename.exists(), f"File {filename} does not exist."
-        fmt = fmt.strip('.').lower() or filename.stem.strip('.').lower()
+        if fmt:
+            fmt = fmt.strip('.').lower()
+        else:
+            fmt = filename.suffix.strip('.').lower()
+
         if fmt not in ("jsonld",):
             raise ValueError(f"Unknown format {fmt}.")
         with open(filename, 'r', encoding='utf-8') as f:
@@ -1081,11 +1088,8 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
             qualifiedAttribution.append(attribution)
 
         if qualifiedAttribution:
-            print(f" > {len(qualifiedAttribution)} qualified attributions:")
             for i, attribution in enumerate(qualifiedAttribution):
                 print(f"   {i + 1}: {attribution.model_dump(exclude_none=True)}")
-        else:
-            print(f" > Not qualified attributions found.")
 
         # jetzt qualifications holen:
         hasModifier = []
@@ -1108,15 +1112,17 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
                     prefixes=prefixes,
                     wheres=[
                         WHERE(modifierID, "ssno:hasValidValues", "?hasValidValuesID"),
-                        WHERE("?hasValidValuesID", "a", "ssno:AnnotatedValue"),
-                        WHERE("?hasValidValuesID", "ssno:value", "?value"),
-                        WHERE("?hasValidValuesID", "ssno:annotation", "?annotation", is_optional=True),
+                        WHERE("?hasValidValuesID", "a", "ssno:ValidQualificationValue"),
+                        WHERE("?hasValidValuesID", "ssno:qualificationValue", "?qualificationValue"),
+                        WHERE("?hasValidValuesID", "dcterms:description", "?description", is_optional=True),
                     ]
                 )
                 hasValidValues = []
                 for valid_values in sparql_valid_values.query(g):
-                    annotation_dict = dict(value=valid_values['value'], annotation=valid_values['annotation'])
-                    hasValidValues.append(AnnotatedValue(**{k: v.value for k, v in annotation_dict.items() if v}))
+                    validvalues_dict = dict(qualificationValue=valid_values['qualificationValue'],
+                                            description=valid_values['description'])
+                    hasValidValues.append(
+                        ValidQualificationValue(**{k: v.value for k, v in validvalues_dict.items() if v}))
 
                 hasModifier_dict = dict(name=res['name'].value, description=res['description'].value)
                 if res['before']:
@@ -1201,7 +1207,6 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
         standardNames = []
         for n, u, d in res:
             standardNames.append(StandardName(standardName=str(n), unit=str(u), description=str(d)))
-        print(f" > {len(standardNames)} standard names found")
         snt.standardNames = standardNames
 
         if qualifiedAttribution:
@@ -1210,4 +1215,6 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
             else:
                 snt.qualifiedAttribution = qualifiedAttribution
 
-    return snts[0]
+    if snts:
+        return snts[0]
+    raise ValueError("No Standard Name Table found.")

@@ -26,7 +26,7 @@
                 "@id": "https://orcid.org/0000-0001-8729-0482"
             },
             "prov:hadRole": "http://w3id.org/nfdi4ing/metadata4ing#ContactPerson",
-            "@id": "_:N30a3178eca124349852d8151763ea6fa"
+            "@id": "_:N9ea2c0c9e7aa409dbbb1e11157a5ff87"
         },
         {
             "@type": "prov:Attribution",
@@ -38,21 +38,21 @@
                 "schema:affiliation": {
                     "@type": "prov:Organization",
                     "foaf:name": "Awesome Institute",
-                    "@id": "_:N53378f6b96354a19ab9c9f9f6283eed9"
+                    "@id": "_:Nf428c4bdb23047d5adf673b313837c38"
                 },
-                "@id": "_:N0ec5f2b80afc4f1c8c1e722ccdb12fde"
+                "@id": "_:N4ad286d8ca094a4b8b71dc84dac2355c"
             },
             "prov:hadRole": "http://w3id.org/nfdi4ing/metadata4ing#Supervisor",
-            "@id": "_:N687706ec6cce4d6d83111ea3d16e6f98"
+            "@id": "_:N990238e498eb41cf83e3b1d0fdbca0f5"
         },
         {
             "@type": "prov:Attribution",
             "prov:agent": {
                 "@type": "prov:Organization",
                 "foaf:name": "Awesome Institute",
-                "@id": "_:N53378f6b96354a19ab9c9f9f6283eed9"
+                "@id": "_:Nf428c4bdb23047d5adf673b313837c38"
             },
-            "@id": "_:N48977781c4a4488cb7c3677bd6f5e5cb"
+            "@id": "_:N351d1e3a6267425b96c621c20a9803b3"
         }
     ],
     "ssno:standardNames": [
@@ -61,21 +61,21 @@
             "ssno:standardName": "air_density",
             "ssno:unit": "http://qudt.org/vocab/unit/KiloGM-PER-M3",
             "ssno:description": "The density of air",
-            "@id": "_:N848e15139d2149df8a5d3525ea80de31"
+            "@id": "_:N09ab7ed21a0f4b80b6f5fe389e36aaa5"
         },
         {
             "@type": "ssno:StandardName",
             "ssno:standardName": "coordinate",
             "ssno:unit": "http://qudt.org/vocab/unit/M",
             "ssno:description": "The spatial coordinate vector.",
-            "@id": "_:Nf14cede1f61c42f0b15a994069d9e7e6"
+            "@id": "_:Nd8d2d72904d9449a97612428c7a7fa92"
         },
         {
             "@type": "ssno:StandardName",
             "ssno:standardName": "velocity",
             "ssno:unit": "http://qudt.org/vocab/unit/M-PER-SEC",
             "ssno:description": "The velocity vector of an object or fluid.",
-            "@id": "_:N1165fe11db5b495fa249f256e699ea07"
+            "@id": "_:Ne161c46613f04edfa2c7cb0571e5718e"
         }
     ],
     "ssno:hasModifier": [
@@ -86,25 +86,25 @@
             "ssno:before": "https://matthiasprobst.github.io/ssno#AnyStandardName",
             "ssno:hasValidValues": [
                 {
-                    "@type": "ssno:AnnotatedValue",
-                    "ssno:value": "x",
-                    "ssno:annotation": "No description available.",
-                    "@id": "_:Nb6f520af7bc442ab9a2f13ab2c81728a"
+                    "@type": "ssno:ValidQualificationValue",
+                    "ssno:qualificationValue": "x",
+                    "dcterms:description": "No description available.",
+                    "@id": "_:N02aa6cf6bf0e48cba036b34051bc26a8"
                 },
                 {
-                    "@type": "ssno:AnnotatedValue",
-                    "ssno:value": "y",
-                    "ssno:annotation": "No description available.",
-                    "@id": "_:Ne6c9c3de6e6f4120abff88e300db0e00"
+                    "@type": "ssno:ValidQualificationValue",
+                    "ssno:qualificationValue": "y",
+                    "dcterms:description": "No description available.",
+                    "@id": "_:Nf5472ee953054f9d8f092bdc01b404f8"
                 },
                 {
-                    "@type": "ssno:AnnotatedValue",
-                    "ssno:value": "z",
-                    "ssno:annotation": "No description available.",
-                    "@id": "_:N30f5a02543574f95869b6632dbb5b849"
+                    "@type": "ssno:ValidQualificationValue",
+                    "ssno:qualificationValue": "z",
+                    "dcterms:description": "No description available.",
+                    "@id": "_:N778b036da445487f8892095d2c71a7d7"
                 }
             ],
-            "@id": "_:Nec4fcfccb8b946b5b4b5848c0cd7a61c"
+            "@id": "_:Ne1f2e6e04cc9457ab57e40ae9b593b1a"
         },
         {
             "@type": "ssno:Transformation",
@@ -116,17 +116,17 @@
                     "@type": "ssno:Character",
                     "ssno:character": "X",
                     "ssno:associatedWith": "https://matthiasprobst.github.io/ssno#AnyStandardName",
-                    "@id": "_:N3c5f74b5069d427f86880007ec4dbde0"
+                    "@id": "_:Ne6219c0d020247f9952f7e968a78ed87"
                 },
                 {
                     "@type": "ssno:Character",
                     "ssno:character": "C",
-                    "ssno:associatedWith": "_:Nec4fcfccb8b946b5b4b5848c0cd7a61c",
-                    "@id": "_:N34ebd07b862f431ead8ddcd0eef54d1b"
+                    "ssno:associatedWith": "_:Ne1f2e6e04cc9457ab57e40ae9b593b1a",
+                    "@id": "_:N0d2e05de322446b4b130b56fe503f7c0"
                 }
             ],
-            "@id": "_:N44316cacceb0439888cbc9cc8319f85d"
+            "@id": "_:N4d8353c2a1b8498aa963b36e18104911"
         }
     ],
-    "@id": "_:Ncce6d954fcc3479e97e1957cecca304f"
+    "@id": "_:N4ab7f017c9144ee089c077212e3469b6"
 }

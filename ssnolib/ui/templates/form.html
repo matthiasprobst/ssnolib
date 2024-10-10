@@ -284,6 +284,7 @@
                                        id="vectorCheckbox" {%
                                        if
                                 'Vector' in qualification.__class__.__name__ %}checked{% endif %}>
+                                <input type="hidden" name="vector[]" value="off">
                                 <label class="form-check-label ml-2" for="vectorCheckbox">
                                     Vector?
                                 </label>
@@ -320,8 +321,8 @@
                             <input type="text"
                                    id="hasValidValues-input-{{ loop.index }}"
                                    class="form-control"
-                                   name="valid_values[]"
-                                   value="{{ qualification.hasValidValues | map(attribute='value') | join(', ') }}"
+                                   name="hasValidValues[]"
+                                   value="{{ qualification.hasValidValues | map(attribute='qualificationValue') | join(', ') }}"
                                    placeholder="Comma sep. list, e.g. x,y,z" required
                                    oninput="onValidValuesChange(this.id, {{ loop.index }})">
                         </div>
@@ -334,21 +335,21 @@
                     {% for valid_value in qualification.hasValidValues %}
                     <div class="form-row hasValidValues-row-{{ inner_loop.index }}">
                         <div class="col-md-1">
-                            <label for="hasValidValues-value-{{ valid_value.value }}-{{ inner_loop.index }}">Value:</label>
+                            <label for="hasValidValues-value-{{ valid_value.qualificationValue }}-{{ inner_loop.index }}">Value:</label>
                             <input type="text"
-                                   id="hasValidValues-value-{{ valid_value.value }}-{{ inner_loop.index }}"
+                                   id="hasValidValues-value-{{ valid_value.qualificationValue }}-{{ inner_loop.index }}"
                                    class="form-control"
                                    name="valid_values[]"
-                                   value="{{ valid_value.value }}"
+                                   value="{{ valid_value.qualificationValue }}"
                                    required disabled>
                         </div>
                         <div class="col-md">
-                            <label for="hasValidValues-annotation-{{ valid_value.value }}-{{ inner_loop.index }}">Annotation:</label>
+                            <label for="hasValidValues-description-{{ valid_value.qualificationValue }}-{{ inner_loop.index }}">Description:</label>
                             <input type="text"
-                                   id="hasValidValues-annotation-{{ valid_value.value }}-{{ inner_loop.index }}"
+                                   id="hasValidValues-description-{{ valid_value.qualificationValue }}-{{ inner_loop.index }}"
                                    class="form-control"
-                                   name="hasValidValuesAnnotation[]"
-                                   value="{{ valid_value.annotation }}"
+                                   name="hasValidValuesDescription[]"
+                                   value="{{ valid_value.description }}"
                                    required>
                         </div>
                     </div>
@@ -427,10 +428,31 @@
         </div>
 
         <div class="text-center my-4">
-            <input type="submit" class="btn btn-primary" value="Submit">
+            <input type="submit" class="btn btn-primary" value="To JSON-LD">
         </div>
     </form>
 </div>
+
+<script>
+    document.getElementById('main-form').addEventListener('submit', function(event) {
+        // Select all checkboxes with name "vector[]"
+        const checkboxes = document.querySelectorAll('input[name="vector[]"]');
+        let checkedCount = 0;
+
+        // Count how many checkboxes are checked
+        checkboxes.forEach(function(checkbox) {
+            if (checkbox.checked) {
+                checkedCount++;
+            }
+        });
+
+        // If more than one checkbox is checked, prevent form submission and show error
+        if (checkedCount > 1) {
+            event.preventDefault(); // Prevent form submission
+            alert('Only one "VectorQualification" can defined per standard name table.');
+        }
+    });
+</script>
 
 <script>
     // Initialize Sortable.js on qualification container
@@ -455,7 +477,7 @@
                     </div>
                     <div class="col-md-8">
                         <label>Description:</label>
-                        <input type="text" class="form-control" name="qualification_description[]" value="Any Standard Name. Place the qualifications around it." readonly>
+                        <input type="text" class="form-control" value="Any Standard Name. Place the qualifications around it." readonly>
                     </div>
                 </div>
             </div>

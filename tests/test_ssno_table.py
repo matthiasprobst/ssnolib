@@ -211,8 +211,6 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         self.assertEqual("The component of a vector", qualifications[0].description)
         self.assertEqual(3, len(qualifications[0].hasValidValues))
 
-
-
     def test_standard_name_table_from_jsonld(self):
         snt_jsonld_filename = pathlib.Path(__this_dir__, 'snt.json')
         with open(snt_jsonld_filename, 'w') as f:
@@ -397,7 +395,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
             hasPreposition='assuming',
             hasValidValues=["clear_sky", "deep_snow", "no_snow"]
         )
-        self.assertEqual([v.value for v in condition.hasValidValues], ["clear_sky", "deep_snow", "no_snow"])
+        self.assertEqual([v.qualificationValue for v in condition.hasValidValues], ["clear_sky", "deep_snow", "no_snow"])
 
         # order the qualifications:
         from ssnolib.namespace import SSNO

@@ -310,8 +310,16 @@ function addQualification() {
     vectorCheckbox.classList.add('form-check-input');
     vectorCheckbox.type = 'checkbox';
     vectorCheckbox.name = 'vector[]';
+    vectorCheckbox.checked = false;
     vectorCheckbox.id = generateUniqueId('vectorCheckbox', rowIndex);
+
+    hiddenCheckbox = document.createElement('input');
+    hiddenCheckbox.type = 'hidden';
+    hiddenCheckbox.name = 'vector[]';
+    hiddenCheckbox.value = 'off';
+
     formCheckDiv.appendChild(vectorCheckbox);
+    formCheckDiv.appendChild(hiddenCheckbox);
 
     const labelVector = document.createElement('label');
     labelVector.classList.add('form-check-label', 'ml-2');
@@ -363,7 +371,7 @@ function addQualification() {
     inputQValidValues.id = generateUniqueId('hasValidValues-input', rowIndex);
     inputQValidValues.type = 'text';
     inputQValidValues.classList.add('form-control');
-    inputQValidValues.name = 'valid_values[]';
+    inputQValidValues.name = 'hasValidValues[]';
     inputQValidValues.placeholder = 'Comma sep. list, e.g. x,y,z';
     inputQValidValues.required = true;
     inputQValidValues.oninput =function() { onValidValuesChange(this.id, rowIndex) };
@@ -531,17 +539,17 @@ function onValidValuesChange(parentElement, idx){
 
                 const newColdMd = document.createElement('div');
                 newColdMd.classList.add('col-md');
-                const labelAnnotation = document.createElement('label');
-                labelAnnotation.textContent = 'Annotation:';
-                labelAnnotation.forHTML = `hasValidValues-annotation-${validValue}-${idx}`;
-                const inputAnnotation = document.createElement('input');
-                inputAnnotation.type = 'text';
-                inputAnnotation.classList.add('form-control');
-                inputAnnotation.name = "hasValidValuesAnnotation[]";
-                inputAnnotation.required = true;
-                inputAnnotation.id = `hasValidValues-annotation-${validValue}-${idx}`;
-                newColdMd.appendChild(labelAnnotation);
-                newColdMd.appendChild(inputAnnotation);
+                const labelDescription = document.createElement('label');
+                labelDescription.textContent = 'Description:';
+                labelDescription.forHTML = `hasValidValues-description-${validValue}-${idx}`;
+                const inputDescription = document.createElement('input');
+                inputDescription.type = 'text';
+                inputDescription.classList.add('form-control');
+                inputDescription.name = "hasValidValuesDescription[]";
+                inputDescription.required = true;
+                inputDescription.id = `hasValidValues-description-${validValue}-${idx}`;
+                newColdMd.appendChild(labelDescription);
+                newColdMd.appendChild(inputDescription);
 
                 newFormRow.appendChild(newColdMd1);
                 newFormRow.appendChild(newColdMd);

@@ -82,12 +82,102 @@ def json_ld():
         request.form.getlist("organization.hadRole[]"),
         request.form.getlist("organization.mbox[]"),
     )
+    hasValidValuesRaw = request.form.getlist("hasValidValues[]")
+    hasValidValuesDescription = request.form.getlist("hasValidValuesDescription[]")
+    qualification_description = request.form.getlist("qualification_description[]")
+    qualification_name = request.form.getlist("qualification_name[]")
+    _vectors = request.form.getlist("vector[]")
+
+    def remove_off_after_on(input_list):
+        result = []
+        skip_next = False  # Flag to skip the next item if it is an "off" after "on"
+
+        for i in range(len(input_list)):
+            if skip_next:
+                skip_next = False  # Reset the flag and skip this iteration
+                continue
+
+            if input_list[i] == "on":
+                result.append("on")
+                # Set flag to skip the next element, since it will be "off"
+                skip_next = True
+            else:
+                result.append(input_list[i])
+
+        return result
+
+    vector = remove_off_after_on(_vectors)
+
+    preposition = request.form.getlist("preposition[]")
+
+    # figure out what is before and what is after the AnyStandardName:
+    beforeList = []
+    afterList = []
+    isBevoreAnyStandardName = True
+    for i, name in enumerate(qualification_name):
+        if name == "AnyStandardName":
+            isBevoreAnyStandardName=False
+        else:
+            if isBevoreAnyStandardName:
+                beforeList.append(name)
+            else:
+                afterList.append(name)
+    before = {}
+    if len(beforeList) == 1:
+        before = {beforeList[0]: str(ssnolib.namespace.SSNO.AnyStandardName)}
+    elif len(beforeList) > 1:
+        for i, b in enumerate(beforeList[:-1]):
+            before[b] = beforeList[i+1]
+    after = {}
+    if len(afterList) == 1:
+        after = {afterList[0]: str(ssnolib.namespace.SSNO.AnyStandardName)}
+    elif len(afterList) > 1:
+        for i, a in enumerate(afterList[:-1]):
+            after[a] = afterList[i+1]
+
+    qualification_name.remove("AnyStandardName")
+
+    qualifications = []
+    for name, vec, preposition, hvvr, descr in zip(qualification_name, vector, preposition, hasValidValuesRaw,
+                                                   qualification_description):
+        qvalues = []
+        for v in hvvr.split(","):
+            description = hasValidValuesDescription.pop(0)
+            qvalues.append(ssnolib.ValidQualificationValue(qualificationValue=v, description=description))
+        if vec == 'on':
+            qualifications.append(
+                ssnolib.VectorQualification(name=name, hasValidValues=qvalues, description=descr,
+                                        hasPreposition=preposition)
+            )
+        else:
+            qualifications.append(
+                ssnolib.Qualification(name=name, hasValidValues=qvalues, description=descr, hasPreposition=preposition)
+            )
+
+    for i, qname in enumerate(qualification_name):
+        if qname in before:
+            _before_value = before[qname]
+            if _before_value.startswith("http"):
+                qualifications[i].before = _before_value
+            else:
+                for q in qualifications:
+                    if q.name == _before_value:
+                        qualifications[i].before = q.id
+        elif qname in after:
+            _after_value = after[qname]
+            if _after_value.startswith("http"):
+                qualifications[i].after = _after_value
+            else:
+                for q in qualifications:
+                    if q.name == _after_value:
+                        qualifications[i].after = q.id
     qa_persons.extend(qa_orgas)
     snt = StandardNameTable(
         title=request.form.get("title"),
         version=request.form.get("version"),
         description=request.form.get("description"),
         qualifiedAttribution=qa_persons,
+        hasModifier=qualifications,
         # standardNames=[
         #     VectorStandardName(
         #         standardName=sn.get("name"),
