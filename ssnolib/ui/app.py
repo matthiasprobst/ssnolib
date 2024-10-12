@@ -6,7 +6,7 @@ import ssnolib
 from ssnolib import StandardNameTable, VectorStandardName
 from ssnolib.qudt.utils import iri2str
 from ssnolib.standard_name_table import ROLE2IRI
-
+from utils import remove_off_after_on
 app = Flask(__name__)
 
 
@@ -86,25 +86,7 @@ def json_ld():
     hasValidValuesDescription = request.form.getlist("hasValidValuesDescription[]")
     qualification_description = request.form.getlist("qualification_description[]")
     qualification_name = request.form.getlist("qualification_name[]")
-    _vectors = request.form.getlist("vector[]")
-
-    def remove_off_after_on(input_list):
-        result = []
-        skip_next = False  # Flag to skip the next item if it is an "off" after "on"
-
-        for i in range(len(input_list)):
-            if skip_next:
-                skip_next = False  # Reset the flag and skip this iteration
-                continue
-
-            if input_list[i] == "on":
-                result.append("on")
-                # Set flag to skip the next element, since it will be "off"
-                skip_next = True
-            else:
-                result.append(input_list[i])
-
-        return result
+    _vectors = request.form.getlist("is_vector_qualification[]")
 
     vector = remove_off_after_on(_vectors)
 
@@ -172,37 +154,32 @@ def json_ld():
                     if q.name == _after_value:
                         qualifications[i].after = q.id
     qa_persons.extend(qa_orgas)
+
+    standard_name_names = request.form.getlist("standard_name.name[]")
+    standard_name_units = request.form.getlist("standard_name.unit[]")
+    standard_name_descriptions = request.form.getlist("standard_name.description[]")
+    is_vector_standard_name = remove_off_after_on(request.form.getlist("is_vector_standard_name[]"))
+
+    standard_name_classes = [VectorStandardName if is_vector == 'on' else ssnolib.ScalarStandardName for is_vector in is_vector_standard_name]
+    assert len(standard_name_names) == len(standard_name_units) == len(standard_name_descriptions) == len(is_vector_standard_name), "Length of standard names, units, descriptions and vector flags do not match"
+
+    standardNames = [
+        cls(
+            standardName=name,
+            unit=unit,
+            description=description
+        ) for (cls, name, unit, description) in zip(standard_name_classes, standard_name_names, standard_name_units, standard_name_descriptions)
+    ]
+
     snt = StandardNameTable(
         title=request.form.get("title"),
         version=request.form.get("version"),
         description=request.form.get("description"),
         qualifiedAttribution=qa_persons,
         hasModifier=qualifications,
-        # standardNames=[
-        #     VectorStandardName(
-        #         standardName=sn.get("name"),
-        #         unit=sn.get("unit"),
-        #         description=sn.get("description"),
-        #     ) for sn in request.form.get("standardNames")
+        standardNames=standardNames
     )
     config_data = json.loads(snt.model_dump_jsonld())
-    # Placeholder for the actual data retrieval logic
-    # Here, we're using a dummy configuration for demonstration
-    # config_data = {
-    #     '@context': 'http://schema.org',
-    #     '@type': 'StandardName',
-    #     'title': 'Example Standard Name',
-    #     'version': '1.0',
-    #     'description': 'An example description of the standard name.',
-    #     'authors': [
-    #         {'@type': 'Person', 'name': 'John Doe'},
-    #         {'@type': 'Person', 'name': 'Jane Smith'}
-    #     ],
-    #     'standardNames': [
-    #         {'@type': 'DefinedTerm', 'name': 'Standard Name 1'},
-    #         {'@type': 'DefinedTerm', 'name': 'Standard Name 2'}
-    #     ]
-    # }
 
     return render_template('jsonld.html', config_data=config_data)
 

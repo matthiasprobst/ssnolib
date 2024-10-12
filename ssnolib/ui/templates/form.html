@@ -44,7 +44,7 @@
 </nav>
 <div class="container">
     <h1 class="my-4 text-center">Standard Name Table Form</h1>
-    <form id="main-form" method="POST" action="/JSON-LD">
+    <form id="snt-form" method="POST" action="/JSON-LD">
         <div class="form-section">
             <h2>General Information</h2>
             <div class="form-group">
@@ -230,7 +230,7 @@
                         </div>
                     </div>
                     <div id="characters-container-{{ inner_loop.index }}">
-                    {% for character in transformation.hasCharacter %}
+                        {% for character in transformation.hasCharacter %}
                         <div class="form-row" id="characters-row-{{ inner_loop.index}}-{{ character.character }}">
                             <div class="col-md-1">
                                 <label>Char:</label>
@@ -244,20 +244,27 @@
                             </div>
                             <div class="col-md-4">
                                 <label>associated with:</label>
-                                <select class="form-control qualification-dropdown" id="associatedWithDropdown" name="transformation_character_associatedWith[]">
+                                <select class="form-control qualification-dropdown" id="associatedWithDropdown"
+                                        name="transformation_character_associatedWith[]">
                                     <option value="">Select an association</option>
-                                    <option value="AnyStandardName" {% if character.associatedWith=='https://matthiasprobst.github.io/ssno#AnyStandardName' %}selected{% endif %}>Any Standard Name</option>
+                                    <option value="AnyStandardName" {% if
+                                            character.associatedWith=='https://matthiasprobst.github.io/ssno#AnyStandardName'
+                                            %}selected{% endif %}>Any Standard Name
+                                    </option>
                                     {% for qualification in data.qualifications %}
-                                        <option value={{ qualification.name }} {% if character.associatedWith == qualification.name %}selected{% endif %}> {{ qualification.name }} </option>
+                                    <option value={{ qualification.name }} {% if character.associatedWith==
+                                            qualification.name %}selected{% endif %}> {{ qualification.name }}
+                                    </option>
                                     {% endfor %}
                                 </select>
                             </div>
                         </div>
-                    {% endfor %}
+                        {% endfor %}
                     </div>
                 </div>
                 <div class="col-md-2 text-right mt-2">
-                    <button type="button" class="btn btn-danger mt-4" onclick="deleteTransformation(this)">Delete Transformation
+                    <button type="button" class="btn btn-danger mt-4" onclick="deleteTransformation(this)">Delete
+                        Transformation
                     </button>
                 </div>
             </div>
@@ -280,11 +287,11 @@
                             <div class="form-check d-flex align-items-center">
                                 <input class="form-check-input"
                                        type="checkbox"
-                                       name="vector[]"
+                                       name="is_vector_qualification[]"
                                        id="vectorCheckbox" {%
                                        if
                                 'Vector' in qualification.__class__.__name__ %}checked{% endif %}>
-                                <input type="hidden" name="vector[]" value="off">
+                                <input type="hidden" name="is_vector_qualification[]" value="off">
                                 <label class="form-check-label ml-2" for="vectorCheckbox">
                                     Vector?
                                 </label>
@@ -293,7 +300,9 @@
                         <div class="col-md-10">
                         </div>
                         <div class="col-md text-right mt-2">
-                            <button type="button" class="btn btn-danger btn-sm" onclick="deleteQualification(this)">Delete</button>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="deleteQualification(this)">
+                                Delete
+                            </button>
                         </div>
                     </div>
                     <div class="form-row" id="qualification-form-row-{{ loop.index }}">
@@ -317,7 +326,8 @@
                                    oninput="updateConfiguration()">
                         </div>
                         <div class="col-md-3">
-                            <label for="hasValidValues-input-{{ loop.index }}">Valid Values for "{{ qualification.name }}":</label>
+                            <label for="hasValidValues-input-{{ loop.index }}">Valid Values for "{{ qualification.name
+                                }}":</label>
                             <input type="text"
                                    id="hasValidValues-input-{{ loop.index }}"
                                    class="form-control"
@@ -372,25 +382,26 @@
                 <div class="form-row align-items-center mb-2">
                     <div class="col-md-3">
                         <label>Name:</label>
-                        <input type="text" class="form-control" name="standard_name[]"
+                        <input type="text" class="form-control" name="standard_name.name[]"
                                value="{{ standard.standardName }}"
                                required>
                     </div>
                     <div class="col-md-1">
                         <label>Unit:</label>
-                        <input type="text" class="form-control" name="unit[]" value="{{ standard.unit_str }}"
+                        <input type="text" class="form-control" name="standard_name.unit[]" value="{{ standard.unit_str }}"
                                title="{{ standard.unit }}" required>
                     </div>
                     <div class="col-md-5">
                         <label>Description:</label>
-                        <input type="text" class="form-control" name="name_description[]"
+                        <input type="text" class="form-control" name="standard_name.description[]"
                                value="{{ standard.description }}" required>
                     </div>
                     <div class="col-md-2">
                         <label>Vector:</label>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="is_vector[]" {% if standard.is_vector
+                            <input class="form-check-input" type="checkbox" name="is_vector_standard_name[]" {% if standard.is_vector
                                    %}checked{% endif %}>
+                            <input type="hidden" name="is_vector_standard_name[]" value="off">
                         </div>
                     </div>
                     <div class="col-md-1 text-right mt-2">
@@ -402,20 +413,21 @@
                 <div class="form-row align-items-center mb-2">
                     <div class="col-md-3">
                         <label>Name:</label>
-                        <input type="text" class="form-control" name="standard_name[]" required>
+                        <input type="text" class="form-control" name="standard_name.name[]" required>
                     </div>
                     <div class="col-md-1">
                         <label>Unit:</label>
-                        <input type="text" class="form-control" name="unit[]" required>
+                        <input type="text" class="form-control" name="standard_name.unit[]" required>
                     </div>
                     <div class="col-md-5">
                         <label>Description:</label>
-                        <input type="text" class="form-control" name="name_description[]" required>
+                        <input type="text" class="form-control" name="standard_name.description[]" required>
                     </div>
                     <div class="col-md-2">
                         <label>Vector:</label>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="is_vector[]">
+                            <input class="form-check-input" type="checkbox" name="is_vector_standard_name[]">
+                            <input type="hidden" name="is_vector_standard_name[]" value="off">
                         </div>
                     </div>
                     <div class="col-md-1 text-right mt-2">
@@ -434,9 +446,9 @@
 </div>
 
 <script>
-    document.getElementById('main-form').addEventListener('submit', function(event) {
-        // Select all checkboxes with name "vector[]"
-        const checkboxes = document.querySelectorAll('input[name="vector[]"]');
+    document.getElementById('snt-form').addEventListener('submit', function(event) {
+        // Select all checkboxes with name "is_vector_qualification[]"
+        const checkboxes = document.querySelectorAll('input[name="is_vector_qualification[]"]');
         let checkedCount = 0;
 
         // Count how many checkboxes are checked
@@ -449,7 +461,7 @@
         // If more than one checkbox is checked, prevent form submission and show error
         if (checkedCount > 1) {
             event.preventDefault(); // Prevent form submission
-            alert('Only one "VectorQualification" can defined per standard name table.');
+            alert('Only one "VectorQualification" can be defined per standard name table.');
         }
     });
 </script>
@@ -499,7 +511,7 @@
 <script>
     document.getElementById('json-ld-link').addEventListener('click', function(event) {
         event.preventDefault();  // Prevent the default link behavior
-        const form = document.getElementById('main-form');
+        const form = document.getElementById('snt-form');
         form.action = '/JSON-LD';  // Change the form action to /JSON-LD
         form.submit();  // Submit the form
     });

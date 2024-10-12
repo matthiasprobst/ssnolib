@@ -18,6 +18,24 @@ CACHE_DIR = ssnolib.utils.get_cache_dir()
 
 class TestSSNOStandardName(unittest.TestCase):
 
+    def test_standard_name_alias(self):
+        sn = StandardName(standard_name='x_velocity',
+                          description='x component of velocity',
+                          unit='m/s')
+        sn_alias = StandardName(standardName='x_velocity',
+                                description='x component of velocity',
+                                unit='m/s',
+                                alias=sn)
+        self.assertEqual(sn.standard_name, 'x_velocity')
+        self.assertEqual(sn.description, 'x component of velocity')
+        self.assertEqual(sn.unit, sn_alias.unit)
+
+        sn_alias = StandardName(standardName='x_velocity',
+                                description='x component of velocity',
+                                unit='m/s',
+                                alias=sn.id)
+        self.assertEqual(sn_alias.alias, sn.id)
+
     def test_instantiating_standard_name_missing_fields(self):
         with self.assertRaises(pydantic.ValidationError):
             sn = StandardName()

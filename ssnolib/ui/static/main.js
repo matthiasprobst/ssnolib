@@ -231,7 +231,7 @@ function addStandardNameRow() {
     newRow.innerHTML = `
         <div class="col-md-3">
             <label>Name:</label>
-            <input type="text" class="form-control" name="standard_name[]" required>
+            <input type="text" class="form-control" name="standard_name.name[]" required>
         </div>
         <div class="col-md-1">
             <label title="SI unit, e.g. m/s">Unit:</label>
@@ -239,12 +239,13 @@ function addStandardNameRow() {
         </div>
         <div class="col-md-5">
             <label>Description:</label>
-            <input type="text" class="form-control" name="name_description[]" required>
+            <input type="text" class="form-control" name="standard_name.description[]" required>
         </div>
         <div class="col-md-2">
             <label>Vector:</label>
             <div class="form-check">
-                <input class="form-check-input" type="checkbox" name="is_vector[]">
+                <input class="form-check-input" type="checkbox" name="is_vector_standard_name[]">
+                <input type="hidden" name="is_vector_standard_name[]" value="off">
             </div>
         </div>
         <div class="col-md-1 text-right mt-2">
@@ -309,13 +310,13 @@ function addQualification() {
     const vectorCheckbox = document.createElement('input');
     vectorCheckbox.classList.add('form-check-input');
     vectorCheckbox.type = 'checkbox';
-    vectorCheckbox.name = 'vector[]';
+    vectorCheckbox.name = 'is_vector_qualification[]';
     vectorCheckbox.checked = false;
     vectorCheckbox.id = generateUniqueId('vectorCheckbox', rowIndex);
 
     hiddenCheckbox = document.createElement('input');
     hiddenCheckbox.type = 'hidden';
-    hiddenCheckbox.name = 'vector[]';
+    hiddenCheckbox.name = 'is_vector_qualification[]';
     hiddenCheckbox.value = 'off';
 
     formCheckDiv.appendChild(vectorCheckbox);

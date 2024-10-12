@@ -1,6 +1,6 @@
 import re
 import warnings
-from typing import Union, List
+from typing import Union, List, Optional
 
 from ontolutils import namespaces, urirefs
 from pydantic import HttpUrl, field_validator, Field, ConfigDict
@@ -32,6 +32,7 @@ class StandardName(Concept):
     unit: Union[str, HttpUrl]  # required!
     description: Union[str, List[str]] = None  # ssno:description
     standardNameTable: Dataset = Field(default=None, alias="standard_name_table")
+    alias: Optional[Union["StandardName", HttpUrl, str]] = Field(default=None)
 
     def __getattr__(self, item):
         for field, meta in self.model_fields.items():
@@ -49,6 +50,20 @@ class StandardName(Concept):
         if self.standardName is None:
             return ''
         return self.standardName
+
+    @field_validator("alias", mode='before')
+    @classmethod
+    def _alias(cls, alias: Optional["StandardName"]) -> "StandardName":
+        """Parse the alias and return the alias as StandardName."""
+        if alias is None:
+            return None
+        if isinstance(alias, str):
+            if alias.startswith('_:'):
+                return str(alias)
+            return HttpUrl(alias)
+        elif not isinstance(alias, StandardName):
+            raise TypeError(f"Expected a StandardName, got {type(alias)}")
+        return alias
 
     @field_validator("standardNameTable", mode='before')
     @classmethod
