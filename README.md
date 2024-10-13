@@ -13,9 +13,23 @@ and most importantly machine-actionable. The library can be integrated in you da
 
 ## Quickstart
 
+### Programmatically
+
 With `ssnolib` you can create Standard Names and their tables quickly and easily. You can find Jupyter Lab Notebooks
 explaining working with [Standard names here](docs/Standard%20Name.ipynb)
 or [Standard Name Tables here](docs/StandardNameTable.ipynb).
+
+### Graphically
+A user interface implemented with [flask](https://flask.palletsprojects.com/en/3.0.x/) is available to create and edit
+Standard Name Tables.
+
+To start the GUI, run the following command:
+```bash
+ssnolib --gui
+```
+This will start a local development server with the default port 5000 and the local host IP: `http://127.0.0.1:5000/`.
+
+## Example Codes
 
 The code below gives a quick insight using the *sSNOlib* classes:
 
