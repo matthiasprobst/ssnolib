@@ -25,7 +25,7 @@ class TestVersion(unittest.TestCase):
         with open(__this_dir__ / '../codemeta.json', 'r') as f:
             codemeta = json.loads(f.read())
 
-        assert codemeta['version'] == ssnolib.__version__
+        assert codemeta['version'].replace('-', '') == ssnolib.__version__
 
     def test_readme(self):
         """checking if the version in the README.md is the same as the one of the toolbox"""
@@ -37,6 +37,8 @@ class TestVersion(unittest.TestCase):
 
     def test_ssno_url_exists(self):
         """checking if the ssno url exists"""
-        ssno_url = f'https://matthiasprobst.github.io/ssno/{ssnolib.__version__}/'
+        vers = ssnolib.__version__
+        base_vers = vers.split('rc')[0]
+        ssno_url = f'https://matthiasprobst.github.io/ssno/{base_vers}/'
         import requests
         assert requests.get(ssno_url).status_code == 200
