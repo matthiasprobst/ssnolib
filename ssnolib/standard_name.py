@@ -3,12 +3,12 @@ import warnings
 from typing import Union, List, Optional
 
 from ontolutils import namespaces, urirefs
+from ontolutils.utils.qudt_units import qudt_lookup
 from pydantic import HttpUrl, field_validator, Field, ConfigDict
 from pydantic import ValidationError
 from pydantic_core import InitErrorDetails
 
 from ssnolib.dcat import Dataset
-from ssnolib.qudt import parse_unit
 from ssnolib.skos import Concept
 from . import config
 
@@ -79,22 +79,22 @@ class StandardName(Concept):
 
     @field_validator("unit", mode='before')
     @classmethod
-    def _parse_unit(cls, unit: Union[HttpUrl, str]) -> str:
+    def _parse_unit(cls, unit: Union[HttpUrl, str], cfg) -> str:
         """Parse the unit and return the unit as string."""
-        if unit is None:
-            return str(parse_unit('dimensionless'))
+        if unit is None or unit in ('', '1', '-', 1):
+            return str(qudt_lookup['dimensionless'])
         if isinstance(unit, str):
             if unit.startswith('http'):
                 return str(HttpUrl(unit))
             try:
-                return str(parse_unit(unit))
-            except KeyError:
+                return str(qudt_lookup[unit.strip()])
+            except KeyError as e:
                 if config.raise_error_on_unparsable_unit:
                     err = InitErrorDetails(
                         type="value_error",
                         loc=("unit",),
                         input=unit,
-                        ctx={"error": f"your_message Unable to parse: {unit}", }
+                        ctx={"error": f'your_message Unable to parse: "{unit}" of standard name "{cfg.data["standardName"]}"', }
                     )
                     raise ValidationError.from_exception_data(title=cls.__name__, line_errors=[err, ])
                 else:

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submitted Data</title>
+</head>
+<body>
+    <h1>Submitted Data</h1>
+
+    <h2>General Information</h2>
+    <p><strong>Title:</strong> {{ title }}</p>
+    <p><strong>Version:</strong> {{ version }}</p>
+    <p><strong>Description:</strong> {{ description }}</p>
+
+    <h2>Authors</h2>
+    <ul>
+        {% for author in authors %}
+        <li>
+            <strong>First Name:</strong> {{ author.first_name }}<br>
+            <strong>Last Name:</strong> {{ author.last_name }}<br>
+            <strong>ORCID:</strong> {{ author.orcid }}<br>
+            <strong>Email:</strong> {{ author.email }}
+        </li>
+        {% endfor %}
+    </ul>
+
+    <h2>Standard Names</h2>
+    <table border="1">
+        <tr>
+            <th>Name</th>
+            <th>Unit</th>
+            <th>Description</th>
+            <th>Is Vector Quantity</th>
+        </tr>
+        {% for standard_name in standard_names %}
+        <tr>
+            <td>{{ standard_name.name }}</td>
+            <td>{{ standard_name.unit }}</td>
+            <td>{{ standard_name.description }}</td>
+            <td>{{ standard_name.is_vector }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+</body>
+</html>

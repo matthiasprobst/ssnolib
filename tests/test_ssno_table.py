@@ -9,6 +9,7 @@ import pydantic
 import requests.exceptions
 import yaml
 from ontolutils.namespacelib.m4i import M4I
+from ontolutils.utils.qudt_units import parse_unit
 
 import ssnolib
 import ssnolib.standard_name_table
@@ -16,7 +17,6 @@ from ssnolib import StandardName, StandardNameTable, Transformation
 from ssnolib.dcat import Distribution
 from ssnolib.namespace import SSNO
 from ssnolib.prov import Attribution
-from ssnolib.qudt import parse_unit
 from ssnolib.standard_name import ScalarStandardName, VectorStandardName
 from ssnolib.utils import download_file
 
@@ -145,7 +145,6 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         snt = StandardNameTable.from_jsonld(__this_dir__ / 'data/simpleSNT.jsonld', limit=1)
         qualifications = [q for q in snt.hasModifier if isinstance(q, ssnolib.Qualification)]
         self.assertEqual(1, len(qualifications))
-        print(snt.qualifiedAttribution)
 
     def test_standard_name_table(self):
         sn1 = StandardName(standard_name='x_velocity',
@@ -395,7 +394,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
             hasPreposition='assuming',
             hasValidValues=["clear_sky", "deep_snow", "no_snow"]
         )
-        self.assertEqual([v.qualificationValue for v in condition.hasValidValues], ["clear_sky", "deep_snow", "no_snow"])
+        self.assertEqual([v.hasStringValue for v in condition.hasValidValues], ["clear_sky", "deep_snow", "no_snow"])
 
         # order the qualifications:
         from ssnolib.namespace import SSNO
@@ -458,10 +457,6 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         self.assertEqual(
             tropopause_air_pressure.description,
             snt.get_standard_name("air_pressure").description + surface.description)
-        # TODO: Qualification -> validValues could be a list of
-        #  QualificationValues(value='tropopause', description='The tropopause is the boundary between the troposphere and the stratosphere.'))
-        #  this helps with these "means" statements: The surface called "surface" means the lower boundary of the atmosphere. sea_level means mean sea level, which is close to the geoid in sea areas
-        #  This allows to build the cf-convention guidelines kind of...
         snt.add_new_standard_name(
             StandardName(
                 standardName="tropopause_air_pressure",

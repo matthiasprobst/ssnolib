@@ -15,6 +15,7 @@ from ssnolib.prov import Person, Organization, Attribution
 from ssnolib.utils import build_simple_sparql_query, WHERE, parse_and_exclude_none
 from . import config
 from . import plugins
+from .m4i import TextVariable
 from .namespace import SSNO
 from .qudt.utils import iri2str
 from .standard_name import StandardName, VectorStandardName, ScalarStandardName
@@ -91,16 +92,6 @@ class StandardNameModification(Thing):
         return f'{self.__class__.__name__}("{self.name}")'
 
 
-@namespaces(ssno="https://matthiasprobst.github.io/ssno#",
-            dcterms="http://purl.org/dc/terms/")
-@urirefs(ValidQualificationValue='ssno:ValidQualificationValue',
-         qualificationValue='ssno:qualificationValue',
-         description='dcterms:description')
-class ValidQualificationValue(Thing):
-    qualificationValue: str
-    description: str
-
-
 @namespaces(ssno="https://matthiasprobst.github.io/ssno#")
 @urirefs(Qualification='ssno:Qualification',
          before='ssno:before',
@@ -112,7 +103,7 @@ class Qualification(StandardNameModification):
     before: Optional[Union[str, HttpUrl, "Qualification"]] = None  # ssno:before
     after: Optional[Union[str, HttpUrl, "Qualification"]] = None  # ssno:after
     hasPreposition: Optional[str] = None  # ssno:hasPreposition
-    hasValidValues: Optional[List[Union[str, Dict, ValidQualificationValue]]] = None  # ssno:hasValidValues
+    hasValidValues: Optional[List[Union[str, Dict, TextVariable]]] = None  # ssno:hasValidValues
 
     @field_validator('before')
     @classmethod
@@ -144,17 +135,17 @@ class Qualification(StandardNameModification):
 
     @field_validator('hasValidValues', mode='before')
     @classmethod
-    def _hasValidValues(cls, hasValidValues: Optional[List[Union[str, ValidQualificationValue]]] = None) -> List[
-        ValidQualificationValue]:
+    def _hasValidValues(cls, hasValidValues: Optional[List[Union[str, TextVariable]]] = None) -> List[
+        TextVariable]:
         if isinstance(hasValidValues, dict):
-            return [ValidQualificationValue(**hasValidValues)]
+            return [TextVariable(**hasValidValues)]
         if hasValidValues:
             for k, v in enumerate(hasValidValues.copy()):
                 if isinstance(v, str):
-                    hasValidValues[k] = ValidQualificationValue(qualificationValue=v,
-                                                                description="No description available.")
+                    hasValidValues[k] = TextVariable(hasStringValue=v,
+                                                     hasVariableDescription="No description available.")
                 elif isinstance(v, dict):
-                    hasValidValues[k] = ValidQualificationValue(**v)
+                    hasValidValues[k] = TextVariable(**v)
         return hasValidValues
 
     def get_full_name(self):
@@ -682,7 +673,7 @@ class StandardNameTable(Dataset):
         for q in qualifications_output:
             qualification = qualifications.get(q, None)
             if qualification:
-                valid_values = [v.qualificationValue for v in qualification.hasValidValues]
+                valid_values = [v.hasStringValue for v in qualification.hasValidValues]
                 if qualification.hasPreposition:
                     _valid_values = [qualification.hasPreposition + "_" + v for v in valid_values]
                     out += f'(?:({"|".join(_valid_values)}))?_?'
@@ -892,7 +883,7 @@ class StandardNameTable(Dataset):
                 f.write(f"{qualification_expl_string}\n")
                 for q in qualifications:
                     f.write(f"\n\n#### {q.name.capitalize()}\n")
-                    f.write(f"Valid values: {', '.join([v.qualificationValue for v in q.hasValidValues])}\n")
+                    f.write(f"Valid values: {', '.join([v.hasStringValue for v in q.hasValidValues])}\n")
                     if q.description:
                         f.write(f"\n{q.description}\n")
                     else:
@@ -1087,12 +1078,8 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
                 attribution.hadRole = res['hadRole']
             qualifiedAttribution.append(attribution)
 
-        if qualifiedAttribution:
-            for i, attribution in enumerate(qualifiedAttribution):
-                print(f"   {i + 1}: {attribution.model_dump(exclude_none=True)}")
-
         # jetzt qualifications holen:
-        hasModifier = []
+        has_modifier = []
         for _type in ("ssno:Qualification", "ssno:VectorQualification"):
             sparql = build_simple_sparql_query(
                 prefixes=prefixes,
@@ -1112,44 +1099,45 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
                     prefixes=prefixes,
                     wheres=[
                         WHERE(modifierID, "ssno:hasValidValues", "?hasValidValuesID"),
-                        WHERE("?hasValidValuesID", "a", "ssno:ValidQualificationValue"),
-                        WHERE("?hasValidValuesID", "ssno:qualificationValue", "?qualificationValue"),
-                        WHERE("?hasValidValuesID", "dcterms:description", "?description", is_optional=True),
+                        WHERE("?hasValidValuesID", "a", "m4i:TextVariable"),
+                        WHERE("?hasValidValuesID", "m4i:hasStringValue", "?hasStringValue"),
+                        WHERE("?hasValidValuesID", "m4i:hasVariableDescription", "?hasVariableDescription",
+                              is_optional=True),
                     ]
                 )
                 hasValidValues = []
                 for valid_values in sparql_valid_values.query(g):
-                    validvalues_dict = dict(qualificationValue=valid_values['qualificationValue'],
-                                            description=valid_values['description'])
+                    validvalues_dict = dict(hasStringValue=valid_values['hasStringValue'],
+                                            hasVariableDescription=valid_values['hasVariableDescription'])
                     hasValidValues.append(
-                        ValidQualificationValue(**{k: v.value for k, v in validvalues_dict.items() if v}))
+                        TextVariable(**{k: v.value for k, v in validvalues_dict.items() if v}))
 
-                hasModifier_dict = dict(name=res['name'].value, description=res['description'].value)
+                has_modifier_dict = dict(name=res['name'].value, description=res['description'].value)
                 if res['before']:
                     if isinstance(res['before'], rdflib.BNode):
-                        hasModifier_dict['before'] = res['before'].n3()
+                        has_modifier_dict['before'] = res['before'].n3()
                     else:
-                        hasModifier_dict['before'] = res['before'].value
+                        has_modifier_dict['before'] = res['before'].value
                 else:
                     assert res['after'], "Missing ssno:after"
                     if isinstance(res['after'], rdflib.BNode):
-                        hasModifier_dict['after'] = res['after'].n3()
+                        has_modifier_dict['after'] = res['after'].n3()
                     else:
-                        hasModifier_dict['after'] = res['after'].value
+                        has_modifier_dict['after'] = res['after'].value
 
                 if _type == "ssno:VectorQualification":
-                    hasModifier.append(
+                    has_modifier.append(
                         VectorQualification(
                             id=modifierID,
                             hasValidValues=hasValidValues,
-                            **{k: v for k, v in hasModifier_dict.items() if v}
+                            **{k: v for k, v in has_modifier_dict.items() if v}
                         )
                     )
                 else:
-                    hasModifier.append(
+                    has_modifier.append(
                         Qualification(
                             id=modifierID,
-                            **{k: v for k, v in hasModifier_dict.items() if v}
+                            **{k: v for k, v in has_modifier_dict.items() if v}
                         )
                     )
 
@@ -1180,12 +1168,12 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
             for character in sparql_hasCharacter.query(g):
                 hasCharacter.append(
                     Character(character=character["character"].value, associatedWith=character["associatedWith"].value))
-            hasModifier.append(
+            has_modifier.append(
                 Transformation(name=res['name'].value, description=res['description'], altersUnit=res['altersUnit'],
                                hasCharacter=hasCharacter)
             )
-        if hasModifier:
-            snt.hasModifier = hasModifier
+        if has_modifier:
+            snt.hasModifier = has_modifier
 
         sparql_get_standard_names = f"""
             PREFIX owl: <http://www.w3.org/2002/07/owl#>
@@ -1204,10 +1192,10 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
             }}
         """
         res = g.query(sparql_get_standard_names)
-        standardNames = []
+        standard_names = []
         for n, u, d in res:
-            standardNames.append(StandardName(standardName=str(n), unit=str(u), description=str(d)))
-        snt.standardNames = standardNames
+            standard_names.append(StandardName(standardName=str(n), unit=str(u), description=str(d)))
+        snt.standardNames = standard_names
 
         if qualifiedAttribution:
             if len(qualifiedAttribution) == 1:

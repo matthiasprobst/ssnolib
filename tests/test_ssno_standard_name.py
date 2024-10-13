@@ -4,12 +4,12 @@ import unittest
 import ontolutils
 import pydantic
 from ontolutils import QUDT_UNIT
+from ontolutils.utils.qudt_units import parse_unit
 from pydantic import ValidationError
 
 import ssnolib
 import ssnolib.standard_name_table
 from ssnolib import StandardName, StandardNameTable
-from ssnolib.qudt import parse_unit
 
 __this_dir__ = pathlib.Path(__file__).parent
 
@@ -35,6 +35,23 @@ class TestSSNOStandardName(unittest.TestCase):
                                 unit='m/s',
                                 alias=sn.id)
         self.assertEqual(sn_alias.alias, sn.id)
+        self.assertEqual(sn.standardName, sn_alias.standardName)
+        self.assertEqual(sn.unit, sn_alias.unit)
+        self.assertEqual(sn.description, sn_alias.description)
+
+    def test_units(self):
+        sn = StandardName(
+            standard_name='x_velocity',
+            description='x component of velocity',
+            unit=''
+        )
+        self.assertEqual(sn.unit, str(QUDT_UNIT.UNITLESS))
+        sn = StandardName(
+            standard_name='x_velocity',
+            description='x component of velocity',
+            unit='1'
+        )
+        self.assertEqual(sn.unit, str(QUDT_UNIT.UNITLESS))
 
     def test_instantiating_standard_name_missing_fields(self):
         with self.assertRaises(pydantic.ValidationError):
@@ -67,9 +84,17 @@ class TestSSNOStandardName(unittest.TestCase):
         self.assertEqual(str(sn.unit), "http://qudt.org/vocab/unit/UNITLESS")
 
         with self.assertRaises(pydantic.ValidationError):
-            sn = StandardName(standardName='x_velocity',
-                              description='x component of velocity',
-                              unit="213nlsfh8os")
+            StandardName(standardName='x_velocity',
+                         description='x component of velocity',
+                         unit="213nlsfh8os")
+
+        try:
+            StandardName(standardName='x_velocity',
+                         description='x component of velocity',
+                         unit="213nlsfh8os")
+        except pydantic.ValidationError as e:
+            self.assertEqual(e.errors()[0]['loc'], ('unit', 'unit'))
+            self.assertEqual(e.errors()[0]['msg'], 'Value error, your_message Unable to parse: "213nlsfh8os" of standard name "x_velocity"')
 
         sn = StandardName(standardName='x_velocity',
                           description='x component of velocity',
@@ -157,21 +182,6 @@ class TestSSNOStandardName(unittest.TestCase):
                 standard_name='x_velocity',
                 description="invalid standard name"
             )
-
-    def test_alias(self):
-        sn = ssnolib.StandardName(
-            standardName='x_velocity',
-            unit='m/s',
-            description='The velocity in x-axis direction'
-        )
-        sn_alias = ssnolib.StandardName(
-            standard_name='x_velocity',
-            unit='m/s',
-            description='The velocity in x-axis direction'
-        )
-        self.assertEqual(sn.standardName, sn_alias.standardName)
-        self.assertEqual(sn.unit, sn_alias.unit)
-        self.assertEqual(sn.description, sn_alias.description)
 
     def test_standard_name_with_table(self):
         snt = StandardNameTable(identifier='https://doi.org/10.5281/zenodo.10428817')

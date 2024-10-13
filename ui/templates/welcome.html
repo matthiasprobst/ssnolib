@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to SNT-Config</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="/">SNT-Config</a>
+    </nav>
+
+    <div class="container mt-4">
+        <h1>Welcome to SNT-Config</h1>
+        <p>Please select an option:</p>
+        <div class="mb-3">
+            <a href="/form" class="btn btn-primary">Create New Standard Name</a>
+        </div>
+
+        <h5>Load Existing Standard Name</h5>
+        <form action="/load" method="post" enctype="multipart/form-data">
+            <input type="file" name="jsonld_file" accept=".json,.jsonld,.json-ld" required>
+            <button type="submit" class="btn btn-success">Load Standard Name</button>
+        </form>
+    </div>
+</body>
+</html>
