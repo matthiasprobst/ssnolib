@@ -16,7 +16,7 @@ class TestVersion(unittest.TestCase):
             lines = f.readlines()
             for line in lines:
                 if 'version' in line:
-                    this_version = line.split(' = ')[-1].strip()
+                    this_version = line.split(' = ')[-1].strip().replace('-', '')
         self.assertEqual(ssnolib.__version__, this_version)
 
     def test_codemeta(self):
