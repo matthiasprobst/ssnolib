@@ -13,6 +13,7 @@ from ontolutils.utils.qudt_units import parse_unit
 
 import ssnolib
 import ssnolib.standard_name_table
+from ssnolib import Organization, Person, AgentRole
 from ssnolib import StandardName, StandardNameTable, Transformation
 from ssnolib.dcat import Distribution
 from ssnolib.namespace import SSNO
@@ -102,12 +103,37 @@ SNT_JSONLD = """{
 class TestSSNOStandardNameTable(unittest.TestCase):
 
     def tearDown(self):
+        pathlib.Path('minimal_snt.jsonld').unlink(missing_ok=True)
         pathlib.Path('snt.json').unlink(missing_ok=True)
         pathlib.Path('snt.yaml').unlink(missing_ok=True)
         pathlib.Path('snt2.yaml').unlink(missing_ok=True)
         pathlib.Path('snt_with_mod.yaml').unlink(missing_ok=True)
         if pathlib.Path(__this_dir__ / 'tmp').exists():
             shutil.rmtree(pathlib.Path(__this_dir__ / 'tmp'))
+
+    def test_add_author(self):
+        snt = StandardNameTable.parse(__this_dir__ / 'data/test_snt.yaml')
+        KIT = Organization(id="https://ror.org/04t3en479",
+                           name="Karlsruhe Institute of Technology, Institute of Thermal Turbomachinery",
+                           ror_id="https://ror.org/04t3en479")
+        author1 = Person(id="https://orcid.org/0000-0001-8729-0482",
+                         orcid_id="https://orcid.org/0000-0001-8729-0482",
+                         affiliation=KIT)
+        author2 = Person(id="https://orcid.org/0000-0001-9560-500X",
+                         orcid_id="https://orcid.org/0000-0001-9560-500X",
+                         affiliation=KIT)
+        snt.add_author(author1, AgentRole.Contact_Person)
+        snt.add_author(author2, AgentRole.Supervisor)
+        self.assertEqual(2, len(snt.qualifiedAttribution))
+
+    def test_to_jsonld(self):
+        snt = StandardNameTable(title="minimal snt")
+        with self.assertRaises(ValueError):
+            snt.to_jsonld("minimal_snt.json")
+        filename = snt.to_jsonld("minimal_snt.jsonld")
+        self.assertEqual(filename.name, "minimal_snt.jsonld")
+        self.assertTrue(filename.exists())
+        filename.unlink(missing_ok=True)
 
     def test_multiple_agents(self):
         agent1 = ssnolib.Person(
