@@ -1,3 +1,4 @@
+import enum
 import json
 import pathlib
 import re
@@ -41,6 +42,24 @@ ROLE_LOOKUP: Dict[str, str] = {
 }
 
 ROLE2IRI = {v.lower(): k for k, v in ROLE_LOOKUP.items()}
+
+
+class AgentRole(enum.Enum):
+    Contact_Person = str(M4I.ContactPerson)
+    Other = str(M4I.Other)
+    Producer = str(M4I.Producer)
+    Project_Leader = str(M4I.ProjectLeader)
+    Project_Manager = str(M4I.ProjectManager)
+    Project_Member = str(M4I.ProjectMember)
+    Registration_Agency = str(M4I.RegistrationAgency)
+    Registration_Authority = str(M4I.RegistrationAuthority)
+    Related_Person = str(M4I.RelatedPerson)
+    Research_Group = str(M4I.ResearchGroup)
+    Researcher = str(M4I.Researcher)
+    Rights_Holder = str(M4I.RightsHolder)
+    Sponsor = str(M4I.Sponsor)
+    Supervisor = str(M4I.Supervisor)
+    Work_Package_Leader = str(M4I.WorkPackageLeader)
 
 
 def _generate_ordered_list_of_qualifications(qres):
@@ -174,7 +193,6 @@ class Character(Thing):
     @field_validator('associatedWith', mode='before')
     @classmethod
     def _associatedWith(cls, associatedWith: Union[str, HttpUrl, Qualification]) -> str:
-        print(f"associatedWith: {associatedWith}")
         if isinstance(associatedWith, str):
             assert str(associatedWith).startswith(("http", "_:"))
         if isinstance(associatedWith, Thing):
@@ -405,7 +423,10 @@ class StandardNameTable(Dataset):
         standardNames = []
         for sn in data["standardNames"].copy():
             try:
-                standardNames.append(StandardName(**sn))
+                if isinstance(sn, dict):
+                    standardNames.append(StandardName(**sn))
+                else:
+                    standardNames.append(sn)
             except ValidationError as e:
                 warnings.warn(f"Could not parse {sn}. {e}", UserWarning)
         data["standardNames"] = standardNames
@@ -526,6 +547,16 @@ class StandardNameTable(Dataset):
                                         description=core_standard_name.description + q_description)
         raise ValueError(
             f"The standard name {standard_name} is not part of the table and does not conform to the qualification rules.")
+
+    def to_jsonld(self, filename, overwrite: bool = False) -> pathlib.Path:
+        filename = pathlib.Path(filename)
+        if filename.exists() and not overwrite:
+            raise ValueError(f'File {filename} exists and overwrite is False.')
+        if filename.suffix != ".jsonld":
+            raise ValueError(f'Expected a JSON-LD file, got {filename.suffix}')
+        with open(filename, 'w', encoding='utf-8') as f:
+            f.write(self.model_dump_jsonld())
+        return pathlib.Path(filename)
 
     def to_yaml(self, filename: Union[str, pathlib.Path], overwrite: bool = False, exists_ok=False) -> pathlib.Path:
         """Dump the Standard Name Table to a file.
@@ -776,6 +807,15 @@ class StandardNameTable(Dataset):
             raise ValueError(f"Standard Name '{name}' is invalid. Could not verified by the qualification rules")
 
         return new_standard_name
+
+    def add_author(self, author, role: Optional[AgentRole] = None):
+        assert isinstance(author, Person), f"Expected a Person object, got {type(author)}"
+        if self.qualifiedAttribution is None:
+            self.qualifiedAttribution = [Attribution(agent=author, hadRole=role.value), ]
+        elif not isinstance(self.qualifiedAttribution, list):
+            self.qualifiedAttribution = [self.qualifiedAttribution, Attribution(agent=author, hadRole=role.value)]
+        else:
+            self.qualifiedAttribution.append(Attribution(agent=author, hadRole=role.value))
 
     def fetch(self):
         """Download the Standard Name Table and parse it"""
@@ -1038,7 +1078,7 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
                 WHERE("?agentID", "foaf:firstName", "?firstName", is_optional=True),
                 WHERE("?agentID", "foaf:lastName", "?lastName", is_optional=True),
                 WHERE("?agentID", "foaf:mbox", "?mbox", is_optional=True),
-                WHERE("?agentID", "prov:orcidId", "?orcidId", is_optional=True),
+                WHERE("?agentID", "m4i:orcidId", "?orcidId", is_optional=True),
             ]
         )
 
@@ -1052,6 +1092,7 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
             if res['hadRole']:
                 attribution.hadRole = res['hadRole'].value
             qualifiedAttribution.append(attribution)
+            # TODO: get affliliation!
 
         sparql = build_simple_sparql_query(
             prefixes=prefixes,

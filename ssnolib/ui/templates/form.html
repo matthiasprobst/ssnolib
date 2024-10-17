@@ -106,22 +106,22 @@
                 {% if data %}
                 {% for author in data.persons %}
                 <div class="author form-row align-items-center mb-2">
-                    <div class="col-md">
+                    <div class="col-lg">
                         <label>First Name:</label>
                         <input type="text" class="form-control" name="person.firstName[]"
                                value="{{ author.firstName }}">
                     </div>
-                    <div class="col-md">
+                    <div class="col-lg">
                         <label>Last Name:</label>
                         <input type="text" class="form-control" name="person.lastName[]" value="{{ author.lastName }}">
                     </div>
-                    <div class="col-md">
+                    <div class="col-lg">
                         <label>ORCID ID:</label>
                         <input type="text" class="form-control" name="person.orcidId[]"
                                placeholder="Format: NNN-NNN-NNN-NNN"
                                value="{{ author.orcidId }}">
                     </div>
-                    <div class="col-md">
+                    <div class="col-lg">
                         <label>Role:</label>
                         <select class="form-control" name="person.hadRole[]">
                             <option value="">Select role</option>
@@ -161,35 +161,40 @@
                             'WorkPackageLeader' %}selected{% endif %}>Workpackage Leader</option>
                         </select>
                     </div>
-                    <div class="col-md">
+                    <div class="col-lg">
                         <label>Email:</label>
                         <input type="email" class="form-control" name="person.mbox[]" value="{{ author.mbox }}">
                     </div>
-                    <div class="col-md-1 text-right mt-2">
-                        <button type="button" class="btn btn-danger mt-4" onclick="deleteAuthor(this)">Delete Author
-                        </button>
+                    <div class="col-lg">
+                        <label>Affiliation:</label>
+                        <select class="form-control" name="person.affiliation[]">
+                            <option value="">Select Affiliation</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-1 text-right mt-2">
+                        <button type="button" class="btn btn-danger mt-4" onclick="deleteAuthor(this)">X</button>
                     </div>
                 </div>
                 {% endfor %}
                 {% for organization in data.organizations %}
                 <div class="organization form-row align-items-center mb-2">
-                    <div class="col-md">
+                    <div class="col-lg">
                         <label>Name:</label>
                         <input type="text" class="form-control" name="organization.name[]"
                                value="{{ organization.name if organization.name else '' }}">
                     </div>
-                    <div class="col-md">
+                    <div class="col-lg">
                         <label>URL:</label>
                         <input type="url" class="form-control" name="organization.url[]"
                                value="{{ organization.url if organization.url else '' }}">
                     </div>
-                    <div class="col-md">
+                    <div class="col-lg">
                         <label>ROR ID:</label>
                         <input type="text" class="form-control" name="organization.hasRorId[]"
                                placeholder="e.g. https://ror.org/63z3oa416"
                                value="{{ organization.hasRorId if organization.hasRorId else '' }}">
                     </div>
-                    <div class="col-md">
+                    <div class="col-lg">
                         <label>Role:</label>
                         {% if organization.hadRole %}
                         <select class="form-control" name="organization.hadRole[]">
@@ -213,14 +218,13 @@
                         </select>
                         {% endif %}
                     </div>
-                    <div class="col-md">
+                    <div class="col-lg">
                         <label>Email:</label>
                         <input type="email" class="form-control" name="organization.mbox[]"
                                value="{{ organization.mbox if organization.mbox else ''}}">
                     </div>
-                    <div class="col-md-1 text-right mt-2">
-                        <button type="button" class="btn btn-danger mt-4" onclick="deleteAuthor(this)">Delete Author
-                        </button>
+                    <div class="col-lg-1 text-right mt-2">
+                        <button type="button" class="btn btn-danger mt-4" onclick="deleteAuthor(this)">X</button>
                     </div>
                 </div>
                 {% endfor %}
@@ -238,7 +242,7 @@
             <div class="list-group-item d-flex justify-content-between align-items-center mb-2">
                 <div class="w-100">
                     <div class="form-row">
-                        <div class="col-md-3">
+                        <div class="col-lg-3">
                             <label title="Please use capital letters for associated characters.">Name:</label>
                             <input type="text"
                                    id="transformation_name_field-{{ inner_loop.index }}"
@@ -248,7 +252,7 @@
                                    value="{{ transformation.name }}"
                                    oninput="onTransformationNameChange(this.id, {{ inner_loop.index }})">
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-lg-3">
                             <label title="Put characters in square brackets, e.g. [X]/[C]">Alters Unit:</label>
                             <input type="text"
                                    id="transformation_alterUnit-{{ inner_loop.index }}"
@@ -258,7 +262,7 @@
                                    value="{{ transformation.altersUnit }}"
                                    onfocusout="onChangeAltersUnit(this.id, `transformation_name_field-{{ loop.index }}`)">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-lg-4">
                             <label>Description:</label>
                             <textarea class="form-control" name="transformation_description[]" rows="3"
                                       required>{{ transformation.description  if data else '' }}</textarea>
@@ -267,7 +271,7 @@
                     <div id="characters-container-{{ inner_loop.index }}">
                         {% for character in transformation.hasCharacter %}
                         <div class="form-row" id="characters-row-{{ inner_loop.index}}-{{ character.character }}">
-                            <div class="col-md-1">
+                            <div class="col-lg-1">
                                 <label>Char:</label>
                                 <input type="text"
                                        id="transformation_character_character-{{ inner_loop.index}}-{{ character.character }}"
@@ -277,7 +281,7 @@
                                        disabled
                                        value="{{ character.character }}">
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-lg-4">
                                 <label>associated with:</label>
                                 <select class="form-control qualification-dropdown" id="associatedWithDropdown"
                                         name="transformation_character_associatedWith[]">
@@ -297,7 +301,7 @@
                         {% endfor %}
                     </div>
                 </div>
-                <div class="col-md-2 text-right mt-2">
+                <div class="col-lg-2 text-right mt-2">
                     <button type="button" class="btn btn-danger mt-4" onclick="deleteTransformation(this)">Delete
                         Transformation
                     </button>
@@ -318,7 +322,7 @@
                  id="qualification-item-{{ loop.index }}">
                 <div class="w-100">
                     <div class="form-row" id="qualification-form-row-vector-{{ loop.index }}">
-                        <div class="col-md-1">
+                        <div class="col-lg-1">
                             <div class="form-check d-flex align-items-center">
                                 <input class="form-check-input"
                                        type="checkbox"
@@ -332,16 +336,16 @@
                                 </label>
                             </div>
                         </div>
-                        <div class="col-md-10">
+                        <div class="col-lg-10">
                         </div>
-                        <div class="col-md text-right mt-2">
+                        <div class="col-lg text-right mt-2">
                             <button type="button" class="btn btn-danger btn-sm" onclick="deleteQualification(this)">
                                 Delete
                             </button>
                         </div>
                     </div>
                     <div class="form-row" id="qualification-form-row-{{ loop.index }}">
-                        <div class="col-md-2">
+                        <div class="col-lg-2">
                             <label for="preposition-input-{{ loop.index }}">Preposition (opt.):</label>
                             <input type="text"
                                    id="preposition-input-{{ loop.index }}"
@@ -350,7 +354,7 @@
                                    placeholder='E.g. "at", "assuming", ...'
                                    value="{{ qualification.hasPreposition if qualification.hasPreposition else ' ' }}">
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-lg-3">
                             <label for="qualification-name-input-{{ loop.index }}">Name:</label>
                             <input type="text"
                                    id="qualification-name-input-{{ loop.index }}"
@@ -360,7 +364,7 @@
                                    value="{{ qualification.name }}"
                                    oninput="updateConfiguration()">
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-lg-3">
                             <label for="hasValidValues-input-{{ loop.index }}">Valid Values for "{{ qualification.name
                                 }}":</label>
                             <input type="text"
@@ -371,7 +375,7 @@
                                    placeholder="Comma sep. list, e.g. x,y,z" required
                                    oninput="onValidValuesChange(this.id, {{ loop.index }})">
                         </div>
-                        <div class="col-md">
+                        <div class="col-lg">
                             <label>Description:</label>
                             <input type="text" class="form-control" name="qualification_description[]"
                                    value="{{ qualification.description }}" required>
@@ -379,7 +383,7 @@
                     </div>
                     {% for valid_value in qualification.hasValidValues %}
                     <div class="form-row hasValidValues-row-{{ inner_loop.index }}">
-                        <div class="col-md-1">
+                        <div class="col-lg-1">
                             <label for="hasValidValues-value-{{ valid_value.hasStringValue }}-{{ inner_loop.index }}">Value:</label>
                             <input type="text"
                                    id="hasValidValues-value-{{ valid_value.hasStringValue }}-{{ inner_loop.index }}"
@@ -388,12 +392,12 @@
                                    value="{{ valid_value.hasStringValue }}"
                                    required disabled>
                         </div>
-                        <div class="col-md">
+                        <div class="col-lg">
                             <label for="hasValidValues-description-{{ valid_value.hasStringValue }}-{{ inner_loop.index }}">Description:</label>
                             <input type="text"
                                    id="hasValidValues-description-{{ valid_value.hasStringValue }}-{{ inner_loop.index }}"
                                    class="form-control"
-                                   name="has_variable_description[]"
+                                   name="hasVariableDescription[]"
                                    value="{{ valid_value.hasVariableDescription }}"
                                    required>
                         </div>
@@ -415,24 +419,24 @@
                 {% if data %}
                 {% for standard in data.standard_names %}
                 <div class="form-row align-items-center mb-2">
-                    <div class="col-md-3">
+                    <div class="col-lg-3">
                         <label>Name:</label>
                         <input type="text" class="form-control" name="standard_name.name[]"
                                value="{{ standard.standardName }}"
                                required>
                     </div>
-                    <div class="col-md-1">
+                    <div class="col-lg-1">
                         <label>Unit:</label>
                         <input type="text" class="form-control" name="standard_name.unit[]"
                                value="{{ standard.unit_str }}"
                                title="{{ standard.unit }}" required>
                     </div>
-                    <div class="col-md-5">
+                    <div class="col-lg-5">
                         <label>Description:</label>
                         <input type="text" class="form-control" name="standard_name.description[]"
                                value="{{ standard.description }}">
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-lg-2">
                         <label>Vector:</label>
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" name="is_vector_standard_name[]" {% if
@@ -441,34 +445,34 @@
                             <input type="hidden" name="is_vector_standard_name[]" value="off">
                         </div>
                     </div>
-                    <div class="col-md-1 text-right mt-2">
-                        <button type="button" class="btn btn-danger" onclick="deleteStandardName(this)">Delete</button>
+                    <div class="col-lg-1 text-right mt-2">
+                        <button type="button" class="btn btn-danger" onclick="deleteStandardName(this)">X</button>
                     </div>
                 </div>
                 {% endfor %}
                 {% else %}
                 <div class="form-row align-items-center mb-2">
-                    <div class="col-md-3">
+                    <div class="col-lg-3">
                         <label>Name:</label>
                         <input type="text" class="form-control" name="standard_name.name[]" required>
                     </div>
-                    <div class="col-md-1">
+                    <div class="col-lg-1">
                         <label>Unit:</label>
                         <input type="text" class="form-control" name="standard_name.unit[]" required>
                     </div>
-                    <div class="col-md-5">
+                    <div class="col-lg-5">
                         <label>Description:</label>
                         <input type="text" class="form-control" name="standard_name.description[]" required>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-lg-2">
                         <label>Vector:</label>
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" name="is_vector_standard_name[]">
                             <input type="hidden" name="is_vector_standard_name[]" value="off">
                         </div>
                     </div>
-                    <div class="col-md-1 text-right mt-2">
-                        <button type="button" class="btn btn-danger" onclick="deleteStandardName(this)">Delete</button>
+                    <div class="col-lg-1 text-right mt-2">
+                        <button type="button" class="btn btn-danger" onclick="deleteStandardName(this)">X</button>
                     </div>
                 </div>
                 {% endif %}
@@ -520,11 +524,11 @@
         defaultQualificationDiv.innerHTML = `
             <div class="w-100">
                 <div class="form-row">
-                    <div class="col-md-3">
+                    <div class="col-lg-3">
                         <label>Name:</label>
                         <input type="text" class="form-control" name="qualification_name[]" value="AnyStandardName" readonly>
                     </div>
-                    <div class="col-md-8">
+                    <div class="col-lg-8">
                         <label>Description:</label>
                         <input type="text" class="form-control" value="Any Standard Name. Place the qualifications around it." readonly>
                     </div>

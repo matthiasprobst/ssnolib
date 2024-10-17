@@ -133,7 +133,7 @@ def json_ld():
         request.form.getlist("organization.mbox[]"),
     )
     has_valid_values_raw = request.form.getlist("hasValidValues[]")
-    has_variable_description = request.form.getlist("has_variable_description[]")
+    has_variable_description = request.form.getlist("hasVariableDescription[]")
     qualification_description = request.form.getlist("qualification_description[]")
     qualification_name = request.form.getlist("qualification_name[]")
     _vectors = request.form.getlist("is_vector_qualification[]")
@@ -178,6 +178,7 @@ def json_ld():
         prep = None if preposition == '' else preposition
         qvalues = []
         for v in hvvr.split(","):
+            print(has_variable_description)
             description = has_variable_description.pop(0)
             qvalues.append(ssnolib.TextVariable(hasStringValue=v, hasVariableDescription=description))
         if vec == 'on':

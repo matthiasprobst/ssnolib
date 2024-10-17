@@ -4,7 +4,7 @@ import pathlib
 import warnings
 from typing import Dict, Union
 
-from . import Person
+from . import VectorStandardName, ScalarStandardName
 from .prov import Attribution
 
 logger = logging.getLogger("ssnolib")
@@ -107,7 +107,7 @@ class YAMLReader(TableReader):
 
         with open(self.filename, 'r') as f:
             data = yaml.safe_load(f)
-        standardNames = data.get('standardNames', {})
+        standardNames = data.get('standardNames', data.get("standard_names", {}))
 
         def _parse_standard_names(name, sndata: Dict):
             for ustr in ('unit', 'units', 'canonical_unit', 'canonicalUnits'):
@@ -118,10 +118,13 @@ class YAMLReader(TableReader):
                 'standard_name': name,
                 **sndata
             }
+            is_vector = 'vector' in _data
             for k in list(_data.keys()):
                 if k not in ('unit', 'description', 'standard_name'):
                     _data.pop(k)
-            return _data
+            if is_vector:
+                return VectorStandardName(**_data)
+            return ScalarStandardName(**_data)
 
         qualifiedAttribution = data.get('creator', None)
         # make the orcid id the ID of the creator:

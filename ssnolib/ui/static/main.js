@@ -15,22 +15,22 @@ function generateUniqueId(prefix = 'id', index=null) {
 function addAuthor() {
     const authorContainer = document.getElementById('author-and-organization-container');
     const newAuthorDiv = document.createElement('div');
-    newAuthorDiv.classList.add('form-row', 'align-items-center', 'mb-2');
+    newAuthorDiv.classList.add('author', 'form-row', 'align-items-center', 'mb-2');
 
     newAuthorDiv.innerHTML = `
-        <div class="col-md">
+        <div class="col-lg">
             <label>First Name:</label>
             <input type="text" class="form-control" name="person.firstName[]" required>
         </div>
-        <div class="col-md">
+        <div class="col-lg">
             <label>Last Name:</label>
             <input type="text" class="form-control" name="person.lastName[]">
         </div>
-        <div class="col-md">
+        <div class="col-lg">
             <label>ORCID ID:</label>
             <input type="text" class="form-control" name="person.orcidId[]" required>
         </div>
-        <div class="col-md">
+        <div class="col-lg">
             <label>Role:</label>
             <select class="form-control" name="person.hadRole[]">
                 <option value="" selected>Select a role</option>
@@ -54,12 +54,18 @@ function addAuthor() {
                 <!-- Add more roles as needed -->
             </select>
         </div>
-        <div class="col-md">
+        <div class="col-lg">
             <label>Email:</label>
             <input type="email" class="form-control" name="person.mbox[]">
+        </div
+        <div class="col-lg">
+            <label>Affiliation:</label>
+            <select class="form-control" name="person.affiliation[]">
+                <option value="">Select Affiliation</option>
+            </select>
         </div>
-        <div class="col-md-1 text-right mt-2">
-            <button type="button" class="btn btn-danger" onclick="deleteAuthor(this)">Delete Author</button>
+        <div class="col-lg-1 text-right mt-2">
+            <button type="button" class="btn btn-danger mt-4" onclick="deleteAuthor(this)">X</button>
         </div>
     `;
     authorContainer.appendChild(newAuthorDiv);
@@ -83,7 +89,7 @@ function addTransformation() {
     const transformationID = generateUniqueId('transformation_name_field');
 
     const colMd3Name = document.createElement('div');
-    colMd3Name.classList.add('col-md-3');
+    colMd3Name.classList.add('col-lg-3');
     const labelName = document.createElement('label');
     labelName.textContent = 'Name:';
     const inputName = document.createElement('input');
@@ -97,7 +103,7 @@ function addTransformation() {
     colMd3Name.appendChild(inputName);
 
     const colMd3AltersUnit = document.createElement('div');
-    colMd3AltersUnit.classList.add('col-md-3');
+    colMd3AltersUnit.classList.add('col-lg-3');
     const labelAltersUnit = document.createElement('label');
     labelAltersUnit.textContent = 'Alters Unit:';
 
@@ -112,7 +118,7 @@ function addTransformation() {
     colMd3AltersUnit.appendChild(inputAltersUnit);
 
     const colMd4Description = document.createElement('div');
-    colMd4Description.classList.add('col-md-4');
+    colMd4Description.classList.add('col-lg-4');
     const labelDescription = document.createElement('label');
     labelDescription.textContent = 'Description:';
     const textareaDescription = document.createElement('textarea');
@@ -137,11 +143,11 @@ function addTransformation() {
     innerDiv.appendChild(charactersContainerDiv);
 
     const colMd2Delete = document.createElement('div');
-    colMd2Delete.classList.add('col-md-2', 'text-right', 'mt-2');
+    colMd2Delete.classList.add('col-lg-2', 'text-right', 'mt-2');
     const deleteButton = document.createElement('button');
     deleteButton.type = 'button';
     deleteButton.classList.add('btn', 'btn-danger', 'mt-4');
-    deleteButton.textContent = 'Delete Transformation';
+    deleteButton.textContent = 'X';
     deleteButton.onclick = function() { deleteTransformation(deleteButton); };
     colMd2Delete.appendChild(deleteButton);
 
@@ -159,20 +165,20 @@ function addCharacter(containerId){
     newCharacterDiv.classList.add('form-row');
 
     newCharacterDiv.innerHTML = `
-    <div class="col-md-1">
+    <div class="col-lg-1">
         <label>Char:</label>
         <input type="text" class="form-control" name="transformation_character_character[]" required
                value="">
     </div>
-    <div class="col-md-4">
+    <div class="col-lg-4">
         <label>associated with:</label>
         <select class="form-control qualification-dropdown" id="associatedWithDropdown" name="transformation_character_associatedWith[]">
             <option value="">Select an association</option>
             <option value="AnyStandardName" {% if character.associatedWith=='https://matthiasprobst.github.io/ssno#AnyStandardName' %}selected{% endif %}>Any Standard Name</option>
         </select>
     </div>
-    <div class="col-md-4">
-        <button type="button" class="btn btn-danger mt-4" onclick="deleteTransformation(this)">Delete Character
+    <div class="col-lg-4">
+        <button type="button" class="btn btn-danger mt-4" onclick="deleteTransformation(this)">X
         </button>
     </div>
     `;
@@ -187,19 +193,19 @@ function addOrganization() {
     newOrganizationDiv.classList.add('form-row', 'align-items-center', 'mb-2');
 
     newOrganizationDiv.innerHTML = `
-        <div class="col-md">
+        <div class="col-lg">
             <label>Name:</label>
             <input type="text" class="form-control" name="organization.name[]" required>
         </div>
-        <div class="col-md">
+        <div class="col-lg">
             <label>URL:</label>
             <input type="url" class="form-control" name="organization.url[]">
         </div>
-        <div class="col-md">
+        <div class="col-lg">
             <label>ROR ID:</label>
             <input type="text" class="form-control" name="organization.hasRorId[]">
         </div>
-        <div class="col-md">
+        <div class="col-lg">
             <label>Role:</label>
             <select class="form-control" name="organization.hadRole[]">
                 <option value="" selected>Select a role</option>
@@ -209,12 +215,12 @@ function addOrganization() {
                 <option value="ResearchGroup">Research Group</option>
             </select>
         </div>
-        <div class="col-md">
+        <div class="col-lg">
             <label>Email:</label>
             <input type="email" class="form-control" name="organization.mbox[]">
         </div>
-        <div class="col-md-1 text-right mt-2">
-            <button type="button" class="btn btn-danger" onclick="deleteOrganization(this)">Delete Organization</button>
+        <div class="col-lg-1 text-right mt-2">
+            <button type="button" class="btn btn-danger" onclick="deleteOrganization(this)">X</button>
         </div>
     `;
     organizationContainer.appendChild(newOrganizationDiv);
@@ -229,27 +235,27 @@ function addStandardNameRow() {
     newRow.classList.add('form-row', 'align-items-center', 'mb-2');
 
     newRow.innerHTML = `
-        <div class="col-md-3">
+        <div class="col-lg-3">
             <label>Name:</label>
             <input type="text" class="form-control" name="standard_name.name[]" required>
         </div>
-        <div class="col-md-1">
+        <div class="col-lg-1">
             <label title="SI unit, e.g. m/s">Unit:</label>
             <input type="text" class="form-control" name="unit[]" placeholder="SI unit" title="E.g. m/s" required>
         </div>
-        <div class="col-md-5">
+        <div class="col-lg-5">
             <label>Description:</label>
             <input type="text" class="form-control" name="standard_name.description[]">
         </div>
-        <div class="col-md-2">
+        <div class="col-lg-2">
             <label>Vector:</label>
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" name="is_vector_standard_name[]">
                 <input type="hidden" name="is_vector_standard_name[]" value="off">
             </div>
         </div>
-        <div class="col-md-1 text-right mt-2">
-            <button type="button" class="btn btn-danger" onclick="deleteStandardName(this)">Delete</button>
+        <div class="col-lg-1 text-right mt-2">
+            <button type="button" class="btn btn-danger" onclick="deleteStandardName(this)">X</button>
         </div>
     `;
     standardNameContainer.appendChild(newRow);
@@ -300,7 +306,7 @@ function addQualification() {
     formRowVector.id = generateUniqueId('qualification-form-row-vector', rowIndex);
 
     const divVector = document.createElement('div');
-    divVector.classList.add('col-md-1');
+    divVector.classList.add('col-lg-1');
     formRowVector.appendChild(divVector);
 
     const formCheckDiv = document.createElement('div');
@@ -329,15 +335,15 @@ function addQualification() {
     formCheckDiv.appendChild(labelVector);
 
     const dummyDiv = document.createElement('div');
-    dummyDiv.classList.add('col-md-10');
+    dummyDiv.classList.add('col-lg-10');
     formRowVector.appendChild(dummyDiv);
 
     const divButtonDelete = document.createElement('div');
-    divButtonDelete.classList.add('col-md', 'text-right', 'mt-2');
+    divButtonDelete.classList.add('col-lg', 'text-right', 'mt-2');
     const buttonDelete = document.createElement('button');
     buttonDelete.type = 'button';
     buttonDelete.classList.add('btn', 'btn-danger', 'btn-sm');
-    buttonDelete.textContent = 'Delete';
+    buttonDelete.textContent = 'X';
     buttonDelete.onclick = function() { deleteQualification(buttonDelete); };
     divButtonDelete.appendChild(buttonDelete);
     formRowVector.appendChild(divButtonDelete);
@@ -386,13 +392,13 @@ function addQualification() {
     inputQDescription.required = true;
 
     const divQPrepo = document.createElement('div');
-    divQPrepo.classList.add('col-md-2');
+    divQPrepo.classList.add('col-lg-2');
     const divQName = document.createElement('div');
-    divQName.classList.add('col-md-3');
+    divQName.classList.add('col-lg-3');
     const divQValidValues = document.createElement('div');
-    divQValidValues.classList.add('col-md-3');
+    divQValidValues.classList.add('col-lg-3');
     const divQDescription = document.createElement('div');
-    divQDescription.classList.add('col-md');
+    divQDescription.classList.add('col-lg');
 
     formRowQualification.appendChild(divQPrepo);
     formRowQualification.appendChild(divQName);
@@ -523,7 +529,7 @@ function onValidValuesChange(parentElement, idx){
                 newFormRow.classList.add('form-row');
                 newFormRow.classList.add(`hasValidValues-row-${idx}`);
                 const newColdMd1 = document.createElement('div');
-                newColdMd1.classList.add('col-md-1');
+                newColdMd1.classList.add('col-lg-1');
                 const label = document.createElement('label');
                 label.textContent = 'Value:';
                 label.forHTML = hasValidValueID;
@@ -539,7 +545,7 @@ function onValidValuesChange(parentElement, idx){
                 newColdMd1.appendChild(input);
 
                 const newColdMd = document.createElement('div');
-                newColdMd.classList.add('col-md');
+                newColdMd.classList.add('col-lg');
                 const labelDescription = document.createElement('label');
                 labelDescription.textContent = 'Description:';
                 labelDescription.forHTML = `hasValidValues-description-${validValue}-${idx}`;
@@ -598,7 +604,7 @@ function onTransformationNameChange(parentElement, idx){
             newCharacterDiv.id = characterRowID;
 
             const colmd1Div = document.createElement('div');
-            colmd1Div.classList.add('col-md-1');
+            colmd1Div.classList.add('col-lg-1');
             const label = document.createElement('label');
             label.textContent = 'Char:';
             const input = document.createElement('input');
@@ -613,7 +619,7 @@ function onTransformationNameChange(parentElement, idx){
             colmd1Div.appendChild(input);
 
             const colmd4Div = document.createElement('div');
-            colmd4Div.classList.add('col-md-4');
+            colmd4Div.classList.add('col-lg-4');
             const labelAssociatedWith = document.createElement('label');
             labelAssociatedWith.textContent = 'associated with:';
             const selectAssociatedWith = document.createElement('select');
