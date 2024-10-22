@@ -28,7 +28,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
     <!--    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>-->
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
 <!-- Navbar for navigation -->
@@ -84,7 +84,8 @@
             <h2>General Information</h2>
             <div class="form-group">
                 <label for="snt_title">Title:</label>
-                <input id="snt_title" type="text" class="form-control" name="title" value="{{ data.title  if data else '' }}" required>
+                <input id="snt_title" type="text" class="form-control" name="title"
+                       value="{{ data.title  if data else '' }}" required>
             </div>
             <div class="form-group">
                 <label for="version">Version:</label>
@@ -125,8 +126,9 @@
                         <label>Role:</label>
                         <select class="form-control" name="person.hadRole[]">
                             <option value="">Select role</option>
-                            <option value="Contact Person" {% if author.hadRole==
-                            'ContactPerson' %}selected{% endif %}>Contact Person</option>
+                            <option value="Contact Person" {% if author.hadRole=='ContactPerson' %}selected{% endif %}>
+                                Contact Person
+                            </option>
                             <option value="DataCollector" {% if author.hadRole==
                             'DataCollector' %}selected{% endif %}>Data Collector</option>
                             <option value=DataCurator {% if author.hadRole==
@@ -165,14 +167,12 @@
                         <label>Email:</label>
                         <input type="email" class="form-control" name="person.mbox[]" value="{{ author.mbox }}">
                     </div>
-                    <div class="col-lg">
-                        <label>Affiliation:</label>
-                        <select class="form-control" name="person.affiliation[]">
-                            <option value="">Select Affiliation</option>
-                        </select>
-                    </div>
                     <div class="col-lg-1 text-right mt-2">
-                        <button type="button" class="btn btn-danger mt-4" onclick="deleteAuthor(this)">X</button>
+                        <button type="button"
+                                class="btn btn-secondary mt-4 d-flex justify-content-flex-end align-content-between"
+                                onclick="deleteAuthor(this)">
+                            <i class="material-icons mr-1">delete_forever</i>
+                        </button>
                     </div>
                 </div>
                 {% endfor %}
@@ -224,93 +224,35 @@
                                value="{{ organization.mbox if organization.mbox else ''}}">
                     </div>
                     <div class="col-lg-1 text-right mt-2">
-                        <button type="button" class="btn btn-danger mt-4" onclick="deleteAuthor(this)">X</button>
+                        <button type="button"
+                                class="btn btn-secondary mt-4 d-flex justify-content-flex-end align-content-between"
+                                onclick="deleteAuthor(this)">
+                            <i class="material-icons mr-1">delete_forever</i>
+                        </button>
                     </div>
                 </div>
                 {% endfor %}
                 {% endif %}
             </div>
-            <button type="button" class="btn btn-primary" onclick="addAuthor()">Add Author</button>
-            <button type="button" class="btn btn-primary" onclick="addOrganization()">Add Organization</button>
+
+            <button type="button"
+                    class="btn btn-secondary"
+                    data-toggle="modal" data-target="#authorModal"
+            >
+                <i class="material-icons mr-1">person_add_alt_1</i>Add Author
+            </button>
+            <button type="button"
+                    class="btn btn-secondary"
+                    onclick="addOrganization()"
+            >
+                <i class="material-icons mr-1">add_business</i>Add Organization
+            </button>
+            <!--            <button type="button" class="btn btn-primary" onclick="addOrganization()">Add Organization</button>-->
+            <!-- Modal -->
+            {% include 'addAuthorModal.html' %}
         </div>
 
-        <h3 class="mt-4">Transformations</h3>
-        <label id="transformation-heading"></label>
-        <div id="transformation-container">
-            {% for transformation in data.transformations %}
-            {% set inner_loop = loop %}
-            <div class="list-group-item d-flex justify-content-between align-items-center mb-2">
-                <div class="w-100">
-                    <div class="form-row">
-                        <div class="col-lg-3">
-                            <label title="Please use capital letters for associated characters.">Name:</label>
-                            <input type="text"
-                                   id="transformation_name_field-{{ inner_loop.index }}"
-                                   class="form-control"
-                                   name="transformation_name[]"
-                                   required
-                                   value="{{ transformation.name }}"
-                                   oninput="onTransformationNameChange(this.id, {{ inner_loop.index }})">
-                        </div>
-                        <div class="col-lg-3">
-                            <label title="Put characters in square brackets, e.g. [X]/[C]">Alters Unit:</label>
-                            <input type="text"
-                                   id="transformation_alterUnit-{{ inner_loop.index }}"
-                                   class="form-control"
-                                   name="transformation_altersUnit[]"
-                                   required
-                                   value="{{ transformation.altersUnit }}"
-                                   onfocusout="onChangeAltersUnit(this.id, `transformation_name_field-{{ loop.index }}`)">
-                        </div>
-                        <div class="col-lg-4">
-                            <label>Description:</label>
-                            <textarea class="form-control" name="transformation_description[]" rows="3"
-                                      required>{{ transformation.description  if data else '' }}</textarea>
-                        </div>
-                    </div>
-                    <div id="characters-container-{{ inner_loop.index }}">
-                        {% for character in transformation.hasCharacter %}
-                        <div class="form-row" id="characters-row-{{ inner_loop.index}}-{{ character.character }}">
-                            <div class="col-lg-1">
-                                <label>Char:</label>
-                                <input type="text"
-                                       id="transformation_character_character-{{ inner_loop.index}}-{{ character.character }}"
-                                       class="form-control"
-                                       name="transformation_character_character[]"
-                                       required
-                                       disabled
-                                       value="{{ character.character }}">
-                            </div>
-                            <div class="col-lg-4">
-                                <label>associated with:</label>
-                                <select class="form-control qualification-dropdown" id="associatedWithDropdown"
-                                        name="transformation_character_associatedWith[]">
-                                    <option value="">Select an association</option>
-                                    <option value="AnyStandardName" {% if
-                                            character.associatedWith=='https://matthiasprobst.github.io/ssno#AnyStandardName'
-                                            %}selected{% endif %}>Any Standard Name
-                                    </option>
-                                    {% for qualification in data.qualifications %}
-                                    <option value={{ qualification.name }} {% if character.associatedWith==
-                                            qualification.name %}selected{% endif %}> {{ qualification.name }}
-                                    </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                <div class="col-lg-2 text-right mt-2">
-                    <button type="button" class="btn btn-danger mt-4" onclick="deleteTransformation(this)">Delete
-                        Transformation
-                    </button>
-                </div>
-            </div>
-
-            {% endfor %}
-        </div>
-        <button type="button" class="btn btn-primary" onclick="addTransformation()">Add Transformation</button>
+        {% include 'transformations.html' %}
 
         <h3 class="mt-4">Qualifications</h3>
         <label id="qualification-heading"></label>
@@ -410,75 +352,13 @@
             {% endif %}
 
         </div>
-        <button type="button" class="btn btn-primary" onclick="addQualification()">Add Qualification</button>
+        <button type="button"
+                class="btn btn-secondary mt-4 d-flex justify-content-flex-end align-content-between"
+                onclick="addQualification()">
+            <i class="material-icons mr-1">settings_suggest</i><span>Add Qualification</span>
+        </button>
 
-
-        <div class="form-section">
-            <h3 class="mt-4">Standard Names</h3>
-            <div id="standard-name-container">
-                {% if data %}
-                {% for standard in data.standard_names %}
-                <div class="form-row align-items-center mb-2">
-                    <div class="col-lg-3">
-                        <label>Name:</label>
-                        <input type="text" class="form-control" name="standard_name.name[]"
-                               value="{{ standard.standardName }}"
-                               required>
-                    </div>
-                    <div class="col-lg-1">
-                        <label>Unit:</label>
-                        <input type="text" class="form-control" name="standard_name.unit[]"
-                               value="{{ standard.unit_str }}"
-                               title="{{ standard.unit }}" required>
-                    </div>
-                    <div class="col-lg-5">
-                        <label>Description:</label>
-                        <input type="text" class="form-control" name="standard_name.description[]"
-                               value="{{ standard.description }}">
-                    </div>
-                    <div class="col-lg-2">
-                        <label>Vector:</label>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="is_vector_standard_name[]" {% if
-                                   standard.is_vector
-                                   %}checked{% endif %}>
-                            <input type="hidden" name="is_vector_standard_name[]" value="off">
-                        </div>
-                    </div>
-                    <div class="col-lg-1 text-right mt-2">
-                        <button type="button" class="btn btn-danger" onclick="deleteStandardName(this)">X</button>
-                    </div>
-                </div>
-                {% endfor %}
-                {% else %}
-                <div class="form-row align-items-center mb-2">
-                    <div class="col-lg-3">
-                        <label>Name:</label>
-                        <input type="text" class="form-control" name="standard_name.name[]" required>
-                    </div>
-                    <div class="col-lg-1">
-                        <label>Unit:</label>
-                        <input type="text" class="form-control" name="standard_name.unit[]" required>
-                    </div>
-                    <div class="col-lg-5">
-                        <label>Description:</label>
-                        <input type="text" class="form-control" name="standard_name.description[]" required>
-                    </div>
-                    <div class="col-lg-2">
-                        <label>Vector:</label>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="is_vector_standard_name[]">
-                            <input type="hidden" name="is_vector_standard_name[]" value="off">
-                        </div>
-                    </div>
-                    <div class="col-lg-1 text-right mt-2">
-                        <button type="button" class="btn btn-danger" onclick="deleteStandardName(this)">X</button>
-                    </div>
-                </div>
-                {% endif %}
-            </div>
-            <button type="button" class="btn btn-secondary" onclick="addStandardNameRow()">Add Standard Name</button>
-        </div>
+        {% include 'standardNames.html' %}
 
         <div class="text-center my-4">
             <input type="submit" class="btn btn-primary" value="To JSON-LD">

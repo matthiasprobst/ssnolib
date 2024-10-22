@@ -11,68 +11,6 @@ function generateUniqueId(prefix = 'id', index=null) {
 }
 
 
-// Function to add new author fields with Bootstrap classes and "Delete" button at the end of the row
-function addAuthor() {
-    const authorContainer = document.getElementById('author-and-organization-container');
-    const newAuthorDiv = document.createElement('div');
-    newAuthorDiv.classList.add('author', 'form-row', 'align-items-center', 'mb-2');
-
-    newAuthorDiv.innerHTML = `
-        <div class="col-lg">
-            <label>First Name:</label>
-            <input type="text" class="form-control" name="person.firstName[]" required>
-        </div>
-        <div class="col-lg">
-            <label>Last Name:</label>
-            <input type="text" class="form-control" name="person.lastName[]">
-        </div>
-        <div class="col-lg">
-            <label>ORCID ID:</label>
-            <input type="text" class="form-control" name="person.orcidId[]" required>
-        </div>
-        <div class="col-lg">
-            <label>Role:</label>
-            <select class="form-control" name="person.hadRole[]">
-                <option value="" selected>Select a role</option>
-                <option value="ContactPerson">Contact Person</option>
-                <option value="DataCollector">Data Collector</option>
-                <option value="DataCurator">Data Curator</option>
-                <option value="DataManager">Data Manager</option>
-                <option value="Distributor">Distributor</option>
-                <option value="Editor">Editor</option>
-                <option value="Other">Other</option>
-                <option value="Producer">Producer</option>
-                <option value="ProjectLeader">Project Leader</option>
-                <option value="ProjectManager">Project Manager</option>
-                <option value="ProjectMember">Project Member</option>
-                <option value="RelatedPerson">Related Person</option>
-                <option value="Researcher">Researcher</option>
-                <option value="RightsHolder">Rights Holder</option>
-                <option value="Sponsor">Sponsor</option>
-                <option value="Supervisor">Supervisor</option>
-                <option value="WorkPackageLeader">Workpackage Leader</option>
-                <!-- Add more roles as needed -->
-            </select>
-        </div>
-        <div class="col-lg">
-            <label>Email:</label>
-            <input type="email" class="form-control" name="person.mbox[]">
-        </div
-        <div class="col-lg">
-            <label>Affiliation:</label>
-            <select class="form-control" name="person.affiliation[]">
-                <option value="">Select Affiliation</option>
-            </select>
-        </div>
-        <div class="col-lg-1 text-right mt-2">
-            <button type="button" class="btn btn-danger mt-4" onclick="deleteAuthor(this)">X</button>
-        </div>
-    `;
-    authorContainer.appendChild(newAuthorDiv);
-}
-
-
-
 
 // Function to add new qualification fields with Bootstrap classes and delete button
 function addTransformation() {
@@ -696,4 +634,74 @@ function onChangeAltersUnit(alterUnitID, transformationNameID){
     if (unmatchedLetters.length > 0) {
         alert(`The following capital letters are not surrounded by square brackets: ${unmatchedLetters.join(', ')}`);
     }
+}
+
+
+function addAuthorToList() {
+    const firstName = document.getElementById('authorFirstName').value;
+    const lastName = document.getElementById('authorLastName').value;
+    const email = document.getElementById('authorEmail').value;
+    const orcid = document.getElementById('authorOrcid').value;
+    const role = document.getElementById('authorRole').value;
+
+    // Check if the hidden affiliation fields are displayed
+    let organizationName = '';
+    let organizationDepartment = '';
+    let organizationCountry = '';
+
+//    if (!firstName || !lastName || !email || !orcid || !role ) {
+//        alert('All fields are required');
+//        return;
+//    }
+//    if (!orcid) {
+//        alert('An ORCID must be given');
+//        return;
+//    }
+
+    // Now append the author details and optional affiliation to the list
+    const authorContainer = document.getElementById('author-and-organization-container');
+    const newAuthorDiv = document.createElement('div');
+    newAuthorDiv.classList.add('form-row', 'align-items-center', 'mb-2');
+
+    newAuthorDiv.innerHTML = `
+        <div class="author form-row align-items-center mb-2">
+            <div class="col-md">
+                            <label>First Name:</label>
+                <input type="text" class="form-control" name="person.firstName[]" value="${firstName}">
+            </div>
+            <div class="col-md">
+                            <label>Last Name:</label>
+                <input type="text" class="form-control" name="person.lastName[]" value="${lastName}">
+            </div>
+            <div class="col-md">
+                            <label>ORCID ID:</label>
+                <input type="text" class="form-control" name="person.orcidId[]" value="${orcid}">
+            </div>
+            <div class="col-md">
+                <label>Role:</label>
+                <input type="text" class="form-control" name="role[]" value="${role}" readonly>
+            </div>
+            <div class="col-md">
+                <label>Email:</label>
+                <input type="email" class="form-control" name="person.mbox[]" value="${email}">
+            </div>
+            <div class="col-md-1 text-right mt-2">
+            <button type="button"
+                        class="btn btn-secondary mt-4 d-flex justify-content-flex-end align-content-between"
+                         onclick="deleteAuthor(this)">
+                 <i class="material-icons mr-1">delete_forever</i>
+                 </button>
+            </div>
+        </div>
+    `;
+
+    authorContainer.appendChild(newAuthorDiv);
+
+
+
+    // Hide the affiliation fields after adding the author
+
+//    // Reset the form and modal
+//    document.getElementById('authorForm').reset();
+    $('#authorModal').modal('hide');
 }
