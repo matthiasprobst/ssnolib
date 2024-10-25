@@ -1,179 +1,38 @@
-<!-- Add Materialize CSS and Material Icons -->
-<link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
-<!-- Table Section -->
 <div class="form-section">
-    <h3 class="mt-4">Standard Names</h3>
+    <h2>Standard Names</h2>
+    <div id="standard-names-container">
+        {% for standardName in data.standard_names %}
 
-    <!-- Standard Names Table -->
-    <table class="striped highlight responsive-table">
-        <thead>
-        <tr>
-            <th>Name</th>
-            <th>Unit</th>
-            <th>Description</th>
-            <th>Vector</th>
-            <th>Actions</th>
-        </tr>
-        </thead>
-        <tbody id="standard-name-container">
-        {% if data %}
-        {% for standard in data.standard_names %}
-        <tr>
-            <td>{{ standard.standardName }}</td>
-            <td>{{ standard.unit_str }}</td>
-            <td>{{ standard.description }}</td>
-            <td>{% if standard.is_vector %}Yes{% else %}No{% endif %}</td>
-            <td>
-                <!-- Horizontal icons for edit and delete actions -->
-                <button class="btn-floating btn-small blue lighten-1" onclick="editStandardName('{{ loop.index0 }}')"
-                        title="Edit">
-                    <i class="material-icons">edit</i>
-                </button>
-                <button class="btn-floating btn-small red lighten-1" onclick="deleteStandardName(this)" title="Delete">
-                    <i class="material-icons">delete</i>
-                </button>
-            </td>
-        </tr>
+        <div class="author form-row align-items-center mb-2">
+            <div class="col-lg">
+                <input type="text"
+                       class="form-control"
+                       placeholder="Standard name"
+                       name="standardName.standardName[]"
+                       value="{{ standardName.name }}">
+            </div>
+            <div class="col-lg">
+                <input type="text"
+                       class="form-control"
+                       placeholder="Definition"
+                       name="standardName.definition[]"
+                       value="{{ standardName.description }}">
+            </div>
+            <div class="col-lg">
+                <input type="text"
+                       placeholder="units"
+                       class="form-control"
+                       name="standardName.unit[]"
+                       value="{{ standardName.unit_str }}">
+            </div>
+            <input type="checkbox" id="vehicle1" name="vehicle1" value="Bike">
+            <div class="col-lg">
+                <input type="text"
+                       class="form-control"
+                       name="standardName.vector[]"
+                       value="{{ standardName.is_vector }}">
+            </div>
+
         {% endfor %}
-        {% else %}
-        <tr>
-            <td colspan="5" class="center-align">No standard names available. Add a new one below.</td>
-        </tr>
-        {% endif %}
-        </tbody>
-    </table>
-
-    <!-- Add Standard Name Button -->
-    <button class="btn waves-effect waves-light" data-target="standardNameModal" onclick="openAddStandardNameModal()">
-        Add Standard Name
-    </button>
-
-    <!-- Modal for Adding/Editing Standard Name -->
-    <div id="standardNameModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalTitle">Add Standard Name</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="standardNameForm">
-                    <div class="input-field">
-                        <input id="modal-standard-name" type="text" required>
-                        <label for="modal-standard-name">Name</label>
-                    </div>
-                    <div class="input-field">
-                        <input id="modal-standard-unit" type="text" required>
-                        <label for="modal-standard-unit">Unit</label>
-                    </div>
-                    <div class="input-field">
-                        <input id="modal-standard-description" type="text">
-                        <label for="modal-standard-description">Description</label>
-                    </div>
-                    <div class="input-field">
-                        <label>
-                            <input type="checkbox" id="modal-standard-vector"/>
-                            <span>Vector</span>
-                        </label>
-                    </div>
-                    <input type="hidden" id="modal-standard-id">
-                </form>
-            </div>
         </div>
-        <div class="modal-footer">
-            <button class="btn green" onclick="saveStandardName()">Save</button>
-            <button class="btn modal-close red">Cancel</button>
-        </div>
-    </div>
 </div>
-
-<!-- Load jQuery first, then Materialize JS -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-
-<script>
-    // Initialize Materialize modal inside jQuery ready function
-    $(document).ready(function() {
-        $('.modal').modal();  // Initialize modal
-    });
-
-    // Open modal for adding a new standard name
-    function openAddStandardNameModal() {
-        $('#modalTitle').text('Add Standard Name');
-        $('#standardNameForm')[0].reset();  // Clear the form
-        $('#modal-standard-id').val('');    // Clear any ID
-        M.updateTextFields();               // Update the text fields
-        $('#standardNameModal').modal('open');
-    }
-
-    // Save the standard name (add or edit)
-    function saveStandardName() {
-        const name = $('#modal-standard-name').val();
-        const unit = $('#modal-standard-unit').val();
-        const description = $('#modal-standard-description').val();
-        const isVector = $('#modal-standard-vector').is(':checked');
-        const id = $('#modal-standard-id').val();
-
-        if (!name || !unit) {
-            M.toast({html: 'Name and Unit are required', classes: 'red'});
-            return;
-        }
-
-        if (id) {
-            // Edit existing row
-            const row = $(`#standard-name-container tr:eq(${id})`);
-            row.find('td:eq(0)').text(name);
-            row.find('td:eq(1)').text(unit);
-            row.find('td:eq(2)').text(description);
-            row.find('td:eq(3)').text(isVector ? 'Yes' : 'No');
-        } else {
-            // Add new row
-            const newRow = `
-                <tr>
-                    <td>${name}</td>
-                    <td>${unit}</td>
-                    <td>${description}</td>
-                    <td>${isVector ? 'Yes' : 'No'}</td>
-                    <td>
-                        <button class="btn-floating btn-small blue lighten-1" onclick="editStandardName('${$('#standard-name-container tr').length}')" title="Edit">
-                            <i class="material-icons">edit</i>
-                        </button>
-                        <button class="btn-floating btn-small red lighten-1" onclick="deleteStandardName(this)" title="Delete">
-                            <i class="material-icons">delete</i>
-                        </button>
-                    </td>
-                </tr>
-            `;
-            $('#standard-name-container').append(newRow);
-        }
-
-        $('#standardNameModal').modal('close');
-    }
-
-    // Open modal to edit an existing row
-    function editStandardName(index) {
-        const row = $(`#standard-name-container tr:eq(${index})`);
-        const name = row.find('td:eq(0)').text();
-        const unit = row.find('td:eq(1)').text();
-        const description = row.find('td:eq(2)').text();
-        const isVector = row.find('td:eq(3)').text() === 'Yes';
-
-        $('#modal-standard-name').val(name);
-        $('#modal-standard-unit').val(unit);
-        $('#modal-standard-description').val(description);
-        $('#modal-standard-vector').prop('checked', isVector);
-        $('#modal-standard-id').val(index);
-
-        M.updateTextFields();
-        $('#modalTitle').text('Edit Standard Name');
-        $('#standardNameModal').modal('open');
-    }
-
-    // Delete a standard name row
-    function deleteStandardName(button) {
-        $(button).closest('tr').remove();
-    }
-</script>

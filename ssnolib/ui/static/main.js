@@ -689,7 +689,7 @@ function addAuthorToList() {
             <button type="button"
                         class="btn btn-secondary mt-4 d-flex justify-content-flex-end align-content-between"
                          onclick="deleteAuthor(this)">
-                 <i class="material-icons mr-1">delete_forever</i>
+                 <i class="material-icons mr-1 icon-align">delete_forever</i>
                  </button>
             </div>
         </div>

@@ -8,16 +8,7 @@
     <!-- Bootstrap CSS CDN -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Custom CSS (optional) -->
-    <style>
-        .form-section {
-            margin-bottom: 20px;
-        }
-        .form-section h2 {
-            margin-bottom: 15px;
-            color: #4a4a4a;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 
     <script src="static/main.js" defer></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
@@ -29,6 +20,8 @@
     <!--    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>-->
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+
 </head>
 <body>
 <!-- Navbar for navigation -->
@@ -80,11 +73,6 @@
     {% endif %}
 
     <form id="snt-form" method="POST" action="/JSON-LD">
-        <input type="submit" name="submit_button" value="Do Something">
-
-        <div class="text-center my-4">
-            <input type="submit" class="btn btn-primary" value="To JSON-LD">
-        </div>
         <div class="form-section">
             <h2>General Information</h2>
             <div class="form-group">
@@ -212,12 +200,17 @@
         <button type="button"
                 class="btn btn-secondary mt-4 d-flex justify-content-flex-end align-content-between"
                 onclick="addQualification()">
-            <i class="material-icons mr-1">settings_suggest</i><span>Add Qualification</span>
+            <i class="material-icons mr-1 icon-align">settings_suggest</i>
+            <span>Add Qualification</span>
         </button>
 
         {% include 'standardNamesSection.html' %}
 
+        <div class="text-center my-4">
+            <input type="submit" class="btn btn-primary" value="To JSON-LD">
+        </div>
     </form>
+    {% include 'addAuthorModal.html' %}
 
 
 </div>

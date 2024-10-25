@@ -12,7 +12,8 @@
             <div class="col-lg">
                 <label>Last Name:</label>
                 <input type="text" class="form-control" name="person.lastName[]" value="{{ author.lastName }}">
-            </div><div class="col-lg">
+            </div>
+            <div class="col-lg">
                 <label>ORCID ID:</label>
                 <input type="text" class="form-control" name="person.orcidId[]"
                        placeholder="Format: NNN-NNN-NNN-NNN"
@@ -67,7 +68,7 @@
                 <button type="button"
                         class="btn btn-secondary mt-4 d-flex justify-content-flex-end align-content-between"
                         onclick="deleteAuthor(this)">
-                    <i class="material-icons mr-1">delete_forever</i>
+                    <i class="material-icons mr-1 icon-align">delete_forever</i>
                 </button>
             </div>
         </div>
@@ -123,7 +124,7 @@
                 <button type="button"
                         class="btn btn-secondary mt-4 d-flex justify-content-flex-end align-content-between"
                         onclick="deleteAuthor(this)">
-                    <i class="material-icons mr-1">delete_forever</i>
+                    <i class="material-icons  md-18 icon-align">delete_forever</i>
                 </button>
             </div>
         </div>
@@ -133,17 +134,14 @@
 
     <button type="button"
             class="btn btn-secondary"
-            data-toggle="modal" data-target="#authorModal"
-    >
+            data-toggle="modal" data-target="#authorModal">
         <i class="material-icons mr-1">person_add_alt_1</i>Add Author
     </button>
     <button type="button"
             class="btn btn-secondary"
-            onclick="addOrganization()"
-    >
+            onclick="addOrganization()">
         <i class="material-icons mr-1">add_business</i>Add Organization
     </button>
     <!--            <button type="button" class="btn btn-primary" onclick="addOrganization()">Add Organization</button>-->
     <!-- Modal -->
-    {% include 'addAuthorModal.html' %}
 </div>
