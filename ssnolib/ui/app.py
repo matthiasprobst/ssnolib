@@ -210,11 +210,12 @@ def json_ld():
                         qualifications[i].after = q.id
     qa_persons.extend(qa_orgas)
 
+    print(request.form)
     standard_name_names = request.form.getlist("standard_name.name[]")
     standard_name_units = request.form.getlist("standard_name.unit[]")
     standard_name_descriptions = request.form.getlist("standard_name.description[]")
     is_vector_standard_name = remove_off_after_on(request.form.getlist("is_vector_standard_name[]"))
-
+    print(is_vector_standard_name)
     standard_name_classes = [VectorStandardName if is_vector == 'on' else ssnolib.ScalarStandardName for is_vector in
                              is_vector_standard_name]
     assert len(standard_name_names) == len(standard_name_units) == len(standard_name_descriptions) == len(
