@@ -5,26 +5,21 @@
         {% for author in data.persons %}
         <div class="author form-row align-items-center mb-2">
             <div class="col-lg">
-                <label>First Name:</label>
                 <input type="text" class="form-control" name="person.firstName[]"
-                       value="{{ author.firstName }}">
+                       value="{{ author.firstName }}" placeholder="First name">
             </div>
             <div class="col-lg">
-                <label>Last Name:</label>
-                <input type="text" class="form-control" name="person.lastName[]" value="{{ author.lastName }}">
+                <input type="text" class="form-control" name="person.lastName[]" value="{{ author.lastName }}" placeholder="Last name">
             </div>
             <div class="col-lg">
-                <label>ORCID ID:</label>
-                <input type="text" class="form-control" name="person.orcidId[]"
+                <input type="url" class="form-control" name="person.orcidId[]"
                        placeholder="Format: NNN-NNN-NNN-NNN"
-                       value="{{ author.orcidId }}">
+                       value="{{ author.orcidId }}" placeholder="ORCID ID">
             </div>
             <div class="col-lg">
-                <label>Email:</label>
-                <input type="email" class="form-control" name="person.mbox[]" value="{{ author.mbox }}">
+                <input type="email" class="form-control" name="person.mbox[]" value="{{ author.mbox }}" placeholder="Email">
             </div>
             <div class="col-lg">
-                <label>Role:</label>
                 <select class="form-control" name="person.hadRole[]">
                     <option value="">Select role</option>
                     <option value="Contact Person" {% if author.hadRole=='ContactPerson' %}selected{% endif %}>
@@ -64,10 +59,9 @@
                     'WorkPackageLeader' %}selected{% endif %}>Workpackage Leader</option>
                 </select>
             </div>
+
             <div class="col-lg-1 text-right mt-2">
-                <button type="button"
-                        class="btn btn-secondary mt-4 d-flex justify-content-flex-end align-content-between"
-                        onclick="deleteAuthor(this)">
+                <button type="button" class="btn btn-danger" onclick="deleteAuthor(this)">
                     <i class="material-icons mr-1 icon-align">delete_forever</i>
                 </button>
             </div>
@@ -124,7 +118,7 @@
                 <button type="button"
                         class="btn btn-secondary mt-4 d-flex justify-content-flex-end align-content-between"
                         onclick="deleteAuthor(this)">
-                    <i class="material-icons  md-18 icon-align">delete_forever</i>
+                    <i class="material-icons  md-18">delete_forever</i>
                 </button>
             </div>
         </div>
@@ -142,6 +136,4 @@
             onclick="addOrganization()">
         <i class="material-icons mr-1">add_business</i>Add Organization
     </button>
-    <!--            <button type="button" class="btn btn-primary" onclick="addOrganization()">Add Organization</button>-->
-    <!-- Modal -->
 </div>

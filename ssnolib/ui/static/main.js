@@ -132,19 +132,22 @@ function addOrganization() {
 
     newOrganizationDiv.innerHTML = `
         <div class="col-lg">
-            <label>Name:</label>
-            <input type="text" class="form-control" name="organization.name[]" required>
+            <input type="text" class="form-control" name="organization.name[]" required placeholder="Organization name">
         </div>
         <div class="col-lg">
-            <label>URL:</label>
-            <input type="url" class="form-control" name="organization.url[]">
+            <input type="url" class="form-control" name="organization.url[]"
+                 placeholder="URL">
         </div>
         <div class="col-lg">
-            <label>ROR ID:</label>
-            <input type="text" class="form-control" name="organization.hasRorId[]">
+            <input type="url"
+                 class="form-control"
+                 name="organization.hasRorId[]"
+                 placeholder="ROR ID">
         </div>
         <div class="col-lg">
-            <label>Role:</label>
+            <input type="email" class="form-control" name="organization.mbox[]" placeholder="E-MAIL">
+        </div>
+        <div class="col-lg">
             <select class="form-control" name="organization.hadRole[]">
                 <option value="" selected>Select a role</option>
                 <option value="HostingInstitution">Hosting Institution</option>
@@ -153,12 +156,10 @@ function addOrganization() {
                 <option value="ResearchGroup">Research Group</option>
             </select>
         </div>
-        <div class="col-lg">
-            <label>Email:</label>
-            <input type="email" class="form-control" name="organization.mbox[]">
-        </div>
         <div class="col-lg-1 text-right mt-2">
-            <button type="button" class="btn btn-danger" onclick="deleteOrganization(this)">X</button>
+            <button type="button" class="btn btn-danger" onclick="deleteOrganization(this)">
+            <i class="material-icons mr-1">delete_forever</i>
+            </button>
         </div>
     `;
     organizationContainer.appendChild(newOrganizationDiv);
@@ -666,31 +667,26 @@ function addAuthorToList() {
     newAuthorDiv.innerHTML = `
         <div class="author form-row align-items-center mb-2">
             <div class="col-md">
-                            <label>First Name:</label>
-                <input type="text" class="form-control" name="person.firstName[]" value="${firstName}">
+                <input type="text" class="form-control" name="person.firstName[]" value="${firstName}" placeholder="First name">
             </div>
             <div class="col-md">
-                            <label>Last Name:</label>
-                <input type="text" class="form-control" name="person.lastName[]" value="${lastName}">
+                <input type="text" class="form-control" name="person.lastName[]" value="${lastName}" placeholder="Last name">
             </div>
             <div class="col-md">
-                            <label>ORCID ID:</label>
-                <input type="text" class="form-control" name="person.orcidId[]" value="${orcid}">
+                <input type="text" class="form-control" name="person.orcidId[]" value="${orcid}" placeholder="ORCID ID">
             </div>
             <div class="col-md">
-                <label>Role:</label>
+                <input type="email" class="form-control" name="person.mbox[]" value="${email}" placeholder="Email">
+            </div>
+            <div class="col-md">
                 <input type="text" class="form-control" name="role[]" value="${role}" readonly>
             </div>
-            <div class="col-md">
-                <label>Email:</label>
-                <input type="email" class="form-control" name="person.mbox[]" value="${email}">
-            </div>
             <div class="col-md-1 text-right mt-2">
-            <button type="button"
-                        class="btn btn-secondary mt-4 d-flex justify-content-flex-end align-content-between"
-                         onclick="deleteAuthor(this)">
-                 <i class="material-icons mr-1 icon-align">delete_forever</i>
-                 </button>
+
+            <div class="col-lg-1 text-right mt-2">
+                <button type="button" class="btn btn-danger" onclick="deleteAuthor(this)">
+                    <i class="material-icons mr-1 icon-align">delete_forever</i>
+                </button>
             </div>
         </div>
     `;
