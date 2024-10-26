@@ -37,6 +37,8 @@ class TestVersion(unittest.TestCase):
 
     def test_ssno_url_exists(self):
         """checking if the ssno url exists"""
-        ssno_url = f'https://matthiasprobst.github.io/ssno/{ssnolib.__version__}/'
+        _version = ssnolib.__version__.split('.')
+        _ssno_version = f'{_version[0]}.{_version[1]}.{_version[2]}'
+        ssno_url = f'https://matthiasprobst.github.io/ssno/{_ssno_version}/'
         import requests
         assert requests.get(ssno_url).status_code == 200
