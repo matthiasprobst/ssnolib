@@ -12,6 +12,10 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
     <!--    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>-->
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 
     <script>
         // Function to copy the JSON-LD content to the clipboard
@@ -71,8 +75,26 @@
     {% endif %}
 
     <!-- Copy to Clipboard Button -->
-    <button class="btn btn-primary mb-3" onclick="copyToClipboard()">Copy to Clipboard</button>
+    <button class="btn btn-primary mb-3" onclick="copyToClipboard()"><i class="material-icons mr-1">content_copy</i>Copy
+        to Clipboard
+    </button>
+    <button class="btn btn-primary mb-3" onclick="downloadJSON()"><i class="material-icons mr-1">file_download</i>Save
+        to File
+    </button>
     <pre id="jsonld-content">{{ config_data | tojson(indent=2) }}</pre>
 </div>
 </body>
+<script>
+    function downloadJSON() {
+        const jsonString = document.getElementById('jsonld-content').textContent;
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'snt.jsonld';
+        link.click();
+        URL.revokeObjectURL(url);
+    }
+</script>
+
 </html>
