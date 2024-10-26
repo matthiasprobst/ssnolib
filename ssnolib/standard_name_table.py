@@ -41,7 +41,7 @@ ROLE_LOOKUP: Dict[str, str] = {
     str(M4I.WorkPackageLeader): "Workpackage leader",
 }
 
-ROLE2IRI = {v.lower(): k for k, v in ROLE_LOOKUP.items()}
+ROLE2IRI = {v.lower().replace(" ", ""): k for k, v in ROLE_LOOKUP.items()}
 
 
 class AgentRole(enum.Enum):
@@ -1041,6 +1041,7 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
     prefixes = StandardNameTable.get_context()
     prefixes.update({"schema": "http://schema.org/"})
     prefixes.update({"foaf": "http://xmlns.com/foaf/0.1/"})
+    prefixes.update({"m4i": "http://w3id.org/nfdi4ing/metadata4ing#"})
 
     g = rdflib.Graph()
     g.parse(data=data,
@@ -1092,7 +1093,7 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
             if res['hadRole']:
                 attribution.hadRole = res['hadRole'].value
             qualifiedAttribution.append(attribution)
-            # TODO: get affliliation!
+            # TODO: get affiliation!
 
         sparql = build_simple_sparql_query(
             prefixes=prefixes,

@@ -679,7 +679,7 @@ function addAuthorToList() {
                 <input type="email" class="form-control" name="person.mbox[]" value="${email}" placeholder="Email">
             </div>
             <div class="col-md">
-                <input type="text" class="form-control" name="role[]" value="${role}" readonly>
+                <input type="text" class="form-control" name="person.hadRole[]" value="${role}" readonly>
             </div>
             <div class="col-md-1 text-right mt-2">
 

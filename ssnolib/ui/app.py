@@ -87,7 +87,7 @@ def json_ld():
         qualified_attributions = []
         for (role, author) in zip(roles, authors):
             if role:
-                qualified_attributions.append(ssnolib.Attribution(agent=author, hadRole=ROLE2IRI[role.lower()]))
+                qualified_attributions.append(ssnolib.Attribution(agent=author, hadRole=ROLE2IRI[role.lower().replace(" ", "")]))
             else:
                 qualified_attributions.append(ssnolib.Attribution(agent=author))
         return qualified_attributions
