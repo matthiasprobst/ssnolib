@@ -160,7 +160,7 @@ def fetch_form_data(request, warning_messages=None):
         qvalues = []
         for v in hvvr.split(","):
             description = has_variable_description.pop(0)
-            qvalues.append(ssnolib.TextVariable(hasStringValue=v, hasVariableDescription=description))
+            qvalues.append(ssnolib.TextVariable(hasStringValue=v.strip(), hasVariableDescription=description))
         if vec == 'on':
             qualifications.append(
                 ssnolib.VectorQualification(name=name, hasValidValues=qvalues, description=descr,

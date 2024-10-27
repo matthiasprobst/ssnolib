@@ -161,7 +161,7 @@ class Qualification(StandardNameModification):
         if hasValidValues:
             for k, v in enumerate(hasValidValues.copy()):
                 if isinstance(v, str):
-                    hasValidValues[k] = TextVariable(hasStringValue=v,
+                    hasValidValues[k] = TextVariable(hasStringValue=v.strip(),
                                                      hasVariableDescription="No description available.")
                 elif isinstance(v, dict):
                     hasValidValues[k] = TextVariable(**v)
@@ -1153,7 +1153,7 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
                     validvalues_dict = dict(hasStringValue=valid_values['hasStringValue'],
                                             hasVariableDescription=valid_values['hasVariableDescription'])
                     hasValidValues.append(
-                        TextVariable(**{k: v.value for k, v in validvalues_dict.items() if v}))
+                        TextVariable(**{k: v.value.strip() for k, v in validvalues_dict.items() if v}))
 
                 has_modifier_dict = dict(name=res['name'].value, description=res['description'].value)
                 if res['before']:
@@ -1219,6 +1219,8 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
         if has_modifier:
             snt.hasModifier = has_modifier
 
+        standard_names = []
+
         sparql_get_standard_names = f"""
             PREFIX owl: <http://www.w3.org/2002/07/owl#>
             PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -1230,15 +1232,37 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
             WHERE {{
                 {snt_id} a ssno:StandardNameTable .
                 {snt_id} ssno:standardNames ?snid .
+                ?snid a ssno:VectorStandardName .
                 ?snid ssno:standardName ?standardname .
                 ?snid ssno:unit ?unit .
                 ?snid ssno:description ?description .
             }}
         """
-        res = g.query(sparql_get_standard_names)
-        standard_names = []
-        for n, u, d in res:
+        resVectorStandardnames = g.query(sparql_get_standard_names)
+        for n, u, d in resVectorStandardnames:
+            standard_names.append(VectorStandardName(standardName=str(n), unit=str(u), description=str(d)))
+
+        sparql_get_standard_names = f"""
+            PREFIX owl: <http://www.w3.org/2002/07/owl#>
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX dcat: <http://www.w3.org/ns/dcat#>
+            PREFIX dcterms: <http://purl.org/dc/terms/>
+            PREFIX prov: <http://www.w3.org/ns/prov#>
+            PREFIX ssno: <https://matthiasprobst.github.io/ssno#>
+            SELECT ?standardname ?unit ?description
+            WHERE {{
+                {snt_id} a ssno:StandardNameTable .
+                {snt_id} ssno:standardNames ?snid .
+                {{ ?snid a ssno:ScalarStandardName . }} UNION {{ ?snid a ssno:StandardName . }}
+                ?snid ssno:standardName ?standardname .
+                ?snid ssno:unit ?unit .
+                ?snid ssno:description ?description .
+            }}
+        """
+        resScalarStandardnames = g.query(sparql_get_standard_names)
+        for n, u, d in resScalarStandardnames:
             standard_names.append(StandardName(standardName=str(n), unit=str(u), description=str(d)))
+
         snt.standardNames = standard_names
 
         if qualifiedAttribution:
