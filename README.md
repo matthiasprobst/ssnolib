@@ -28,11 +28,14 @@ To start the GUI, run the following command:
 ```bash
 ssnolib --gui
 ```
-This will start a local development server with the default port 5000 and the local host IP: `http://127.0.0.1:5000/`.
+This will start a local development server with the default port 5000 and the local host IP: `http://127.0.0.1:5000/`
+(see image below).
 
 **Note**: The web app is work in progress! Some errors might not be caught correctly. Also, you should not expose this 
 web app to the public. However, feel free to use it locally in your project. I am happy to receive feedback or 
 contributions to enhance the web interface! Thanks!
+
+<img src="./docs/Screenshot_webapp.png" width="300" />
 
 ## Example Codes
 
