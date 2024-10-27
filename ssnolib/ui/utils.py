@@ -258,8 +258,7 @@ def snt_to_cache_data(snt: StandardNameTable, warning_messages):
                 organizations[-1]["hadRole"] = qualified_attribution.hadRole.rsplit("#", 1)[-1]
     modifier = snt.hasModifier or []
     qualifications = [m for m in modifier if isinstance(m, (ssnolib.VectorQualification,
-                                                            ssnolib.ScalarStandardName,
-                                                            ssnolib.StandardName))]
+                                                            ssnolib.Qualification))]
     transformations = [m for m in modifier if isinstance(m, ssnolib.Transformation)]
     transformations_dict = [t.model_dump(exclude_none=True) for t in transformations]
     for i, transformation in enumerate(transformations):

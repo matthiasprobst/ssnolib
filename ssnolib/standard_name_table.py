@@ -835,12 +835,12 @@ class StandardNameTable(Dataset):
 
         if self.qualifiedAttribution:
             if isinstance(self.qualifiedAttribution, list):
-                qualified_attribution = self.qualifiedAttribution
+                qualifiedAttribution = self.qualifiedAttribution
             else:
-                qualified_attribution = [self.qualifiedAttribution, ]
+                qualifiedAttribution = [self.qualifiedAttribution, ]
 
             lines = []
-            for qa in qualified_attribution:
+            for qa in qualifiedAttribution:
                 if qa.hadRole:
                     role = ROLE_LOOKUP.get(str(qa.hadRole), str(qa.hadRole).rsplit("/", 1)[-1])
                     lines.append(f"{role}: {qa.agent.to_text()}")
@@ -1180,6 +1180,7 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
                     has_modifier.append(
                         Qualification(
                             id=modifierID,
+                            hasValidValues=hasValidValues,
                             **{k: v for k, v in has_modifier_dict.items() if v}
                         )
                     )

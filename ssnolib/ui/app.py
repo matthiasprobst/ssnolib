@@ -80,6 +80,7 @@ def load():
         return render_template('core/index.html', data=data,
                                warning_messages=warning_messages if has_warnings else None)
     except Exception as e:
+        print(e)
         pass
     # Redirect back to the welcome page if the file is not valid
     return redirect('/')

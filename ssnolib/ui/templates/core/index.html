@@ -177,6 +177,7 @@
                                    value="{{ qualification.description }}" required>
                         </div>
                     </div>
+                    {% if qualification.hasValidValues %}
                     {% for valid_value in qualification.hasValidValues %}
                     <div class="form-row hasValidValues-row-{{ inner_loop.index }}">
                         <div class="col-lg-1">
@@ -199,9 +200,28 @@
                         </div>
                     </div>
                     {% endfor %}
+                    {% endif %}
                 </div>
             </div>
 
+            {% if (qualification.after == "https://matthiasprobst.github.io/ssno#AnyStandardName" or qualification.before == "https://matthiasprobst.github.io/ssno#AnyStandardName") %}
+            <div class="list-group-item d-flex justify-content-between align-items-center mb-2 qualification-item">
+                <div class="w-100">
+                    <div class="form-row">
+                        <div class="col-lg-3">
+                            <label>Name:</label>
+                            <input type="text" class="form-control" name="qualification_name[]" value="AnyStandardName"
+                                   readonly>
+                        </div>
+                        <div class="col-lg-8">
+                            <label>Description:</label>
+                            <input type="text" class="form-control"
+                                   value="Any Standard Name. Place the qualifications around it." readonly>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
             {% endfor %}
             {% endif %}
 
@@ -275,7 +295,7 @@
     }
 
     // Call function to add the default qualification
-    addDefaultQualification();
+    // addDefaultQualification();
 </script>
 
 <script>
