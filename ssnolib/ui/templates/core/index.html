@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Standard Name Table Form</title>
+
+    <!-- Bootstrap CSS CDN -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+
+    <script src="static/main.js" defer></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <!--    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>-->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+</head>
+<body>
+<!-- Navbar for navigation -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="/">SNT-Config</a>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+            <li class="nav-item active">
+                <a class="nav-link" href="#">Form</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" id="json-ld-link">JSON-LD</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+<div class="container">
+    <h1 class="my-4 text-center">Standard Name Table Form</h1>
+    <!-- Display warnings -->
+
+    {% if warning_messages %}
+    {% if warning_messages | length > 0 %}
+    <div class="alert alert-warning" role="alert">
+        <strong>Warnings found</strong>
+
+        {% for category, messages in warning_messages.items() %}
+        <div class="card mb-3">
+            <div class="card-header">
+                <button class="btn btn-link" type="button" data-toggle="collapse"
+                        data-target="#collapse-{{ loop.index }}" aria-expanded="false"
+                        aria-controls="collapse-{{ loop.index }}">
+                    {{ category }} ({{ messages|length }} Warnings)
+                </button>
+            </div>
+
+            <div id="collapse-{{ loop.index }}" class="collapse">
+                <div class="card-body">
+                    <ul>
+                        {% for message in messages %}
+                        <li>{{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endif %}
+
+    <form id="snt-form" method="POST" action="/JSON-LD">
+
+        <div class="text-center my-4">
+            <input type="submit" class="btn btn-primary" value="To JSON-LD">
+        </div>
+        <div class="form-section">
+            <h2>General Information</h2>
+            <div class="form-group">
+                <label for="snt_title">Title:</label>
+                <input id="snt_title"
+                       type="text"
+                       class="form-control"
+                       name="title"
+                       value="{{ data.title if data else '' }}" required>
+            </div>
+            <div class="form-group">
+                <label for="version">Version:</label>
+                <input type="text"
+                       id="version"
+                       class="form-control"
+                       name="version"
+                       value="{{ data.version  if data else '' }}"
+                       placeholder="Tip: Use semantic versioning, e.g. v1.0.0. See more at https://semver.org/"
+                       title="Tip: Use semantic versioning, e.g. v1.0.0. See more at https://semver.org/" required>
+            </div>
+            <div class="form-group">
+                <label for="description">Description:</label>
+                <textarea class="form-control" id="description" name="description" rows="3"
+                          required>{{ data.description  if data else '' }}</textarea>
+            </div>
+        </div>
+
+        {% include 'core/sections/agents/agentSection.html' %}
+        {% include 'core/sections/transformations/transformations.html' %}
+
+        <h3 class="mt-4">Qualifications</h3>
+        <label id="qualification-heading"></label>
+        <div id="qualification-container">
+            {% if data %}
+            {% for qualification in data.qualifications %}
+            {% set inner_loop = loop %}
+            <div class="list-group-item d-flex justify-content-between align-items-center mb-2 qualification-item"
+                 id="qualification-item-{{ loop.index }}">
+                <div class="w-100">
+                    <div class="form-row" id="qualification-form-row-vector-{{ loop.index }}">
+                        <div class="col-lg-1">
+                            <div class="form-check d-flex align-items-center">
+                                <input class="form-check-input"
+                                       type="checkbox"
+                                       name="is_vector_qualification[]"
+                                       id="vectorCheckbox"
+                                       {% if 'Vector' in qualification.__class__.__name__ %}checked{% endif %}>
+                                <input type="hidden" name="is_vector_qualification[]" value="off">
+                                <label class="form-check-label ml-2" for="vectorCheckbox">
+                                    Vector?
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-lg-10">
+                        </div>
+                        <div class="col-lg text-right mt-2">
+                            <button type="button" class="btn btn-danger btn-sm" onclick="deleteQualification(this)">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-row" id="qualification-form-row-{{ loop.index }}">
+                        <div class="col-lg-2">
+                            <label for="preposition-input-{{ loop.index }}">Preposition (opt.):</label>
+                            <input type="text"
+                                   id="preposition-input-{{ loop.index }}"
+                                   class="form-control"
+                                   name="preposition[]"
+                                   placeholder='E.g. "at", "assuming", ...'
+                                   value="{{ qualification.hasPreposition if qualification.hasPreposition else ' ' }}">
+                        </div>
+                        <div class="col-lg-3">
+                            <label for="qualification-name-input-{{ loop.index }}">Name:</label>
+                            <input type="text"
+                                   id="qualification-name-input-{{ loop.index }}"
+                                   class="form-control"
+                                   name="qualification_name[]"
+                                   required
+                                   value="{{ qualification.name }}"
+                                   oninput="updateConfiguration()">
+                        </div>
+                        <div class="col-lg-3">
+                            <label for="hasValidValues-input-{{ loop.index }}">Valid Values for "{{ qualification.name
+                                }}":</label>
+                            <input type="text"
+                                   id="hasValidValues-input-{{ loop.index }}"
+                                   class="form-control"
+                                   name="hasValidValues[]"
+                                   value="{{ qualification.hasValidValues | map(attribute='hasStringValue') | join(', ') }}"
+                                   placeholder="Comma sep. list, e.g. x,y,z" required
+                                   oninput="onValidValuesChange(this.id, {{ loop.index }})">
+                        </div>
+                        <div class="col-lg">
+                            <label>Description:</label>
+                            <input type="text" class="form-control" name="qualification_description[]"
+                                   value="{{ qualification.description }}" required>
+                        </div>
+                    </div>
+                    {% for valid_value in qualification.hasValidValues %}
+                    <div class="form-row hasValidValues-row-{{ inner_loop.index }}">
+                        <div class="col-lg-1">
+                            <label for="hasValidValues-value-{{ valid_value.hasStringValue }}-{{ inner_loop.index }}">Value:</label>
+                            <input type="text"
+                                   id="hasValidValues-value-{{ valid_value.hasStringValue }}-{{ inner_loop.index }}"
+                                   class="form-control"
+                                   name="hasStringValue[]"
+                                   value="{{ valid_value.hasStringValue }}"
+                                   required disabled>
+                        </div>
+                        <div class="col-lg">
+                            <label for="hasValidValues-description-{{ valid_value.hasStringValue }}-{{ inner_loop.index }}">Description:</label>
+                            <input type="text"
+                                   id="hasValidValues-description-{{ valid_value.hasStringValue }}-{{ inner_loop.index }}"
+                                   class="form-control"
+                                   name="hasVariableDescription[]"
+                                   value="{{ valid_value.hasVariableDescription }}"
+                                   required>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            {% endfor %}
+            {% endif %}
+
+        </div>
+        <button type="button"
+                class="btn btn-secondary mt-4 d-flex justify-content-flex-end align-content-between"
+                onclick="addQualification()">
+            <i class="material-icons mr-1 icon-align">settings_suggest</i>
+            <span>Add Qualification</span>
+        </button>
+
+        {% include 'core/sections/standardNames/standardNamesSection.html' %}
+
+        <div class="text-center my-4">
+            <input type="submit" class="btn btn-primary" value="To JSON-LD">
+        </div>
+    </form>
+    {% include 'core/sections/agents/addAuthorModal.html' %}
+</div>
+
+<script>
+    document.getElementById('snt-form').addEventListener('submit', function(event) {
+        // Select all checkboxes with name "is_vector_qualification[]"
+        const checkboxes = document.querySelectorAll('input[name="is_vector_qualification[]"]');
+        let checkedCount = 0;
+
+        // Count how many checkboxes are checked
+        checkboxes.forEach(function(checkbox) {
+            if (checkbox.checked) {
+                checkedCount++;
+            }
+        });
+
+        // If more than one checkbox is checked, prevent form submission and show error
+        if (checkedCount > 1) {
+            event.preventDefault(); // Prevent form submission
+            alert('Only one "VectorQualification" can be defined per standard name table.');
+        }
+    });
+</script>
+
+<script>
+    // Initialize Sortable.js on qualification container
+    const qualificationContainer = document.getElementById('qualification-container');
+    new Sortable(qualificationContainer, {
+        animation: 150,
+        onEnd: function() {
+            updateConfiguration();
+        }
+    });
+
+    // Add default qualification entry
+    function addDefaultQualification() {
+        const defaultQualificationDiv = document.createElement('div');
+        defaultQualificationDiv.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center', 'mb-2', 'qualification-item');
+        defaultQualificationDiv.innerHTML = `
+            <div class="w-100">
+                <div class="form-row">
+                    <div class="col-lg-3">
+                        <label>Name:</label>
+                        <input type="text" class="form-control" name="qualification_name[]" value="AnyStandardName" readonly>
+                    </div>
+                    <div class="col-lg-8">
+                        <label>Description:</label>
+                        <input type="text" class="form-control" value="Any Standard Name. Place the qualifications around it." readonly>
+                    </div>
+                </div>
+            </div>
+        `;
+        qualificationContainer.appendChild(defaultQualificationDiv);
+    }
+
+    // Call function to add the default qualification
+    addDefaultQualification();
+</script>
+
+<script>
+    window.onload = function() {
+        // Trigger updateConfiguration when the page loads
+        updateConfiguration();
+    };
+</script>
+
+<script>
+    document.getElementById('json-ld-link').addEventListener('click', function(event) {
+        event.preventDefault();  // Prevent the default link behavior
+        const form = document.getElementById('snt-form');
+        form.action = '/JSON-LD';  // Change the form action to /JSON-LD
+        form.submit();  // Submit the form
+    });
+</script>
+
+</body>
+</html>

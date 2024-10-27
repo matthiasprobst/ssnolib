@@ -993,8 +993,9 @@ class StandardNameTable(Dataset):
         if folder is not None and filename is not None:
             raise ValueError("Either provide a folder or a filename, not both.")
         if folder:
+            folder = pathlib.Path(folder)
+            folder.mkdir(parents=True, exist_ok=True)
             assert pathlib.Path(folder).is_dir(), f"Folder {folder} is not a folder."
-            assert pathlib.Path(folder).exists(), f"Folder {folder} does not exist."
             filename = pathlib.Path(folder) / f"{self.title}.html"
         if filename is None:
             filename = f"{self.title}.html"
