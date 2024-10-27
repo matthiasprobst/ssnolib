@@ -13,6 +13,7 @@ from ontolutils.utils.qudt_units import parse_unit
 
 import ssnolib
 import ssnolib.standard_name_table
+from ssnolib import Organization, Person, AgentRole
 from ssnolib import StandardName, StandardNameTable, Transformation
 from ssnolib.dcat import Distribution
 from ssnolib.namespace import SSNO
@@ -225,6 +226,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         snt = ssnolib.parse_table(__this_dir__ / "data/cf.jsonld", fmt='jsonld')
         self.assertEqual("cf-standard-name-table", snt.title)
         self.assertEqual("86", snt.version)
+        self.assertEqual(4828, len(snt.standardNames))
 
     def test_standard_name_alternative_parsing(self):
         snt = ssnolib.parse_table(__this_dir__ / "data/simpleSNT.jsonld", fmt='jsonld')
@@ -546,6 +548,8 @@ class TestSSNOStandardNameTable(unittest.TestCase):
 
             xml_snt = StandardNameTable.parse(snt_xml_filename, fmt=None, make_standard_names_lowercase=True)
             xml_snt.description = f"This table is built by from {snt_xml_filename}. This is not complete, but an excerpt!"
+            # speeding things up:
+            xml_snt.standardNames = xml_snt.standardNames[:10]
 
             surface = ssnolib.Qualification(
                 name="surface",
