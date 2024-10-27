@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to SNT-Config</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="/">SNT-Config</a>
+</nav>
+
+
+<div class="container mt-4">
+    <h1>Welcome to SNT-Config</h1>
+
+
+    <div class="row">
+        <div class="col-sm-6 mb-3 mb-sm-0">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Create a new Standard Name Table</h5>
+                    <p class="card-text">Making your first steps into defining standardized names and rules on how to
+                        create them for your research project or even your domain.</p>
+
+                    <a href="/form" class="btn btn-success">
+                        <i class="material-icons mr-1">grade</i><span>Create New</span>
+                    </a>
+
+                </div>
+
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Load an existing table</h5>
+                    <p class="card-text">Import an existing table to add new names, rules and/or authors.</p>
+
+                    <form action="/load" method="post" enctype="multipart/form-data">
+                        <input type="file" name="jsonld_file" accept=".json,.jsonld,.json-ld" required>
+                        <button type="submit" class="btn btn-success">
+                            <i class="material-icons mr-1">file_upload</i>
+                            <span>Load Standard Name</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

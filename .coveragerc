@@ -1,6 +1,7 @@
 [run]
 omit =
     tests/*
+    ssnolib/ui/*
 relative_files = true
 
 [report]

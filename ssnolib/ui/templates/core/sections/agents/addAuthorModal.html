@@ -1,0 +1,59 @@
+<div class="modal fade" id="authorModal" tabindex="-1" role="dialog" aria-labelledby="authorModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="authorModalLabel">Modal title</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Author Form in Modal -->
+                <form id="authorForm">
+                    <div>
+                        <div class="form-group">
+                            <input type="text" class="form-control" id="authorFirstName" placeholder="Enter first name">
+                        </div>
+                        <div class="form-group">
+                            <input type="text" class="form-control" id="authorLastName" placeholder="Enter last name">
+                        </div>
+                        <div class="form-group">
+                            <input type="email" class="form-control" id="authorEmail" placeholder="Enter email">
+                        </div>
+                        <div class="form-group">
+                            <input type="url" class="form-control" id="authorOrcid" placeholder="Enter ORCID">
+                        </div>
+                        <div class="form-group">
+                            <select class="form-control" id="authorRole">
+                                <option value="" selected>Select a role</option>
+                                <option value="ContactPerson">Contact Person</option>
+                                <option value="DataCollector">Data Collector</option>
+                                <option value="DataCurator">Data Curator</option>
+                                <option value="DataManager">Data Manager</option>
+                                <option value="Distributor">Distributor</option>
+                                <option value="Editor">Editor</option>
+                                <option value="Other">Other</option>
+                                <option value="Producer">Producer</option>
+                                <option value="ProjectLeader">Project Leader</option>
+                                <option value="ProjectManager">Project Manager</option>
+                                <option value="ProjectMember">Project Member</option>
+                                <option value="RelatedPerson">Related Person</option>
+                                <option value="Researcher">Researcher</option>
+                                <option value="RightsHolder">Rights Holder</option>
+                                <option value="Sponsor">Sponsor</option>
+                                <option value="Supervisor">Supervisor</option>
+                                <option value="WorkPackageLeader">Workpackage Leader</option>
+                                <!-- Add more roles as needed -->
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="addAuthorToList()">Add Author</button>
+            </div>
+        </div>
+    </div>
+</div>

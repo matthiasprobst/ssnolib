@@ -1,4 +1,3 @@
-import enum
 import json
 import pathlib
 import re
@@ -41,7 +40,7 @@ ROLE_LOOKUP: Dict[str, str] = {
     str(M4I.WorkPackageLeader): "Workpackage leader",
 }
 
-ROLE2IRI = {v.lower(): k for k, v in ROLE_LOOKUP.items()}
+ROLE2IRI = {v.lower().replace(" ", ""): k for k, v in ROLE_LOOKUP.items()}
 
 
 class AgentRole(enum.Enum):
@@ -161,7 +160,7 @@ class Qualification(StandardNameModification):
         if hasValidValues:
             for k, v in enumerate(hasValidValues.copy()):
                 if isinstance(v, str):
-                    hasValidValues[k] = TextVariable(hasStringValue=v,
+                    hasValidValues[k] = TextVariable(hasStringValue=v.strip(),
                                                      hasVariableDescription="No description available.")
                 elif isinstance(v, dict):
                     hasValidValues[k] = TextVariable(**v)
@@ -193,7 +192,6 @@ class Character(Thing):
     @field_validator('associatedWith', mode='before')
     @classmethod
     def _associatedWith(cls, associatedWith: Union[str, HttpUrl, Qualification]) -> str:
-        print(f"associatedWith: {associatedWith}")
         if isinstance(associatedWith, str):
             assert str(associatedWith).startswith(("http", "_:"))
         if isinstance(associatedWith, Thing):
@@ -424,7 +422,10 @@ class StandardNameTable(Dataset):
         standardNames = []
         for sn in data["standardNames"].copy():
             try:
-                standardNames.append(StandardName(**sn))
+                if isinstance(sn, dict):
+                    standardNames.append(StandardName(**sn))
+                else:
+                    standardNames.append(sn)
             except ValidationError as e:
                 warnings.warn(f"Could not parse {sn}. {e}", UserWarning)
         data["standardNames"] = standardNames
@@ -809,11 +810,11 @@ class StandardNameTable(Dataset):
     def add_author(self, author, role: Optional[AgentRole] = None):
         assert isinstance(author, Person), f"Expected a Person object, got {type(author)}"
         if self.qualifiedAttribution is None:
-            self.qualifiedAttribution = [Attribution(agent=author, role=role), ]
+            self.qualifiedAttribution = [Attribution(agent=author, hadRole=role.value), ]
         elif not isinstance(self.qualifiedAttribution, list):
-            self.qualifiedAttribution = [self.qualifiedAttribution, Attribution(agent=author, role=role)]
+            self.qualifiedAttribution = [self.qualifiedAttribution, Attribution(agent=author, hadRole=role.value)]
         else:
-            self.qualifiedAttribution.append(Attribution(agent=author, role=role))
+            self.qualifiedAttribution.append(Attribution(agent=author, hadRole=role.value))
 
     def fetch(self):
         """Download the Standard Name Table and parse it"""
@@ -833,12 +834,12 @@ class StandardNameTable(Dataset):
 
         if self.qualifiedAttribution:
             if isinstance(self.qualifiedAttribution, list):
-                qualified_attribution = self.qualifiedAttribution
+                qualifiedAttribution = self.qualifiedAttribution
             else:
-                qualified_attribution = [self.qualifiedAttribution, ]
+                qualifiedAttribution = [self.qualifiedAttribution, ]
 
             lines = []
-            for qa in qualified_attribution:
+            for qa in qualifiedAttribution:
                 if qa.hadRole:
                     role = ROLE_LOOKUP.get(str(qa.hadRole), str(qa.hadRole).rsplit("/", 1)[-1])
                     lines.append(f"{role}: {qa.agent.to_text()}")
@@ -991,8 +992,9 @@ class StandardNameTable(Dataset):
         if folder is not None and filename is not None:
             raise ValueError("Either provide a folder or a filename, not both.")
         if folder:
+            folder = pathlib.Path(folder)
+            folder.mkdir(parents=True, exist_ok=True)
             assert pathlib.Path(folder).is_dir(), f"Folder {folder} is not a folder."
-            assert pathlib.Path(folder).exists(), f"Folder {folder} does not exist."
             filename = pathlib.Path(folder) / f"{self.title}.html"
         if filename is None:
             filename = f"{self.title}.html"
@@ -1039,6 +1041,7 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
     prefixes = StandardNameTable.get_context()
     prefixes.update({"schema": "http://schema.org/"})
     prefixes.update({"foaf": "http://xmlns.com/foaf/0.1/"})
+    prefixes.update({"m4i": "http://w3id.org/nfdi4ing/metadata4ing#"})
 
     g = rdflib.Graph()
     g.parse(data=data,
@@ -1076,7 +1079,7 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
                 WHERE("?agentID", "foaf:firstName", "?firstName", is_optional=True),
                 WHERE("?agentID", "foaf:lastName", "?lastName", is_optional=True),
                 WHERE("?agentID", "foaf:mbox", "?mbox", is_optional=True),
-                WHERE("?agentID", "prov:orcidId", "?orcidId", is_optional=True),
+                WHERE("?agentID", "m4i:orcidId", "?orcidId", is_optional=True),
             ]
         )
 
@@ -1090,6 +1093,7 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
             if res['hadRole']:
                 attribution.hadRole = res['hadRole'].value
             qualifiedAttribution.append(attribution)
+            # TODO: get affiliation!
 
         sparql = build_simple_sparql_query(
             prefixes=prefixes,
@@ -1148,7 +1152,7 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
                     validvalues_dict = dict(hasStringValue=valid_values['hasStringValue'],
                                             hasVariableDescription=valid_values['hasVariableDescription'])
                     hasValidValues.append(
-                        TextVariable(**{k: v.value for k, v in validvalues_dict.items() if v}))
+                        TextVariable(**{k: v.value.strip() for k, v in validvalues_dict.items() if v}))
 
                 has_modifier_dict = dict(name=res['name'].value, description=res['description'].value)
                 if res['before']:
@@ -1175,6 +1179,7 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
                     has_modifier.append(
                         Qualification(
                             id=modifierID,
+                            hasValidValues=hasValidValues,
                             **{k: v for k, v in has_modifier_dict.items() if v}
                         )
                     )
@@ -1213,6 +1218,8 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
         if has_modifier:
             snt.hasModifier = has_modifier
 
+        standard_names = []
+
         sparql_get_standard_names = f"""
             PREFIX owl: <http://www.w3.org/2002/07/owl#>
             PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
@@ -1224,15 +1231,37 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
             WHERE {{
                 {snt_id} a ssno:StandardNameTable .
                 {snt_id} ssno:standardNames ?snid .
+                ?snid a ssno:VectorStandardName .
                 ?snid ssno:standardName ?standardname .
                 ?snid ssno:unit ?unit .
                 ?snid ssno:description ?description .
             }}
         """
-        res = g.query(sparql_get_standard_names)
-        standard_names = []
-        for n, u, d in res:
+        resVectorStandardnames = g.query(sparql_get_standard_names)
+        for n, u, d in resVectorStandardnames:
+            standard_names.append(VectorStandardName(standardName=str(n), unit=str(u), description=str(d)))
+
+        sparql_get_standard_names = f"""
+            PREFIX owl: <http://www.w3.org/2002/07/owl#>
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX dcat: <http://www.w3.org/ns/dcat#>
+            PREFIX dcterms: <http://purl.org/dc/terms/>
+            PREFIX prov: <http://www.w3.org/ns/prov#>
+            PREFIX ssno: <https://matthiasprobst.github.io/ssno#>
+            SELECT ?standardname ?unit ?description
+            WHERE {{
+                {snt_id} a ssno:StandardNameTable .
+                {snt_id} ssno:standardNames ?snid .
+                {{ ?snid a ssno:ScalarStandardName . }} UNION {{ ?snid a ssno:StandardName . }}
+                ?snid ssno:standardName ?standardname .
+                ?snid ssno:unit ?unit .
+                ?snid ssno:description ?description .
+            }}
+        """
+        resScalarStandardnames = g.query(sparql_get_standard_names)
+        for n, u, d in resScalarStandardnames:
             standard_names.append(StandardName(standardName=str(n), unit=str(u), description=str(d)))
+
         snt.standardNames = standard_names
 
         if qualifiedAttribution:

@@ -13,7 +13,6 @@ from ontolutils.utils.qudt_units import parse_unit
 
 import ssnolib
 import ssnolib.standard_name_table
-from ssnolib import Organization, Person, AgentRole
 from ssnolib import StandardName, StandardNameTable, Transformation
 from ssnolib.dcat import Distribution
 from ssnolib.namespace import SSNO
@@ -125,6 +124,9 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         snt.add_author(author1, AgentRole.Contact_Person)
         snt.add_author(author2, AgentRole.Supervisor)
         self.assertEqual(2, len(snt.qualifiedAttribution))
+        self.assertEqual(4, len(snt.standardNames))
+        self.assertEqual(2, sum([isinstance(sn, VectorStandardName) for sn in snt.standardNames]))
+        self.assertEqual(2, sum([isinstance(sn, ScalarStandardName) for sn in snt.standardNames]))
 
     def test_to_jsonld(self):
         snt = StandardNameTable(title="minimal snt")

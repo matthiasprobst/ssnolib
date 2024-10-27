@@ -1,0 +1,95 @@
+<div class="form-section">
+    <h2>Standard Names</h2>
+    <div id="standard-names-container">
+        {% if data %}
+        {% for standardName in data.standard_names %}
+
+        <div class="form-row align-items-center mb-2">
+            <div class="col-lg-3">
+                <input type="text"
+                       class="form-control"
+                       placeholder="Standard name"
+                       name="standard_name.name[]"
+                       value="{{ standardName.standardName }}">
+            </div>
+            <div class="col-lg-6">
+                <input type="text"
+                       class="form-control"
+                       placeholder="Description"
+                       name="standard_name.description[]"
+                       value="{{ standardName.description }}">
+            </div>
+            <div class="col-lg-1">
+                <input type="text"
+                       placeholder="unit"
+                       class="form-control"
+                       name="standard_name.unit[]"
+                       value="{{ standardName.unit_str }}">
+            </div>
+
+            <div class="col-lg">
+                <label class="switch">
+                    <input type="checkbox"
+                           {% if standardName.is_vector %}checked{% endif %}
+                    name="is_vector_standard_name[]">
+                    Vector
+                    <span class="slider round"></span>
+                    <input type="hidden" name="is_vector_standard_name[]" value="off">
+                </label>
+            </div>
+
+            <div class="col-lg-1 text-right mt-2">
+                <button type="button" class="btn btn-danger" onclick="deleteStandardName(this)">
+                    <i class="material-icons mr-1 icon-align">delete_forever</i>
+                </button>
+            </div>
+        </div>
+
+        {% endfor %}
+
+        {% else %}
+        <div class="form-row align-items-center mb-2">
+            <div class="col-lg-3">
+                <input type="text"
+                 class="form-control"
+                 placeholder="Name"
+                 name="standard_name.name[]" required>
+            </div>
+            <div class="col-lg-6">
+                <input type="text"
+                       class="form-control"
+                       placeholder="Description"
+                       name="standard_name.description[]">
+            </div>
+            <div class="col-lg-1">
+                <input type="text"
+                       placeholder="unit"
+                       class="form-control"
+                       name="standard_name.unit[]">
+            </div>
+
+            <div class="col-lg">
+                <label class="switch">
+                    <input type="checkbox"
+                    name="is_vector_standard_name[]">
+                    Vector
+                    <span class="slider round"></span>
+                    <input type="hidden" name="is_vector_standard_name[]" value="off">
+                </label>
+            </div>
+
+            <div class="col-lg-1 text-right mt-2">
+                <button type="button" class="btn btn-danger" onclick="deleteStandardName(this)">
+                    <i class="material-icons mr-1 icon-align">delete_forever</i>
+                </button>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <button type="button"
+            class="btn btn-secondary"
+            onclick="addStandardNameRow()">
+        <i class="material-icons mr-1">add_business</i>Add Standard Name
+    </button>
+</div>

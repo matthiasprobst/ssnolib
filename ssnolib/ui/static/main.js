@@ -11,62 +11,6 @@ function generateUniqueId(prefix = 'id', index=null) {
 }
 
 
-// Function to add new author fields with Bootstrap classes and "Delete" button at the end of the row
-function addAuthor() {
-    const authorContainer = document.getElementById('author-and-organization-container');
-    const newAuthorDiv = document.createElement('div');
-    newAuthorDiv.classList.add('form-row', 'align-items-center', 'mb-2');
-
-    newAuthorDiv.innerHTML = `
-        <div class="col-md">
-            <label>First Name:</label>
-            <input type="text" class="form-control" name="person.firstName[]" required>
-        </div>
-        <div class="col-md">
-            <label>Last Name:</label>
-            <input type="text" class="form-control" name="person.lastName[]">
-        </div>
-        <div class="col-md">
-            <label>ORCID ID:</label>
-            <input type="text" class="form-control" name="person.orcidId[]" required>
-        </div>
-        <div class="col-md">
-            <label>Role:</label>
-            <select class="form-control" name="person.hadRole[]">
-                <option value="" selected>Select a role</option>
-                <option value="ContactPerson">Contact Person</option>
-                <option value="DataCollector">Data Collector</option>
-                <option value="DataCurator">Data Curator</option>
-                <option value="DataManager">Data Manager</option>
-                <option value="Distributor">Distributor</option>
-                <option value="Editor">Editor</option>
-                <option value="Other">Other</option>
-                <option value="Producer">Producer</option>
-                <option value="ProjectLeader">Project Leader</option>
-                <option value="ProjectManager">Project Manager</option>
-                <option value="ProjectMember">Project Member</option>
-                <option value="RelatedPerson">Related Person</option>
-                <option value="Researcher">Researcher</option>
-                <option value="RightsHolder">Rights Holder</option>
-                <option value="Sponsor">Sponsor</option>
-                <option value="Supervisor">Supervisor</option>
-                <option value="WorkPackageLeader">Workpackage Leader</option>
-                <!-- Add more roles as needed -->
-            </select>
-        </div>
-        <div class="col-md">
-            <label>Email:</label>
-            <input type="email" class="form-control" name="person.mbox[]">
-        </div>
-        <div class="col-md-1 text-right mt-2">
-            <button type="button" class="btn btn-danger" onclick="deleteAuthor(this)">Delete Author</button>
-        </div>
-    `;
-    authorContainer.appendChild(newAuthorDiv);
-}
-
-
-
 
 // Function to add new qualification fields with Bootstrap classes and delete button
 function addTransformation() {
@@ -83,7 +27,7 @@ function addTransformation() {
     const transformationID = generateUniqueId('transformation_name_field');
 
     const colMd3Name = document.createElement('div');
-    colMd3Name.classList.add('col-md-3');
+    colMd3Name.classList.add('col-lg-3');
     const labelName = document.createElement('label');
     labelName.textContent = 'Name:';
     const inputName = document.createElement('input');
@@ -97,7 +41,7 @@ function addTransformation() {
     colMd3Name.appendChild(inputName);
 
     const colMd3AltersUnit = document.createElement('div');
-    colMd3AltersUnit.classList.add('col-md-3');
+    colMd3AltersUnit.classList.add('col-lg-3');
     const labelAltersUnit = document.createElement('label');
     labelAltersUnit.textContent = 'Alters Unit:';
 
@@ -112,7 +56,7 @@ function addTransformation() {
     colMd3AltersUnit.appendChild(inputAltersUnit);
 
     const colMd4Description = document.createElement('div');
-    colMd4Description.classList.add('col-md-4');
+    colMd4Description.classList.add('col-lg-4');
     const labelDescription = document.createElement('label');
     labelDescription.textContent = 'Description:';
     const textareaDescription = document.createElement('textarea');
@@ -137,11 +81,11 @@ function addTransformation() {
     innerDiv.appendChild(charactersContainerDiv);
 
     const colMd2Delete = document.createElement('div');
-    colMd2Delete.classList.add('col-md-2', 'text-right', 'mt-2');
+    colMd2Delete.classList.add('col-lg-2', 'text-right', 'mt-2');
     const deleteButton = document.createElement('button');
     deleteButton.type = 'button';
     deleteButton.classList.add('btn', 'btn-danger', 'mt-4');
-    deleteButton.textContent = 'Delete Transformation';
+    deleteButton.textContent = 'X';
     deleteButton.onclick = function() { deleteTransformation(deleteButton); };
     colMd2Delete.appendChild(deleteButton);
 
@@ -159,20 +103,20 @@ function addCharacter(containerId){
     newCharacterDiv.classList.add('form-row');
 
     newCharacterDiv.innerHTML = `
-    <div class="col-md-1">
+    <div class="col-lg-1">
         <label>Char:</label>
         <input type="text" class="form-control" name="transformation_character_character[]" required
                value="">
     </div>
-    <div class="col-md-4">
+    <div class="col-lg-4">
         <label>associated with:</label>
         <select class="form-control qualification-dropdown" id="associatedWithDropdown" name="transformation_character_associatedWith[]">
             <option value="">Select an association</option>
             <option value="AnyStandardName" {% if character.associatedWith=='https://matthiasprobst.github.io/ssno#AnyStandardName' %}selected{% endif %}>Any Standard Name</option>
         </select>
     </div>
-    <div class="col-md-4">
-        <button type="button" class="btn btn-danger mt-4" onclick="deleteTransformation(this)">Delete Character
+    <div class="col-lg-4">
+        <button type="button" class="btn btn-danger mt-4" onclick="deleteTransformation(this)">X
         </button>
     </div>
     `;
@@ -187,20 +131,23 @@ function addOrganization() {
     newOrganizationDiv.classList.add('form-row', 'align-items-center', 'mb-2');
 
     newOrganizationDiv.innerHTML = `
-        <div class="col-md">
-            <label>Name:</label>
-            <input type="text" class="form-control" name="organization.name[]" required>
+        <div class="col-lg">
+            <input type="text" class="form-control" name="organization.name[]" required placeholder="Organization name">
         </div>
-        <div class="col-md">
-            <label>URL:</label>
-            <input type="url" class="form-control" name="organization.url[]">
+        <div class="col-lg">
+            <input type="url" class="form-control" name="organization.url[]"
+                 placeholder="URL">
         </div>
-        <div class="col-md">
-            <label>ROR ID:</label>
-            <input type="text" class="form-control" name="organization.hasRorId[]">
+        <div class="col-lg">
+            <input type="url"
+                 class="form-control"
+                 name="organization.hasRorId[]"
+                 placeholder="ROR ID">
         </div>
-        <div class="col-md">
-            <label>Role:</label>
+        <div class="col-lg">
+            <input type="email" class="form-control" name="organization.mbox[]" placeholder="E-MAIL">
+        </div>
+        <div class="col-lg">
             <select class="form-control" name="organization.hadRole[]">
                 <option value="" selected>Select a role</option>
                 <option value="HostingInstitution">Hosting Institution</option>
@@ -209,12 +156,10 @@ function addOrganization() {
                 <option value="ResearchGroup">Research Group</option>
             </select>
         </div>
-        <div class="col-md">
-            <label>Email:</label>
-            <input type="email" class="form-control" name="organization.mbox[]">
-        </div>
-        <div class="col-md-1 text-right mt-2">
-            <button type="button" class="btn btn-danger" onclick="deleteOrganization(this)">Delete Organization</button>
+        <div class="col-lg-1 text-right mt-2">
+            <button type="button" class="btn btn-danger" onclick="deleteOrganization(this)">
+            <i class="material-icons mr-1">delete_forever</i>
+            </button>
         </div>
     `;
     organizationContainer.appendChild(newOrganizationDiv);
@@ -224,33 +169,45 @@ function addOrganization() {
 
 // Function to add new standard name rows with Bootstrap classes and "Delete" button at the end of the row
 function addStandardNameRow() {
-    const standardNameContainer = document.getElementById('standard-name-container');
+    const standardNameContainer = document.getElementById('standard-names-container');
     const newRow = document.createElement('div');
     newRow.classList.add('form-row', 'align-items-center', 'mb-2');
 
     newRow.innerHTML = `
-        <div class="col-md-3">
-            <label>Name:</label>
-            <input type="text" class="form-control" name="standard_name.name[]" required>
-        </div>
-        <div class="col-md-1">
-            <label title="SI unit, e.g. m/s">Unit:</label>
-            <input type="text" class="form-control" name="unit[]" placeholder="SI unit" title="E.g. m/s" required>
-        </div>
-        <div class="col-md-5">
-            <label>Description:</label>
-            <input type="text" class="form-control" name="standard_name.description[]">
-        </div>
-        <div class="col-md-2">
-            <label>Vector:</label>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" name="is_vector_standard_name[]">
-                <input type="hidden" name="is_vector_standard_name[]" value="off">
+            <div class="col-lg-3">
+                <input type="text"
+                 class="form-control"
+                 placeholder="Name"
+                 name="standard_name.name[]" required>
             </div>
-        </div>
-        <div class="col-md-1 text-right mt-2">
-            <button type="button" class="btn btn-danger" onclick="deleteStandardName(this)">Delete</button>
-        </div>
+            <div class="col-lg-6">
+                <input type="text"
+                       class="form-control"
+                       placeholder="Description"
+                       name="standard_name.description[]">
+            </div>
+            <div class="col-lg-1">
+                <input type="text"
+                       placeholder="unit"
+                       class="form-control"
+                       name="standard_name.unit[]">
+            </div>
+
+            <div class="col-lg">
+                <label class="switch">
+                    <input type="checkbox"
+                    name="is_vector_standard_name[]">
+                    Vector
+                    <span class="slider round"></span>
+                    <input type="hidden" name="is_vector_standard_name[]" value="off">
+                </label>
+            </div>
+
+            <div class="col-lg-1 text-right mt-2">
+                <button type="button" class="btn btn-danger" onclick="deleteStandardName(this)">
+                    <i class="material-icons mr-1 icon-align">delete_forever</i>
+                </button>
+            </div>
     `;
     standardNameContainer.appendChild(newRow);
 }
@@ -300,7 +257,7 @@ function addQualification() {
     formRowVector.id = generateUniqueId('qualification-form-row-vector', rowIndex);
 
     const divVector = document.createElement('div');
-    divVector.classList.add('col-md-1');
+    divVector.classList.add('col-lg-1');
     formRowVector.appendChild(divVector);
 
     const formCheckDiv = document.createElement('div');
@@ -329,15 +286,15 @@ function addQualification() {
     formCheckDiv.appendChild(labelVector);
 
     const dummyDiv = document.createElement('div');
-    dummyDiv.classList.add('col-md-10');
+    dummyDiv.classList.add('col-lg-10');
     formRowVector.appendChild(dummyDiv);
 
     const divButtonDelete = document.createElement('div');
-    divButtonDelete.classList.add('col-md', 'text-right', 'mt-2');
+    divButtonDelete.classList.add('col-lg', 'text-right', 'mt-2');
     const buttonDelete = document.createElement('button');
     buttonDelete.type = 'button';
     buttonDelete.classList.add('btn', 'btn-danger', 'btn-sm');
-    buttonDelete.textContent = 'Delete';
+    buttonDelete.textContent = 'X';
     buttonDelete.onclick = function() { deleteQualification(buttonDelete); };
     divButtonDelete.appendChild(buttonDelete);
     formRowVector.appendChild(divButtonDelete);
@@ -386,13 +343,13 @@ function addQualification() {
     inputQDescription.required = true;
 
     const divQPrepo = document.createElement('div');
-    divQPrepo.classList.add('col-md-2');
+    divQPrepo.classList.add('col-lg-2');
     const divQName = document.createElement('div');
-    divQName.classList.add('col-md-3');
+    divQName.classList.add('col-lg-3');
     const divQValidValues = document.createElement('div');
-    divQValidValues.classList.add('col-md-3');
+    divQValidValues.classList.add('col-lg-3');
     const divQDescription = document.createElement('div');
-    divQDescription.classList.add('col-md');
+    divQDescription.classList.add('col-lg');
 
     formRowQualification.appendChild(divQPrepo);
     formRowQualification.appendChild(divQName);
@@ -523,7 +480,7 @@ function onValidValuesChange(parentElement, idx){
                 newFormRow.classList.add('form-row');
                 newFormRow.classList.add(`hasValidValues-row-${idx}`);
                 const newColdMd1 = document.createElement('div');
-                newColdMd1.classList.add('col-md-1');
+                newColdMd1.classList.add('col-lg-1');
                 const label = document.createElement('label');
                 label.textContent = 'Value:';
                 label.forHTML = hasValidValueID;
@@ -539,7 +496,7 @@ function onValidValuesChange(parentElement, idx){
                 newColdMd1.appendChild(input);
 
                 const newColdMd = document.createElement('div');
-                newColdMd.classList.add('col-md');
+                newColdMd.classList.add('col-lg');
                 const labelDescription = document.createElement('label');
                 labelDescription.textContent = 'Description:';
                 labelDescription.forHTML = `hasValidValues-description-${validValue}-${idx}`;
@@ -598,7 +555,7 @@ function onTransformationNameChange(parentElement, idx){
             newCharacterDiv.id = characterRowID;
 
             const colmd1Div = document.createElement('div');
-            colmd1Div.classList.add('col-md-1');
+            colmd1Div.classList.add('col-lg-1');
             const label = document.createElement('label');
             label.textContent = 'Char:';
             const input = document.createElement('input');
@@ -613,7 +570,7 @@ function onTransformationNameChange(parentElement, idx){
             colmd1Div.appendChild(input);
 
             const colmd4Div = document.createElement('div');
-            colmd4Div.classList.add('col-md-4');
+            colmd4Div.classList.add('col-lg-4');
             const labelAssociatedWith = document.createElement('label');
             labelAssociatedWith.textContent = 'associated with:';
             const selectAssociatedWith = document.createElement('select');
@@ -690,4 +647,69 @@ function onChangeAltersUnit(alterUnitID, transformationNameID){
     if (unmatchedLetters.length > 0) {
         alert(`The following capital letters are not surrounded by square brackets: ${unmatchedLetters.join(', ')}`);
     }
+}
+
+
+function addAuthorToList() {
+    const firstName = document.getElementById('authorFirstName').value;
+    const lastName = document.getElementById('authorLastName').value;
+    const email = document.getElementById('authorEmail').value;
+    const orcid = document.getElementById('authorOrcid').value;
+    const role = document.getElementById('authorRole').value;
+
+    // Check if the hidden affiliation fields are displayed
+    let organizationName = '';
+    let organizationDepartment = '';
+    let organizationCountry = '';
+
+//    if (!firstName || !lastName || !email || !orcid || !role ) {
+//        alert('All fields are required');
+//        return;
+//    }
+//    if (!orcid) {
+//        alert('An ORCID must be given');
+//        return;
+//    }
+
+    // Now append the author details and optional affiliation to the list
+    const authorContainer = document.getElementById('author-and-organization-container');
+    const newAuthorDiv = document.createElement('div');
+    newAuthorDiv.classList.add('form-row', 'align-items-center', 'mb-2');
+
+    newAuthorDiv.innerHTML = `
+        <div class="author form-row align-items-center mb-2">
+            <div class="col-md">
+                <input type="text" class="form-control" name="person.firstName[]" value="${firstName}" placeholder="First name">
+            </div>
+            <div class="col-md">
+                <input type="text" class="form-control" name="person.lastName[]" value="${lastName}" placeholder="Last name">
+            </div>
+            <div class="col-md">
+                <input type="text" class="form-control" name="person.orcidId[]" value="${orcid}" placeholder="ORCID ID">
+            </div>
+            <div class="col-md">
+                <input type="email" class="form-control" name="person.mbox[]" value="${email}" placeholder="Email">
+            </div>
+            <div class="col-md">
+                <input type="text" class="form-control" name="person.hadRole[]" value="${role}" readonly>
+            </div>
+            <div class="col-md-1 text-right mt-2">
+
+            <div class="col-lg-1 text-right mt-2">
+                <button type="button" class="btn btn-danger" onclick="deleteAuthor(this)">
+                    <i class="material-icons mr-1 icon-align">delete_forever</i>
+                </button>
+            </div>
+        </div>
+    `;
+
+    authorContainer.appendChild(newAuthorDiv);
+
+
+
+    // Hide the affiliation fields after adding the author
+
+//    // Reset the form and modal
+//    document.getElementById('authorForm').reset();
+    $('#authorModal').modal('hide');
 }

@@ -1,0 +1,82 @@
+<h3 class="mt-4">Transformations</h3>
+<label id="transformation-heading"></label>
+<div id="transformation-container">
+    {% for transformation in data.transformations %}
+    {% set inner_loop = loop %}
+    <div class="list-group-item d-flex justify-content-between align-items-center mb-2">
+        <div class="w-100">
+            <div class="form-row">
+                <div class="col-lg-3">
+                    <label title="Please use capital letters for associated characters.">Name:</label>
+                    <input type="text"
+                           id="transformation_name_field-{{ inner_loop.index }}"
+                           class="form-control"
+                           name="transformation_name[]"
+                           required
+                           value="{{ transformation.name }}"
+                           oninput="onTransformationNameChange(this.id, {{ inner_loop.index }})">
+                </div>
+                <div class="col-lg-3">
+                    <label title="Put characters in square brackets, e.g. [X]/[C]">Alters Unit:</label>
+                    <input type="text"
+                           id="transformation_alterUnit-{{ inner_loop.index }}"
+                           class="form-control"
+                           name="transformation_altersUnit[]"
+                           required
+                           value="{{ transformation.altersUnit }}"
+                           onfocusout="onChangeAltersUnit(this.id, `transformation_name_field-{{ loop.index }}`)">
+                </div>
+                <div class="col-lg-4">
+                    <label>Description:</label>
+                    <textarea class="form-control" name="transformation_description[]" rows="3"
+                              required>{{ transformation.description  if data else '' }}</textarea>
+                </div>
+            </div>
+            <div id="characters-container-{{ inner_loop.index }}">
+                {% for character in transformation.hasCharacter %}
+                <div class="form-row" id="characters-row-{{ inner_loop.index}}-{{ character.character }}">
+                    <div class="col-lg-1">
+                        <label>Char:</label>
+                        <input type="text"
+                               id="transformation_character_character-{{ inner_loop.index}}-{{ character.character }}"
+                               class="form-control"
+                               name="transformation_character_character[]"
+                               required
+                               disabled
+                               value="{{ character.character }}">
+                    </div>
+                    <div class="col-lg-4">
+                        <label>associated with:</label>
+                        <select class="form-control qualification-dropdown" id="associatedWithDropdown"
+                                name="transformation_character_associatedWith[]">
+                            <option value="">Select an association</option>
+                            <option value="AnyStandardName" {% if
+                                    character.associatedWith=='https://matthiasprobst.github.io/ssno#AnyStandardName'
+                                    %}selected{% endif %}>Any Standard Name
+                            </option>
+                            {% for qualification in data.qualifications %}
+                            <option value={{ qualification.name }} {% if character.associatedWith==
+                                    qualification.name %}selected{% endif %}> {{ qualification.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="col-lg-2 text-right mt-2">
+            <button type="button" class="btn btn-danger mt-4" onclick="deleteTransformation(this)">Delete
+                Transformation
+            </button>
+        </div>
+    </div>
+
+    {% endfor %}
+</div>
+<button type="button"
+        class="btn btn-secondary mt-4 d-flex justify-content-flex-end align-content-between"
+        onclick="addTransformation()">
+    <i class="material-icons mr-1">settings_suggest</i>
+    <span>Add Transformation</span>
+</button>

@@ -9,7 +9,8 @@ A Python library to work with the [SSNO ontology](https://matthiasprobst.github.
 for the ontology classes and facilitates the creation of JSON-LD files. JSON-LD files are both human- and machine-readable 
 and most importantly machine-actionable. The library can be integrated in you data (conversion) pipelines.
 
-> **_NOTE:_** The version of the library corresponds to the version of the ontology it supports.
+> **_NOTE:_** The version of the library corresponds to the version of the ontology it supports. Hence, 1.3.0.1 refers 
+> to the ontology version 1.3.0 and the last part (.1) is the patch version of this library.
 
 ## Quickstart
 
@@ -28,6 +29,10 @@ To start the GUI, run the following command:
 ssnolib --gui
 ```
 This will start a local development server with the default port 5000 and the local host IP: `http://127.0.0.1:5000/`.
+
+**Note**: The web app is work in progress! Some errors might not be caught correctly. Also, you should not expose this 
+web app to the public. However, feel free to use it locally in your project. I am happy to receive feedback or 
+contributions to enhance the web interface! Thanks!
 
 ## Example Codes
 
