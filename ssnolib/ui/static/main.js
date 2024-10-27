@@ -169,33 +169,45 @@ function addOrganization() {
 
 // Function to add new standard name rows with Bootstrap classes and "Delete" button at the end of the row
 function addStandardNameRow() {
-    const standardNameContainer = document.getElementById('standard-name-container');
+    const standardNameContainer = document.getElementById('standard-names-container');
     const newRow = document.createElement('div');
     newRow.classList.add('form-row', 'align-items-center', 'mb-2');
 
     newRow.innerHTML = `
-        <div class="col-lg-3">
-            <label>Name:</label>
-            <input type="text" class="form-control" name="standard_name.name[]" required>
-        </div>
-        <div class="col-lg-1">
-            <label title="SI unit, e.g. m/s">Unit:</label>
-            <input type="text" class="form-control" name="unit[]" placeholder="SI unit" title="E.g. m/s" required>
-        </div>
-        <div class="col-lg-5">
-            <label>Description:</label>
-            <input type="text" class="form-control" name="standard_name.description[]">
-        </div>
-        <div class="col-lg-2">
-            <label>Vector:</label>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" name="is_vector_standard_name[]">
-                <input type="hidden" name="is_vector_standard_name[]" value="off">
+            <div class="col-lg-3">
+                <input type="text"
+                 class="form-control"
+                 placeholder="Name"
+                 name="standard_name.name[]" required>
             </div>
-        </div>
-        <div class="col-lg-1 text-right mt-2">
-            <button type="button" class="btn btn-danger" onclick="deleteStandardName(this)">X</button>
-        </div>
+            <div class="col-lg-6">
+                <input type="text"
+                       class="form-control"
+                       placeholder="Description"
+                       name="standard_name.description[]">
+            </div>
+            <div class="col-lg-1">
+                <input type="text"
+                       placeholder="unit"
+                       class="form-control"
+                       name="standard_name.unit[]">
+            </div>
+
+            <div class="col-lg">
+                <label class="switch">
+                    <input type="checkbox"
+                    name="is_vector_standard_name[]">
+                    Vector
+                    <span class="slider round"></span>
+                    <input type="hidden" name="is_vector_standard_name[]" value="off">
+                </label>
+            </div>
+
+            <div class="col-lg-1 text-right mt-2">
+                <button type="button" class="btn btn-danger" onclick="deleteStandardName(this)">
+                    <i class="material-icons mr-1 icon-align">delete_forever</i>
+                </button>
+            </div>
     `;
     standardNameContainer.appendChild(newRow);
 }
