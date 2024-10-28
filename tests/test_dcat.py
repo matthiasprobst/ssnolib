@@ -17,7 +17,7 @@ class TestDcat(utils.ClassTest):
             id='_:b1',
             title='Resource title',
             description='Resource description',
-            creator=prov.Person(name='John Doe'),
+            creator=prov.Person(first_name='John', lastName='Doe'),
             version='1.0',
             identifier='http://example.com/resource'
         )
@@ -25,7 +25,8 @@ class TestDcat(utils.ClassTest):
         self.assertEqual(resource1.title, 'Resource title')
         self.assertEqual(resource1.description, 'Resource description')
         self.assertIsInstance(resource1.creator, prov.Person)
-        self.assertEqual(resource1.creator.name, 'John Doe')
+        self.assertEqual(resource1.creator.firstName, 'John')
+        self.assertEqual(resource1.creator.lastName, 'Doe')
         self.assertEqual(resource1.version, '1.0')
         self.assertEqual(str(resource1.identifier), 'http://example.com/resource')
 
@@ -52,7 +53,7 @@ class TestDcat(utils.ClassTest):
             id='_:b2',
             title='Distribution title',
             description='Distribution description',
-            creator=prov.Person(name='John Doe'),
+            creator=prov.Person(first_name='John', lastName='Doe'),
             version='1.0',
             identifier='http://example.com/distribution',
             accessURL='http://example.com/distribution',
@@ -62,7 +63,8 @@ class TestDcat(utils.ClassTest):
         self.assertEqual(distribution1.title, 'Distribution title')
         self.assertEqual(distribution1.description, 'Distribution description')
         self.assertIsInstance(distribution1.creator, prov.Person)
-        self.assertEqual(distribution1.creator.name, 'John Doe')
+        self.assertEqual(distribution1.creator.firstName, 'John')
+        self.assertEqual(distribution1.creator.lastName, 'Doe')
         self.assertEqual(distribution1.version, '1.0')
         self.assertEqual(str(distribution1.identifier), 'http://example.com/distribution')
         self.assertEqual(str(distribution1.accessURL), 'http://example.com/distribution')
@@ -102,7 +104,7 @@ class TestDcat(utils.ClassTest):
             id='_:b3',
             title='Dataset title',
             description='Dataset description',
-            creator=prov.Person(name='John Doe'),
+            creator=prov.Person(first_name='John', lastName='Doe'),
             version='1.0',
             identifier='http://example.com/dataset',
             distribution=[
@@ -110,7 +112,7 @@ class TestDcat(utils.ClassTest):
                     id='_:b4',
                     title='Distribution title',
                     description='Distribution description',
-                    creator=prov.Person(name='John Doe'),
+                    creator=prov.Person(first_name='John', lastName='Doe'),
                     version='1.0',
                     identifier='http://example.com/distribution',
                     accessURL='http://example.com/distribution',
@@ -122,7 +124,8 @@ class TestDcat(utils.ClassTest):
         self.assertEqual(dataset1.title, 'Dataset title')
         self.assertEqual(dataset1.description, 'Dataset description')
         self.assertIsInstance(dataset1.creator, prov.Person)
-        self.assertEqual(dataset1.creator.name, 'John Doe')
+        self.assertEqual(dataset1.creator.firstName, 'John')
+        self.assertEqual(dataset1.creator.lastName, 'Doe')
         self.assertEqual(dataset1.version, '1.0')
         self.assertEqual(str(dataset1.identifier), 'http://example.com/dataset')
         self.assertIsInstance(dataset1.distribution[0], dcat.Distribution)
@@ -130,7 +133,8 @@ class TestDcat(utils.ClassTest):
         self.assertEqual(dataset1.distribution[0].title, 'Distribution title')
         self.assertEqual(dataset1.distribution[0].description, 'Distribution description')
         self.assertIsInstance(dataset1.distribution[0].creator, prov.Person)
-        self.assertEqual(dataset1.distribution[0].creator.name, 'John Doe')
+        self.assertEqual(dataset1.distribution[0].creator.firstName, 'John')
+        self.assertEqual(dataset1.distribution[0].creator.lastName, 'Doe')
         self.assertEqual(dataset1.distribution[0].version, '1.0')
         self.assertEqual(str(dataset1.distribution[0].identifier), 'http://example.com/distribution')
         self.assertEqual(str(dataset1.distribution[0].accessURL), 'http://example.com/distribution')

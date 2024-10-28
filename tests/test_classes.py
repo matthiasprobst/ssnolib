@@ -49,6 +49,13 @@ class TestClasses(unittest.TestCase):
         self.assertEqual(contact.firstName, 'John')
         self.assertEqual(contact.lastName, 'Doe')
 
+        # check aliases:
+        contact_alias = ssnolib.Person(first_name="John", last_name="Doe")
+        self.assertEqual(contact_alias.firstName, 'John')
+        self.assertEqual(contact_alias.first_name, 'John')
+        self.assertEqual(contact_alias.lastName, 'Doe')
+        self.assertEqual(contact_alias.last_name, 'Doe')
+
     def test_ssnolib_Distribution(self):
         distribution = ssnolib.dcat.Distribution(title='XML Table',
                                                  downloadURL='http://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',

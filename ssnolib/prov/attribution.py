@@ -98,7 +98,7 @@ class Person(Agent):
     firstName: str = Field(default=None, alias="first_name")  # foaf:firstName
     lastName: str = Field(default=None, alias="last_name")  # foaf:last_name
     orcidId: str = Field(default=None, alias="orcid_id", use_as_id=True)  # m4i:orcidId
-    affiliation: Organization = Field(default=None, alias="affiliation")  # schema:affiliation
+    affiliation: Organization = Field(default=None)  # schema:affiliation
 
     def to_text(self) -> str:
         """Return the text representation of the class"""
