@@ -1,0 +1,123 @@
+<h3 class="mt-4">Qualifications</h3>
+<label id="qualification-heading"></label>
+<div id="qualification-container">
+    {% if data %}
+    {% for qualification in data.qualifications %}
+    {% set inner_loop = loop %}
+    <div class="list-group-item d-flex justify-content-between align-items-center mb-2 qualification-item"
+         id="qualification-item-{{ loop.index }}">
+        <div class="w-100">
+            <div class="form-row" id="qualification-form-row-vector-{{ loop.index }}">
+                <div class="col-lg-1">
+                    <div class="form-check d-flex align-items-center">
+                        <label class="switch">
+                            <input type="checkbox"
+                                   {% if 'Vector' in qualification.__class__.__name__ %}checked{% endif %}
+                            name="is_vector_qualification[]">
+                            <span class="slider round"></span>
+                            <input type="hidden" name="is_vector_qualification[]" value="off">
+                        Vector qualification
+                        </label>
+                    </div>
+                </div>
+                <div class="col-lg-10">
+                </div>
+                <div class="col-lg text-right mt-2">
+                    <button type="button" class="btn btn-danger btn-sm" onclick="deleteQualification(this)">
+                        <i class="material-icons mr-1 icon-align">delete_forever</i>
+                    </button>
+                </div>
+            </div>
+            <div class="form-row" id="qualification-form-row-{{ loop.index }}">
+                <div class="col-lg-2">
+                    <label for="preposition-input-{{ loop.index }}">Preposition (opt.):</label>
+                    <input type="text"
+                           id="preposition-input-{{ loop.index }}"
+                           class="form-control"
+                           name="preposition[]"
+                           placeholder='E.g. "at", "assuming", ...'
+                           value="{{ qualification.hasPreposition if qualification.hasPreposition else ' ' }}">
+                </div>
+                <div class="col-lg-3">
+                    <label for="qualification-name-input-{{ loop.index }}">Name:</label>
+                    <input type="text"
+                           id="qualification-name-input-{{ loop.index }}"
+                           class="form-control"
+                           name="qualification_name[]"
+                           required
+                           value="{{ qualification.name }}"
+                           oninput="updateConfiguration()">
+                </div>
+                <div class="col-lg-3">
+                    <label for="hasValidValues-input-{{ loop.index }}">Valid Values for "{{ qualification.name
+                        }}":</label>
+                    <input type="text"
+                           id="hasValidValues-input-{{ loop.index }}"
+                           class="form-control"
+                           name="hasValidValues[]"
+                           value="{{ qualification.hasValidValues | map(attribute='hasStringValue') | join(', ') }}"
+                           placeholder="Comma sep. list, e.g. x,y,z" required
+                           oninput="onValidValuesChange(this.id, {{ loop.index }})">
+                </div>
+                <div class="col-lg">
+                    <label>Description:</label>
+                    <input type="text" class="form-control" name="qualification_description[]"
+                           value="{{ qualification.description }}" required>
+                </div>
+            </div>
+            {% if qualification.hasValidValues %}
+            {% for valid_value in qualification.hasValidValues %}
+            <div class="form-row hasValidValues-row-{{ inner_loop.index }}">
+                <div class="col-lg-1">
+                    <label for="hasValidValues-value-{{ valid_value.hasStringValue }}-{{ inner_loop.index }}">Value:</label>
+                    <input type="text"
+                           id="hasValidValues-value-{{ valid_value.hasStringValue }}-{{ inner_loop.index }}"
+                           class="form-control"
+                           name="hasStringValue[]"
+                           value="{{ valid_value.hasStringValue }}"
+                           required disabled>
+                </div>
+                <div class="col-lg">
+                    <label for="hasValidValues-description-{{ valid_value.hasStringValue }}-{{ inner_loop.index }}">Description:</label>
+                    <input type="text"
+                           id="hasValidValues-description-{{ valid_value.hasStringValue }}-{{ inner_loop.index }}"
+                           class="form-control"
+                           name="hasVariableDescription[]"
+                           value="{{ valid_value.hasVariableDescription }}"
+                           required>
+                </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+
+    {% if (qualification.after == "https://matthiasprobst.github.io/ssno#AnyStandardName" or qualification.before ==
+    "https://matthiasprobst.github.io/ssno#AnyStandardName") %}
+    <div class="list-group-item d-flex justify-content-between align-items-center mb-2 qualification-item">
+        <div class="w-100">
+            <div class="form-row">
+                <div class="col-lg-3">
+                    <label>Name:</label>
+                    <input type="text" class="form-control" name="qualification_name[]" value="AnyStandardName"
+                           readonly>
+                </div>
+                <div class="col-lg-8">
+                    <label>Description:</label>
+                    <input type="text" class="form-control"
+                           value="Any Standard Name. Place the qualifications around it." readonly>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+    {% endif %}
+
+</div>
+<button type="button"
+        class="btn btn-secondary mt-4 d-flex justify-content-flex-end align-content-between"
+        onclick="addQualification()">
+    <i class="material-icons mr-1 icon-align">settings_suggest</i>
+    <span>Add Qualification</span>
+</button>

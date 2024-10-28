@@ -264,6 +264,9 @@ function addQualification() {
     formCheckDiv.classList.add('form-check', 'd-flex', 'align-items-center');
     divVector.appendChild(formCheckDiv);
 
+    const switchLabel = document.createElement('label');
+    switchLabel.classList.add('switch');
+
     const vectorCheckbox = document.createElement('input');
     vectorCheckbox.classList.add('form-check-input');
     vectorCheckbox.type = 'checkbox';
@@ -271,18 +274,23 @@ function addQualification() {
     vectorCheckbox.checked = false;
     vectorCheckbox.id = generateUniqueId('vectorCheckbox', rowIndex);
 
+    const spanSlider = document.createElement('span');
+    spanSlider.classList.add('slider', 'round');
+
     hiddenCheckbox = document.createElement('input');
     hiddenCheckbox.type = 'hidden';
     hiddenCheckbox.name = 'is_vector_qualification[]';
     hiddenCheckbox.value = 'off';
 
-    formCheckDiv.appendChild(vectorCheckbox);
-    formCheckDiv.appendChild(hiddenCheckbox);
+    switchLabel.appendChild(vectorCheckbox);
+    switchLabel.appendChild(spanSlider);
+    switchLabel.appendChild(hiddenCheckbox);
+    formCheckDiv.appendChild(switchLabel);
 
     const labelVector = document.createElement('label');
     labelVector.classList.add('form-check-label', 'ml-2');
     labelVector.htmlFor = vectorCheckbox.id;
-    labelVector.textContent = 'Vector?';
+    labelVector.textContent = 'Vector qualification';
     formCheckDiv.appendChild(labelVector);
 
     const dummyDiv = document.createElement('div');
