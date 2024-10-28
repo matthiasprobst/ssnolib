@@ -94,7 +94,8 @@ class StandardName(Concept):
                         type="value_error",
                         loc=("unit",),
                         input=unit,
-                        ctx={"error": f'your_message Unable to parse: "{unit}" of standard name "{cfg.data["standardName"]}"', }
+                        ctx={"error": f'your_message Unable to parse: "{unit}" of standard name '
+                                      f'"{cfg.data["standardName"]}"', }
                     )
                     raise ValidationError.from_exception_data(title=cls.__name__, line_errors=[err, ])
                 else:

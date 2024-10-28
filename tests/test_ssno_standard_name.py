@@ -94,7 +94,8 @@ class TestSSNOStandardName(unittest.TestCase):
                          unit="213nlsfh8os")
         except pydantic.ValidationError as e:
             self.assertEqual(e.errors()[0]['loc'], ('unit', 'unit'))
-            self.assertEqual(e.errors()[0]['msg'], 'Value error, your_message Unable to parse: "213nlsfh8os" of standard name "x_velocity"')
+            self.assertEqual(e.errors()[0]['msg'],
+                             'Value error, your_message Unable to parse: "213nlsfh8os" of standard name "x_velocity"')
 
         sn = StandardName(standardName='x_velocity',
                           description='x component of velocity',
