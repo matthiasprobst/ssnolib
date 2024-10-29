@@ -44,6 +44,12 @@ ROLE_LOOKUP: Dict[str, str] = {
 ROLE2IRI = {v.lower().replace(" ", ""): k for k, v in ROLE_LOOKUP.items()}
 
 
+def _parse_id(_id):
+    if isinstance(_id, rdflib.URIRef):
+        return str(_id)
+    return _id.n3()
+
+
 class AgentRole(enum.Enum):
     Contact_Person = str(M4I.ContactPerson)
     Other = str(M4I.Other)
@@ -682,7 +688,7 @@ class StandardNameTable(Dataset):
         for row in results:
             if row.qualification not in qres:
                 qres[str(row.qualification).strip("_:")] = {
-                    'id': row.qualification.n3(),
+                    'id': _parse_id(row.qualification),
                     'name': str(row.name) if row.name else None,
                     'before': str(row.before).strip("_:") if row.before else None,
                     'after': str(row.after).strip("_:") if row.after else None,
@@ -1060,7 +1066,7 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
     snts = []
     for row in sparql.query(g):
         # for stn_id, title, version, description in res:
-        snt_id = row['id'].n3()
+        snt_id = _parse_id(row['id'])
         snt_dict = dict(id=snt_id, title=row['title'], version=row['version'], description=row['description'])
         snts.append(StandardNameTable(**parse_and_exclude_none(snt_dict)))
 
@@ -1114,7 +1120,7 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
         for res in sparql.query(g):
             orga_dict = dict(name=res['name'], mbox=res['mbox'], hasRorId=res['hasRorId'])
             attribution = Attribution(
-                id=res['agentID'].n3(),
+                id=_parse_id(res['agentID']),
                 agent=Organization(**{k: v.value for k, v in orga_dict.items() if v})
             )
             if res['hadRole']:
@@ -1136,7 +1142,7 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
                 ]
             )
             for res in sparql.query(g):
-                modifierID = res['modifierID'].n3()
+                modifierID = _parse_id(res['modifierID'])
                 # now look for the valid values:
                 sparql_valid_values = build_simple_sparql_query(
                     prefixes=prefixes,
@@ -1158,13 +1164,13 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
                 has_modifier_dict = dict(name=res['name'].value, description=res['description'].value)
                 if res['before']:
                     if isinstance(res['before'], rdflib.BNode):
-                        has_modifier_dict['before'] = res['before'].n3()
+                        has_modifier_dict['before'] = _parse_id(res['before'])
                     else:
                         has_modifier_dict['before'] = res['before'].value
                 else:
                     assert res['after'], "Missing ssno:after"
                     if isinstance(res['after'], rdflib.BNode):
-                        has_modifier_dict['after'] = res['after'].n3()
+                        has_modifier_dict['after'] = _parse_id(res['after'])
                     else:
                         has_modifier_dict['after'] = res['after'].value
 
@@ -1198,7 +1204,7 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
 
         hasCharacter = []
         for res in sparql_transformation.query(g):
-            modifierID = res['modifierID'].n3()
+            modifierID = _parse_id(res['modifierID'])
             # now look for the valid values:
             sparql_hasCharacter = build_simple_sparql_query(
                 prefixes=prefixes,
@@ -1221,69 +1227,86 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
 
         standard_names = []
 
-        sparql_get_standard_names = f"""
-            PREFIX owl: <http://www.w3.org/2002/07/owl#>
-            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-            PREFIX dcat: <http://www.w3.org/ns/dcat#>
-            PREFIX dcterms: <http://purl.org/dc/terms/>
-            PREFIX prov: <http://www.w3.org/ns/prov#>
-            PREFIX ssno: <https://matthiasprobst.github.io/ssno#>
-            SELECT ?standardname ?unit ?description ?snid
-            WHERE {{
-                {snt_id} a ssno:StandardNameTable .
-                {snt_id} ssno:standardNames ?snid .
-                ?snid a ssno:VectorStandardName .
-                ?snid ssno:standardName ?standardname .
-                ?snid ssno:unit ?unit .
-                ?snid ssno:description ?description .
-            }}
-        """
-        resVectorStandardnames = g.query(sparql_get_standard_names)
-        for n, u, d, _id in resVectorStandardnames:
-            standard_names.append(VectorStandardName(id=_id.n3(), standardName=str(n), unit=str(u), description=str(d)))
+        sparql_get_vector_standard_names = build_simple_sparql_query(
+            prefixes=prefixes,
+            wheres=[
+                WHERE(snt_id, "a", "ssno:StandardNameTable"),
+                WHERE(snt_id, "ssno:standardNames", "?snid"),
+                WHERE("?snid", "a", "ssno:VectorStandardName"),
+                WHERE("?snid", "ssno:standardName", "?standardname"),
+                WHERE("?snid", "ssno:unit", "?unit"),
+                WHERE("?snid", "ssno:description", "?description"),
+            ]
+        )
+        # sparql_get_standard_names = f"""
+        #     PREFIX owl: <http://www.w3.org/2002/07/owl#>
+        #     PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+        #     PREFIX dcat: <http://www.w3.org/ns/dcat#>
+        #     PREFIX dcterms: <http://purl.org/dc/terms/>
+        #     PREFIX prov: <http://www.w3.org/ns/prov#>
+        #     PREFIX ssno: <https://matthiasprobst.github.io/ssno#>
+        #     SELECT ?standardname ?unit ?description ?snid
+        #     WHERE {{
+        #         {snt_id} a ssno:StandardNameTable .
+        #         {snt_id} ssno:standardNames ?snid .
+        #         ?snid a ssno:VectorStandardName .
+        #         ?snid ssno:standardName ?standardname .
+        #         ?snid ssno:unit ?unit .
+        #         ?snid ssno:description ?description .
+        #     }}
+        # """
+        resVectorStandardnames = sparql_get_vector_standard_names.query(g)
+        for row in resVectorStandardnames:
+            standard_names.append(VectorStandardName(
+                id=_parse_id(row["snid"]),
+                standardName=str(row["standardname"]),
+                unit=str(row["unit"]),
+                description=str(row["description"])
+            )
+            )
 
-        sparql_get_standard_names = f"""
-            PREFIX owl: <http://www.w3.org/2002/07/owl#>
-            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-            PREFIX dcat: <http://www.w3.org/ns/dcat#>
-            PREFIX dcterms: <http://purl.org/dc/terms/>
-            PREFIX prov: <http://www.w3.org/ns/prov#>
-            PREFIX ssno: <https://matthiasprobst.github.io/ssno#>
-            SELECT ?standardname ?unit ?description ?snid
-            WHERE {{
-                {snt_id} a ssno:StandardNameTable .
-                {snt_id} ssno:standardNames ?snid .
-                ?snid a ssno:ScalarStandardName .
-                ?snid ssno:standardName ?standardname .
-                ?snid ssno:unit ?unit .
-                ?snid ssno:description ?description .
-            }}
-        """
-        resScalarStandardnames = g.query(sparql_get_standard_names)
-        for n, u, d, _id in resScalarStandardnames:
-            standard_names.append(StandardName(id=_id.n3(), standardName=str(n), unit=str(u), description=str(d)))
+        sparql_get_scalar_standard_names = build_simple_sparql_query(
+            prefixes=prefixes,
+            wheres=[
+                WHERE(snt_id, "a", "ssno:StandardNameTable"),
+                WHERE(snt_id, "ssno:standardNames", "?snid"),
+                WHERE("?snid", "a", "ssno:ScalarStandardName"),
+                WHERE("?snid", "ssno:standardName", "?standardname"),
+                WHERE("?snid", "ssno:unit", "?unit"),
+                WHERE("?snid", "ssno:description", "?description"),
+            ]
+        )
 
-        sparql_get_standard_names = f"""
-            PREFIX owl: <http://www.w3.org/2002/07/owl#>
-            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-            PREFIX dcat: <http://www.w3.org/ns/dcat#>
-            PREFIX dcterms: <http://purl.org/dc/terms/>
-            PREFIX prov: <http://www.w3.org/ns/prov#>
-            PREFIX ssno: <https://matthiasprobst.github.io/ssno#>
-            SELECT ?standardname ?unit ?description ?snid
-            WHERE {{
-                {snt_id} a ssno:StandardNameTable .
-                {snt_id} ssno:standardNames ?snid .
-                ?snid a ssno:StandardName .
-                ?snid ssno:standardName ?standardname .
-                ?snid ssno:unit ?unit .
-                ?snid ssno:description ?description .
-            }}
-        """
-        resScalarStandardnames = g.query(sparql_get_standard_names)
-        for n, u, d, _id in resScalarStandardnames:
-            standard_names.append(StandardName(id=_id.n3(), standardName=str(n), unit=str(u), description=str(d)))
+        resScalarStandardnames = sparql_get_scalar_standard_names.query(g)
+        for row in resScalarStandardnames:
+            standard_names.append(StandardName(
+                id=_parse_id(row["snid"]),
+                standardName=str(row["standardname"]),
+                unit=str(row["unit"]),
+                description=str(row["description"])
+            )
+            )
 
+        sparql_get_normal_standard_names = build_simple_sparql_query(
+            prefixes=prefixes,
+            wheres=[
+                WHERE(snt_id, "a", "ssno:StandardNameTable"),
+                WHERE(snt_id, "ssno:standardNames", "?snid"),
+                WHERE("?snid", "a", "ssno:StandardName"),
+                WHERE("?snid", "ssno:standardName", "?standardname"),
+                WHERE("?snid", "ssno:unit", "?unit"),
+                WHERE("?snid", "ssno:description", "?description"),
+            ]
+        )
+        resNormalStandardnames = sparql_get_normal_standard_names.query(g)
+        for row in resNormalStandardnames:
+            standard_names.append(StandardName(
+                id=_parse_id(row["snid"]),
+                standardName=str(row["standardname"]),
+                unit=str(row["unit"]),
+                description=str(row["description"])
+            )
+            )
         snt.standardNames = standard_names
 
         if qualifiedAttribution:

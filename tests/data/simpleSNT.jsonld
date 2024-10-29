@@ -61,7 +61,7 @@
             "ssno:standardName": "air_density",
             "ssno:unit": "http://qudt.org/vocab/unit/KiloGM-PER-M3",
             "ssno:description": "The density of air",
-            "@id": "_:001"
+            "@id": "https://example.org/001"
         },
         {
             "@type": "ssno:StandardName",

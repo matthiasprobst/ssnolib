@@ -124,9 +124,9 @@ class WHERE:
 
     def __post_init__(self):
         if self.s.startswith('http'):
-            self.s = f"<{self.s}"
+            self.s = f"<{self.s}>"
         if self.p.startswith('http'):
-            self.p = f"<{self.p}"
+            self.p = f"<{self.p}>"
 
     def __str__(self):
         if self.is_optional:

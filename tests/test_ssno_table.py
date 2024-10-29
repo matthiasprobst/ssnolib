@@ -240,7 +240,8 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         self.assertEqual("The component of a vector", qualifications[0].description)
         self.assertEqual(3, len(qualifications[0].hasValidValues))
         # check IDs of standard names
-        self.assertEqual("_:001", snt.standardNames[0].id)
+        self.assertEqual("https://example.org/001", snt.standardNames[0].id)
+        self.assertEqual("_:002", snt.standardNames[1].id)
 
     def test_standard_name_table_from_jsonld(self):
         snt_jsonld_filename = pathlib.Path(__this_dir__, 'snt.json')
