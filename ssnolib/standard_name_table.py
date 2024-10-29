@@ -1228,7 +1228,7 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
             PREFIX dcterms: <http://purl.org/dc/terms/>
             PREFIX prov: <http://www.w3.org/ns/prov#>
             PREFIX ssno: <https://matthiasprobst.github.io/ssno#>
-            SELECT ?standardname ?unit ?description
+            SELECT ?standardname ?unit ?description ?snid
             WHERE {{
                 {snt_id} a ssno:StandardNameTable .
                 {snt_id} ssno:standardNames ?snid .
@@ -1239,8 +1239,8 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
             }}
         """
         resVectorStandardnames = g.query(sparql_get_standard_names)
-        for n, u, d in resVectorStandardnames:
-            standard_names.append(VectorStandardName(standardName=str(n), unit=str(u), description=str(d)))
+        for n, u, d, _id in resVectorStandardnames:
+            standard_names.append(VectorStandardName(id=_id.n3(), standardName=str(n), unit=str(u), description=str(d)))
 
         sparql_get_standard_names = f"""
             PREFIX owl: <http://www.w3.org/2002/07/owl#>
@@ -1249,7 +1249,7 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
             PREFIX dcterms: <http://purl.org/dc/terms/>
             PREFIX prov: <http://www.w3.org/ns/prov#>
             PREFIX ssno: <https://matthiasprobst.github.io/ssno#>
-            SELECT ?standardname ?unit ?description
+            SELECT ?standardname ?unit ?description ?snid
             WHERE {{
                 {snt_id} a ssno:StandardNameTable .
                 {snt_id} ssno:standardNames ?snid .
@@ -1260,8 +1260,8 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
             }}
         """
         resScalarStandardnames = g.query(sparql_get_standard_names)
-        for n, u, d in resScalarStandardnames:
-            standard_names.append(StandardName(standardName=str(n), unit=str(u), description=str(d)))
+        for n, u, d, _id in resScalarStandardnames:
+            standard_names.append(StandardName(id=_id.n3(), standardName=str(n), unit=str(u), description=str(d)))
 
         sparql_get_standard_names = f"""
             PREFIX owl: <http://www.w3.org/2002/07/owl#>
@@ -1270,7 +1270,7 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
             PREFIX dcterms: <http://purl.org/dc/terms/>
             PREFIX prov: <http://www.w3.org/ns/prov#>
             PREFIX ssno: <https://matthiasprobst.github.io/ssno#>
-            SELECT ?standardname ?unit ?description
+            SELECT ?standardname ?unit ?description ?snid
             WHERE {{
                 {snt_id} a ssno:StandardNameTable .
                 {snt_id} ssno:standardNames ?snid .
@@ -1281,8 +1281,8 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
             }}
         """
         resScalarStandardnames = g.query(sparql_get_standard_names)
-        for n, u, d in resScalarStandardnames:
-            standard_names.append(StandardName(standardName=str(n), unit=str(u), description=str(d)))
+        for n, u, d, _id in resScalarStandardnames:
+            standard_names.append(StandardName(id=_id.n3(), standardName=str(n), unit=str(u), description=str(d)))
 
         snt.standardNames = standard_names
 

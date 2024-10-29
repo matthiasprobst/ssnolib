@@ -61,21 +61,21 @@
             "ssno:standardName": "air_density",
             "ssno:unit": "http://qudt.org/vocab/unit/KiloGM-PER-M3",
             "ssno:description": "The density of air",
-            "@id": "_:N22efd49deddf48b2badf25dd13dc3f7e"
+            "@id": "_:001"
         },
         {
             "@type": "ssno:StandardName",
             "ssno:standardName": "coordinate",
             "ssno:unit": "http://qudt.org/vocab/unit/M",
             "ssno:description": "The spatial coordinate vector.",
-            "@id": "_:N7c9273b55e1a4e4fb8d921caf001d15e"
+            "@id": "_:002"
         },
         {
             "@type": "ssno:StandardName",
             "ssno:standardName": "velocity",
             "ssno:unit": "http://qudt.org/vocab/unit/M-PER-SEC",
             "ssno:description": "The velocity vector of an object or fluid.",
-            "@id": "_:N6883945bf8bb40f68ee5643d08a8bfe3"
+            "@id": "_:003"
         }
     ],
     "ssno:hasModifier": [
