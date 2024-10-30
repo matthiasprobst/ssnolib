@@ -11,14 +11,15 @@ from ontolutils.namespacelib.m4i import M4I
 from pydantic import field_validator, Field, HttpUrl, ValidationError
 from rdflib import URIRef
 
-from ssnolib.dcat import Dataset, Distribution
-from ssnolib.prov import Person, Organization, Attribution
-from ssnolib.utils import build_simple_sparql_query, WHERE, parse_and_exclude_none
 from ssnolib import config
-from . import plugins
+from ssnolib.dcat import Dataset, Distribution
 from ssnolib.m4i import TextVariable
 from ssnolib.namespace import SSNO
+from ssnolib.prov import Person, Organization, Attribution
 from ssnolib.qudt.utils import iri2str
+from ssnolib.sparql_utils import build_simple_sparql_query, WHERE
+from ssnolib.utils import parse_and_exclude_none
+from . import plugins
 from .standard_name import StandardName, VectorStandardName, ScalarStandardName
 
 MAX_ITER = 1000
@@ -1025,6 +1026,13 @@ class StandardNameTable(Dataset):
             f.write(output)
 
         return html_filename
+
+    def __getitem__(self, standard_name: str):
+        standard_name = str(standard_name)
+        for sn in self.standardNames:
+            if sn.standardName == standard_name:
+                return sn
+        raise KeyError(f"Standard Name '{standard_name}' not found in the Standard Name Table.")
 
 
 def parse_table(source=None, data=None, fmt: Optional[str] = None):
