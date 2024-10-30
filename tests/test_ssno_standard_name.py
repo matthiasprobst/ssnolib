@@ -8,7 +8,6 @@ from ontolutils.utils.qudt_units import parse_unit
 from pydantic import ValidationError
 
 import ssnolib
-import ssnolib.standard_name_table
 from ssnolib import StandardName, StandardNameTable
 
 __this_dir__ = pathlib.Path(__file__).parent
@@ -122,7 +121,7 @@ class TestSSNOStandardName(unittest.TestCase):
         sn = StandardName(standard_name='x_velocity',
                           unit=QUDT_UNIT.M_PER_SEC,
                           standard_name_table="https://doi.org/10.5281/zenodo.10428817")
-        self.assertEqual(sn.standardNameTable.id, "https://doi.org/10.5281/zenodo.10428817")
+        self.assertEqual(sn.standardNameTable, "https://doi.org/10.5281/zenodo.10428817")
 
         with self.assertRaises(pydantic.ValidationError):
             StandardName(standard_name='x_velocity',

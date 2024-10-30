@@ -4,8 +4,8 @@ import pathlib
 import warnings
 from typing import Dict, Union
 
-from . import VectorStandardName, ScalarStandardName
-from .prov import Attribution
+from ssnolib.prov import Attribution
+from . import ScalarStandardName, VectorStandardName
 
 logger = logging.getLogger("ssnolib")
 
@@ -146,7 +146,7 @@ class YAMLReader(TableReader):
                 logger.error("No construction string is provided in the qualifications.")
             phrases = qualification_data.get('phrases', None)
             if phrases:
-                from ssnolib.standard_name_table import Qualification
+                from ssnolib.ssno.standard_name_table import Qualification
                 qualifications = [Qualification(
                     name=q['name'],
                     description=q.get('description', None),

@@ -1,3 +1,3 @@
-from .variable import TextVariable
+from .variable import TextVariable, NumericalVariable
 
-__all__ = ("TextVariable",)
+__all__ = ("TextVariable", "NumericalVariable")

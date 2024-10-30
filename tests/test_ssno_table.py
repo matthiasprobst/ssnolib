@@ -12,13 +12,12 @@ from ontolutils.namespacelib.m4i import M4I
 from ontolutils.utils.qudt_units import parse_unit
 
 import ssnolib
-import ssnolib.standard_name_table
 from ssnolib import Organization, Person, AgentRole
 from ssnolib import StandardName, StandardNameTable, Transformation
 from ssnolib.dcat import Distribution
 from ssnolib.namespace import SSNO
 from ssnolib.prov import Attribution
-from ssnolib.standard_name import ScalarStandardName, VectorStandardName
+from ssnolib.ssno.standard_name import ScalarStandardName, VectorStandardName
 from ssnolib.utils import download_file
 
 __this_dir__ = pathlib.Path(__file__).parent

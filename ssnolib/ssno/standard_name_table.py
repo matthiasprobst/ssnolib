@@ -14,11 +14,11 @@ from rdflib import URIRef
 from ssnolib.dcat import Dataset, Distribution
 from ssnolib.prov import Person, Organization, Attribution
 from ssnolib.utils import build_simple_sparql_query, WHERE, parse_and_exclude_none
-from . import config
+from ssnolib import config
 from . import plugins
-from .m4i import TextVariable
-from .namespace import SSNO
-from .qudt.utils import iri2str
+from ssnolib.m4i import TextVariable
+from ssnolib.namespace import SSNO
+from ssnolib.qudt.utils import iri2str
 from .standard_name import StandardName, VectorStandardName, ScalarStandardName
 
 MAX_ITER = 1000

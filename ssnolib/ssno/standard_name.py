@@ -10,7 +10,7 @@ from pydantic_core import InitErrorDetails
 
 from ssnolib.dcat import Dataset
 from ssnolib.skos import Concept
-from . import config
+from ssnolib import config
 
 
 @namespaces(ssno="https://matthiasprobst.github.io/ssno#",
@@ -31,7 +31,7 @@ class StandardName(Concept):
     standardName: str = Field(alias="standard_name")
     unit: Union[str, HttpUrl]  # required!
     description: Union[str, List[str]] = None  # ssno:description
-    standardNameTable: Dataset = Field(default=None, alias="standard_name_table")
+    standardNameTable: Union[str, Dataset] = Field(default=None, alias="standard_name_table")
     alias: Optional[Union["StandardName", HttpUrl, str]] = Field(default=None)
 
     def __getattr__(self, item):
@@ -73,8 +73,9 @@ class StandardName(Concept):
             return standardNameTable
         elif isinstance(standardNameTable, str):
             assert standardNameTable.startswith('http'), f"Expected a URL, got {standardNameTable}"
-            from .standard_name_table import StandardNameTable
-            return StandardNameTable(id=standardNameTable)
+            return str(HttpUrl(standardNameTable))
+            # from .standard_name_table import StandardNameTable
+            # return StandardNameTable(id=standardNameTable)
         raise TypeError(f"Expected a Dataset, got {type(standardNameTable)}")
 
     @field_validator("unit", mode='before')
