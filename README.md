@@ -90,20 +90,28 @@ The last line dumps the object to a JSON-LD string:
 ## Installation
 
 ```bash
-pip install git+https://github.com/matthiasprobst/SSNOlib.git
+pip install ssnolib
+```
+
+### Extras
+
+To be able to work with the local web app (using flask):
+    
+```bash
+pip install ssnolib[app]
 ```
 
 To be able to read standard name tables in XML format (e.g. the cfconvetions.org standard name table), you need to add
 the `xml` extra:
 
 ```bash
-pip install git+https://github.com/matthiasprobst/SSNOlib.git[xml]
+pip installssnolib[xml]
 ``` 
 
 To be able to read standard name table from YAML files, you need to add the `yaml` extra:
 
 ```bash
-pip install git+https://github.com/matthiasprobst/SSNOlib.git[yaml]
+pip install ssnolib[yaml]
 ``` 
 
 ## Documentation
@@ -111,8 +119,6 @@ pip install git+https://github.com/matthiasprobst/SSNOlib.git[yaml]
 A complete documentation is still under development. However, the docstrings of the classes and methods should be
 sufficient to get started. Also have a look at the [Tutorial Notebook](docs/Tutorial.ipynb) or following class diagram
 and the [examples](#examples) below.
-
-![Class diagram](docs/class_structure.png)
 
 ## Examples
 
@@ -202,12 +208,9 @@ QUalification can modify standard names by adding phrases to existing standard n
 phrases (valid values) to be used in front of or after a standard name. Since multiple qualifications can be defined. 
 they may also lead or follow other qualifications. A qualification may also have a preposition like "at" for example. 
 
-The class `StandardNameTable` can generate a regex pattern from the qualification definitions. The below Figure 
-illustrates this:
+The class `StandardNameTable` can generate a regex pattern from the qualification definitions.
 
-![modification2regex](./docs/modification2regex.svg)
-
-
+## And now?
 You can now take the JSON-LD file and use it with your data (place it next to it, upload it to a server, etc.).
 
 ## Contribution
