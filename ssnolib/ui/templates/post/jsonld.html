@@ -74,16 +74,27 @@
     </div>
     {% endif %}
 
-    <!-- Copy to Clipboard Button -->
-    <button class="btn btn-primary mb-3" onclick="copyToClipboard()"><i class="material-icons mr-1">content_copy</i>Copy
-        to Clipboard
+    <button class="btn btn-primary mb-3" onclick="copyToClipboard()"><i class="material-icons mr-1">content_copy</i>
+        Copy to Clipboard
     </button>
-    <button class="btn btn-primary mb-3" onclick="downloadJSON()"><i class="material-icons mr-1">file_download</i>Save
-        to File
+    <button class="btn btn-primary mb-3" onclick="downloadJSON()"><i class="material-icons mr-1">file_download</i>
+        Save to File
+    </button>
+    <button class="btn btn-primary mb-3" onclick="openJsonInNewTab()"
+            title="Opens a new tab with the JSON data only. If you are using chrome, consider installing a viewer extension for a better and interactive experience: https://chromewebstore.google.com/detail/json-viewer/efknglbfhoddmmfabeihlemgekhhnabb?hl=en">
+        <i class="material-icons mr-1">tab</i>
+        View Raw
     </button>
     <pre id="jsonld-content">{{ json_data | tojson(indent=2) }}</pre>
 </div>
 </body>
+
+<script>
+    function openJsonInNewTab() {
+        const jsonUrl = "{{ url_for('data') }}";
+        window.open(jsonUrl, '_blank');
+    }
+</script>
 <script>
     function downloadJSON() {
         const jsonString = document.getElementById('jsonld-content').textContent;

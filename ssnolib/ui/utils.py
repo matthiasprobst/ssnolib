@@ -1,14 +1,14 @@
 import json
 
 import pydantic
-from yaml import warnings
 
 import ssnolib
-from ssnolib import StandardNameTable, VectorStandardName
-from ssnolib.standard_name_table import ROLE2IRI
-
+from ssnolib import StandardNameTable
 from ssnolib import VectorStandardName
+from ssnolib.m4i import TextVariable
 from ssnolib.qudt.utils import iri2str
+from ssnolib.ssno.standard_name_table import ROLE2IRI
+
 
 class ErrorMessages:
     def __init__(self):
@@ -160,7 +160,7 @@ def fetch_form_data(request, warning_messages=None):
         qvalues = []
         for v in hvvr.split(","):
             description = has_variable_description.pop(0)
-            qvalues.append(ssnolib.TextVariable(hasStringValue=v.strip(), hasVariableDescription=description))
+            qvalues.append(TextVariable(hasStringValue=v.strip(), hasVariableDescription=description))
         if vec == 'on':
             qualifications.append(
                 ssnolib.VectorQualification(name=name, hasValidValues=qvalues, description=descr,

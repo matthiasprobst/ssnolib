@@ -6,8 +6,8 @@ def main():
         description='ssnolib command line interface'
     )
 
-    parser.add_argument('-g', '--gui',
-                        help='Starts the GUI interface',
+    parser.add_argument('--app',
+                        help='Starts the flask web app',
                         action='store_true')
     parser.add_argument('-p', '--port',
                         help='Port to run the server on',
@@ -19,6 +19,6 @@ def main():
                         default='127.0.0.1')
     args = parser.parse_args()
 
-    if args.gui:
+    if args.app:
         from ssnolib.ui import app
         app.app.run(debug=False, host=args.host, port=args.port)

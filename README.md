@@ -20,13 +20,18 @@ With `ssnolib` you can create Standard Names and their tables quickly and easily
 explaining working with [Standard names here](docs/Standard%20Name.ipynb)
 or [Standard Name Tables here](docs/StandardNameTable.ipynb).
 
-### Graphically
+### Graphically (locally run Web App)
 A user interface implemented with [flask](https://flask.palletsprojects.com/en/3.0.x/) is available to create and edit
 Standard Name Tables.
 
+To install the web app, run the following command:
+```bash
+pip install ssnolib[app]
+```
+
 To start the GUI, run the following command:
 ```bash
-ssnolib --gui
+ssnolib --app
 ```
 This will start a local development server with the default port 5000 and the local host IP: `http://127.0.0.1:5000/`
 (see image below).

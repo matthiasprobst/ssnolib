@@ -1,7 +1,7 @@
 import json
 from dataclasses import dataclass
 
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, jsonify
 
 import ssnolib
 from ssnolib.ui.utils import fetch_form_data, snt_to_cache_data
@@ -35,6 +35,7 @@ def form():
 def json_ld():
     json_data, data, warning_messages, error_messages, has_errors = fetch_form_data(request, cache["warning_messages"])
     cache["data"] = data.copy()
+    cache["json_data"] = json_data
     cache["warning_messages"] = warning_messages.copy()
     cache["error_messages"] = error_messages
     return render_template(
@@ -84,6 +85,11 @@ def load():
         pass
     # Redirect back to the welcome page if the file is not valid
     return redirect('/')
+
+
+@app.route('/data')
+def data():
+    return jsonify(cache["json_data"])
 
 
 if __name__ == '__main__':
