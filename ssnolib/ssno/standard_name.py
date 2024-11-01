@@ -8,9 +8,9 @@ from pydantic import HttpUrl, field_validator, Field, ConfigDict
 from pydantic import ValidationError
 from pydantic_core import InitErrorDetails
 
+from ssnolib import config
 from ssnolib.dcat import Dataset
 from ssnolib.skos import Concept
-from ssnolib import config
 
 
 @namespaces(ssno="https://matthiasprobst.github.io/ssno#",
@@ -31,7 +31,7 @@ class StandardName(Concept):
     standardName: str = Field(alias="standard_name")
     unit: Union[str, HttpUrl]  # required!
     description: Union[str, List[str]] = None  # ssno:description
-    standardNameTable: Union[str, Dataset] = Field(default=None, alias="standard_name_table")
+    standardNameTable: Union[str, "StandardNameTable", Dataset] = Field(default=None, alias="standard_name_table")
     alias: Optional[Union["StandardName", HttpUrl, str]] = Field(default=None)
 
     def __getattr__(self, item):
@@ -69,7 +69,10 @@ class StandardName(Concept):
     @classmethod
     def _parse_standard_name_table(cls, standardNameTable: Union[Dataset, str]) -> Dataset:
         """Parse the standard_name_table and return the standard_name_table as Dataset."""
+        from .standard_name_table import StandardNameTable
         if isinstance(standardNameTable, Dataset):
+            return standardNameTable
+        elif isinstance(standardNameTable, StandardNameTable):
             return standardNameTable
         elif isinstance(standardNameTable, str):
             assert standardNameTable.startswith('http'), f"Expected a URL, got {standardNameTable}"

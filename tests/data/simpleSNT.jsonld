@@ -14,7 +14,7 @@
     "@type": "ssno:StandardNameTable",
     "dcterms:title": "SNT from scratch",
     "dcterms:description": "A table defined as part of a tutorial",
-    "dcat:version": "v1",
+    "dcterms:hasVersion": "v1",
     "prov:qualifiedAttribution": [
         {
             "@type": "prov:Attribution",

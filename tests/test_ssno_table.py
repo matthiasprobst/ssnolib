@@ -8,8 +8,10 @@ import h5rdmtoolbox as h5tbx
 import pydantic
 import requests.exceptions
 import yaml
+from ontolutils import Thing
 from ontolutils.namespacelib.m4i import M4I
 from ontolutils.utils.qudt_units import parse_unit
+from win32ctypes.pywin32.pywintypes import datetime
 
 import ssnolib
 from ssnolib import Organization, Person, AgentRole
@@ -17,6 +19,7 @@ from ssnolib import StandardName, StandardNameTable, Transformation
 from ssnolib.dcat import Distribution
 from ssnolib.namespace import SSNO
 from ssnolib.prov import Attribution
+from ssnolib.skos import Concept
 from ssnolib.ssno.standard_name import ScalarStandardName, VectorStandardName
 from ssnolib.utils import download_file
 
@@ -173,6 +176,24 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         snt = StandardNameTable.from_jsonld(__this_dir__ / 'data/simpleSNT.jsonld', limit=1)
         qualifications = [q for q in snt.hasModifier if isinstance(q, ssnolib.Qualification)]
         self.assertEqual(1, len(qualifications))
+
+    def test_standard_name_table_types(self):
+        snt = StandardNameTable()
+        self.assertIsInstance(snt, StandardNameTable)
+        self.assertIsInstance(snt, Concept)
+        self.assertIsInstance(snt, Thing)
+
+    def test_describe_table_in_zenodo(self):
+        snt = StandardNameTable(
+            prefLabel="My fancy standard name table",
+            altLabel="My standard name table",
+            created=datetime.today().strftime("%Y-%m-%d"),
+            subject="https://www.wikidata.org/wiki/Q172145"
+        )
+        self.assertEqual(snt.prefLabel, "My fancy standard name table")
+        self.assertEqual(snt.altLabel, "My standard name table")
+        self.assertEqual(snt.created, datetime.today().strftime("%Y-%m-%d"))
+        self.assertEqual(snt.subject, "https://www.wikidata.org/wiki/Q172145")
 
     def test_standard_name_table(self):
         sn1 = StandardName(standard_name='x_velocity',
@@ -540,7 +561,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         # self.assertTrue(snt.verify_name("x_toa_pressure"))
         # self.assertFalse(snt.verify_name("toa_x_velocity"))
 
-    if platform.system() != "Darwin":  # pandoc could not be installed in CI for macos... to be solved...
+    if platform.system() != "Darwin":  # pandoc could not be installed in CI for macOS... to be solved...
         def test_to_html(self):
             cf_contention = 'http://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml'
             snt_xml_filename = download_file(cf_contention,

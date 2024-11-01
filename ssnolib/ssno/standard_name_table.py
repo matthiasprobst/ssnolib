@@ -3,6 +3,7 @@ import json
 import pathlib
 import re
 import warnings
+from datetime import datetime
 from typing import List, Union, Dict, Optional, Tuple
 
 import rdflib
@@ -12,7 +13,7 @@ from pydantic import field_validator, Field, HttpUrl, ValidationError
 from rdflib import URIRef
 
 from ssnolib import config
-from ssnolib.dcat import Dataset, Distribution
+from ssnolib.dcat import Distribution
 from ssnolib.m4i import TextVariable
 from ssnolib.namespace import SSNO
 from ssnolib.prov import Person, Organization, Attribution
@@ -21,6 +22,7 @@ from ssnolib.sparql_utils import build_simple_sparql_query, WHERE
 from ssnolib.utils import parse_and_exclude_none
 from . import plugins
 from .standard_name import StandardName, VectorStandardName, ScalarStandardName
+from ..skos import Concept
 
 MAX_ITER = 1000
 __this_dir__ = pathlib.Path(__file__).parent
@@ -237,34 +239,45 @@ class Transformation(StandardNameModification):
 @namespaces(ssno="https://matthiasprobst.github.io/ssno#",
             dcterms="http://purl.org/dc/terms/")
 @urirefs(StandardNameTable='ssno:StandardNameTable',
-         standardNames='ssno:standardNames',
+         title='dcterms:title',
+         hasVersion='dcterms:hasVersion',
+         created='dcterms:created',
+         modified='dcterms:modified',
+         description='dcterms:description',
          qualifiedAttribution='prov:qualifiedAttribution',
-         hasModifier='ssno:hasModifier'
+         standardNames='ssno:standardNames',
+         hasModifier='ssno:hasModifier',
+         subject='dcterms:subject'
          )
-class StandardNameTable(Dataset):
+class StandardNameTable(Concept):
     """Implementation of ssno:StandardNameTable
 
     Parameters
     ----------
     title: str
         Title of the Standard Name Table (dcterms:title)
-    version: str
-        Version of the Standard Name Table (dcat:version)
+    hasVersion: str
+        Version of the Standard Name Table (dcterms:hasVersion)
+    created: datetime
+        Creation date of the Standard Name Table (dcterms:created)
+    modified: datetime
+        Last modification date of the Standard Name Table (dcterms:modified)
     description: str
         Description of the Standard Name Table (dcterms:description)
-    identifier: str
-        Identifier of the Standard Name Table, e.g. the DOI (dcterms:identifier)
     qualifiedAttribution: Optional[Union[Attribution, List[Attribution]]]
         An Attribution holds a prov:Person (and its role) or a prov:Organization
     standardNames: List[StandardName]
         List of Standard Names (ssno:standardNames)
     hasModifier: Optional[List[Union[Qualification, Transformation]]]
         List of Qualifications and Transformations
+    subject: Optional[str, HttpUrl]
     """
     title: Optional[str] = None
-    version: Optional[str] = None
+    hasVersion: Optional[str] = Field(default=None, alias="version")
     description: Optional[str] = None
     identifier: Optional[str] = None
+    created: Optional[str] = None
+    modified: Optional[str] = None
     # creator: Optional[Union[Person, List[Person], Organization, List[Organization]]] = None  # depr!
     qualifiedAttribution: Optional[Union[Attribution, List[Attribution]]] = Field(
         default=None,
@@ -276,6 +289,7 @@ class StandardNameTable(Dataset):
     hasModifier: Optional[
         List[Union[Qualification, VectorQualification, Transformation]]
     ] = Field(default=None, alias="has_modifier")  # ssno:hasModifier
+    subject: Optional[Union[str, HttpUrl]] = Field(default=None)
 
     def __str__(self) -> str:
         if self.identifier:
@@ -367,6 +381,12 @@ class StandardNameTable(Dataset):
             return stdname
 
         return [_parseStandardNameType(sn) for sn in _standardNames]
+
+    @field_validator('subject', mode='before')
+    @classmethod
+    def _subject(cls, subject: HttpUrl):
+        HttpUrl(subject)
+        return str(subject)
 
     def append(self, field_name: str, field):
         self.__pydantic_validator__.validate_assignment(self.model_construct(), field_name, field)
@@ -608,20 +628,20 @@ class StandardNameTable(Dataset):
             if self.identifier:
                 yaml_data['identifier'] = self.identifier
 
-            if self.creator:
-                if isinstance(self.creator, list):
-                    _creators = self.creator
-                else:
-                    _creators = [self.creator]
-
-                if _creators:
-                    yaml_data['creator'] = []
-                    for creator in _creators:
-                        creator_dict = creator.model_dump(exclude_none=True)
-                        if creator_dict:
-                            yaml_data['creator'].append(creator_dict)
-                if len(yaml_data['creator']) == 0:
-                    yaml_data.pop('creator')
+            # if self.creator:
+            # if isinstance(self.creator, list):
+            #     _creators = self.creator
+            # else:
+            #     _creators = [self.creator]
+            #
+            # if _creators:
+            #     yaml_data['creator'] = []
+            #     for creator in _creators:
+            #         creator_dict = creator.model_dump(exclude_none=True)
+            #         if creator_dict:
+            #             yaml_data['creator'].append(creator_dict)
+            # if len(yaml_data['creator']) == 0:
+            #     yaml_data.pop('creator')
 
             if self.hasModifier:
                 for modification in self.hasModifier:
@@ -864,44 +884,44 @@ class StandardNameTable(Dataset):
             f.write(f"\n# {self.title}\n\n")
             if self.version:
                 f.write(f"Version: {self.version}\n")
-            if self.creator:
-                if not isinstance(self.creator, list):
-                    creators = [self.creator]
+            if self.qualifiedAttribution:
+                if not isinstance(self.qualifiedAttribution, list):
+                    qualifiedAttribution = [self.qualifiedAttribution]
                 else:
-                    creators = self.creator
+                    qualifiedAttribution = self.qualifiedAttribution
 
-                creators_string_list = []
-                for creator in creators:
-                    creator_string = ""
-                    if isinstance(creator, Person):
-                        first_name = creator.firstName
-                        last_name = creator.lastName
-                        email = creator.mbox
-                        affiliation = creator.affiliation
-                        orcid = creator.orcidId
+                attributions_string_list = []
+                for attribution in qualifiedAttribution:
+                    attribution_string = ""
+                    if isinstance(attribution.agent, Person):
+                        first_name = attribution.agent.firstName
+                        last_name = attribution.agent.lastName
+                        email = attribution.agent.mbox
+                        affiliation = attribution.agent.affiliation
+                        orcid = attribution.agent.orcidId
                         if first_name and last_name:
-                            creator_string += f"{last_name}, {first_name}; "
+                            attribution_string += f"{last_name}, {first_name}; "
                         if affiliation:
-                            creator_string += f"{affiliation}; "
+                            attribution_string += f"{affiliation}; "
                         if email:
-                            creator_string += f"{email}; "
+                            attribution_string += f"{email}; "
                         if orcid:
-                            creator_string += f"ORCID: {orcid}; "
-                    elif isinstance(creator, Organization):
-                        name = creator.name
-                        url = creator.url
-                        ror = creator.hasRorId
-                        email = creator.mbox
+                            attribution_string += f"ORCID: {orcid}; "
+                    elif isinstance(attribution.agent, Organization):
+                        name = attribution.agent.name
+                        url = attribution.agent.url
+                        ror = attribution.agent.hasRorId
+                        email = attribution.agent.mbox
                         if name:
-                            creator_string += f"{name}; "
+                            attribution_string += f"{name}; "
                         if url:
-                            creator_string += f"{url}; "
+                            attribution_string += f"{url}; "
                         if ror:
-                            creator_string += f"ROR ID: {ror}; "
+                            attribution_string += f"ROR ID: {ror}; "
                         if email:
-                            creator_string += f"{email}; "
-                    creators_string_list.append(creator_string)
-                creators_string = ', '.join(creators_string_list)
+                            attribution_string += f"{email}; "
+                    attributions_string_list.append(attribution_string)
+                creators_string = ', '.join(attributions_string_list)
                 f.write(f"<br>Creator: {creators_string.strip('; ')}\n")
 
             if qatxt:
@@ -1067,7 +1087,7 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
         prefixes=prefixes,
         wheres=[WHERE("?id", "a", "ssno:StandardNameTable"),
                 WHERE("?id", "dcterms:title", "?title", is_optional=True),
-                WHERE("?id", "dcat:version", "?version", is_optional=True),
+                WHERE("?id", "dcterms:hasVersion", "?version", is_optional=True),
                 WHERE("?id", "dcterms:description", "?description", is_optional=True)]
     )
 

@@ -188,16 +188,15 @@ class DatasetSeries(Resource):
          creator='dcterms:creator',
          distribution='dcat:distribution',
          modified='dcterms:modified',
-         landing_page='dcat:landingPage',
-         in_series='dcat:inSeries')
+         landingPage='dcat:landingPage',
+         inSeries='dcat:inSeries',
+         theme='dcat:theme')
 class Dataset(Resource):
     """Pydantic implementation of dcat:Dataset
 
     .. note::
 
         More than the below parameters are possible but not explicitly defined here.
-
-
 
     Parameters
     ----------
@@ -213,20 +212,23 @@ class Dataset(Resource):
         Identifier of the resource (dcterms:identifier)
     distribution: List[Distribution] = None
         Distribution of the resource (dcat:Distribution)
-    landing_page: HttpUrl = None
+    landingPage: HttpUrl = None
         Landing page of the resource (dcat:landingPage)
     modified: datetime = None
         Last modified date of the resource (dcterms:modified)
-    in_series: DatasetSeries = None
+    inSeries: DatasetSeries = None
         The series the dataset belongs to (dcat:inSeries)
+    theme: HttpUrl = None
+        A main category of the resource. A resource can have multiple themes.
     """
     identifier: HttpUrl = None  # dcterms:identifier, see https://www.w3.org/TR/vocab-dcat-3/#ex-identifier
     # http://www.w3.org/ns/prov#Person, see https://www.w3.org/TR/vocab-dcat-3/#ex-adms-identifier
     creator: Agent = None
     distribution: Union[Distribution, List[Distribution]] = None  # dcat:Distribution
     modified: datetime = None  # dcterms:modified
-    landing_page: HttpUrl = Field(default=None, alias='landingPage')  # dcat:landingPage
-    in_series: DatasetSeries = Field(default=None, alias='inSeries')  # dcat:inSeries
+    landingPage: HttpUrl = Field(default=None, alias='landing_page')  # dcat:landingPage
+    inSeries: DatasetSeries = Field(default=None, alias='in_series')  # dcat:inSeries
+    theme: HttpUrl = Field(default=None)  # dcat:inSeries
 
     @field_validator('distribution', mode='before')
     @classmethod

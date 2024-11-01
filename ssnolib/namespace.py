@@ -9,8 +9,8 @@ class SSNO(DefinedNamespace):
     Qualification: URIRef  # ['Qualification']
     ScalarStandardName: URIRef  # ['Scalar Standard Name']
     StandardName: URIRef  # ['Standard Name']
-    StandardNameModification: URIRef  # ['standard name modification']
-    StandardNameTable: URIRef  # ['StandardNameTable']
+    StandardNameModification: URIRef  # ['Standard Name Modification']
+    StandardNameTable: URIRef  # ['Standard NameTable']
     Transformation: URIRef  # ['Transformation']
     VectorQualification: URIRef  # ['Vector Qualification']
     VectorStandardName: URIRef  # ['Vector Standard Name']
@@ -47,8 +47,8 @@ setattr(SSNO, "Charakter", SSNO.Character)
 setattr(SSNO, "Qualification", SSNO.Qualification)
 setattr(SSNO, "Scalar_Standard_Name", SSNO.ScalarStandardName)
 setattr(SSNO, "Standard_Name", SSNO.StandardName)
-setattr(SSNO, "standard_name_modification", SSNO.StandardNameModification)
-setattr(SSNO, "StandardNameTable", SSNO.StandardNameTable)
+setattr(SSNO, "Standard_Name_Modification", SSNO.StandardNameModification)
+setattr(SSNO, "Standard_NameTable", SSNO.StandardNameTable)
 setattr(SSNO, "Transformation", SSNO.Transformation)
 setattr(SSNO, "Vector_Qualification", SSNO.VectorQualification)
 setattr(SSNO, "Vector_Standard_Name", SSNO.VectorStandardName)

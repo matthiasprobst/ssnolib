@@ -8,6 +8,8 @@ docs/*.jsonld
 *.pyc
 __pycache__/*
 */.ipynb_checkpoints/*
+*-checkpoint.ipynb
+
 
 # build
 *.egg*
