@@ -11,12 +11,12 @@ from typing import Union, List
 
 import pydantic
 from dateutil import parser
-from pydantic import HttpUrl, FileUrl, field_validator, Field
-
-from ontolutils import Thing
+from ontolutils import Thing, as_id
 from ontolutils import urirefs, namespaces
-from ..prov import Person, Organization, Agent
+from pydantic import HttpUrl, FileUrl, field_validator, Field, model_validator
+
 from ssnolib.utils import download_file
+from ..prov import Person, Organization, Agent
 
 
 @namespaces(dcat="http://www.w3.org/ns/dcat#",
@@ -52,7 +52,12 @@ class Resource(Thing):
     description: str = None  # dcterms:description
     creator: Union[Person, Organization] = None  # dcterms:creator
     version: str = None  # dcat:version
-    identifier: HttpUrl = None  # dcterms:identifier
+    identifier: Union[str, HttpUrl] = None  # dcterms:identifier
+
+    @model_validator(mode="before")
+    def change_id(self):
+        """Change the id to the downloadURL"""
+        return as_id(self, "identifier")
 
     @field_validator('creator', mode='before')
     @classmethod
@@ -79,6 +84,12 @@ class Resource(Thing):
         if is_organisation:
             return organisation
         return creator
+
+    @field_validator('identifier', mode='before')
+    @classmethod
+    def _identifier(cls, identifier):
+        """parse datetime"""
+        return str(HttpUrl(identifier))
 
 
 @namespaces(dcat="http://www.w3.org/ns/dcat#")
@@ -170,8 +181,11 @@ class Distribution(Resource):
     def _downloadURL(cls, downloadURL):
         """a pathlib.Path is also allowed but needs to be converted to a URL"""
         if isinstance(downloadURL, pathlib.Path):
-            return FileUrl(f'file://{downloadURL.resolve().absolute()}')
-        return downloadURL
+            return str(FileUrl(f'file://{downloadURL.resolve().absolute()}'))
+        try:
+            return str(FileUrl(downloadURL))
+        except ValueError:
+            return str(HttpUrl(downloadURL))
 
 
 @namespaces(dcat="http://www.w3.org/ns/dcat#")
@@ -184,7 +198,6 @@ class DatasetSeries(Resource):
             prov="http://www.w3.org/ns/prov#",
             dcterms="http://purl.org/dc/terms/")
 @urirefs(Dataset='dcat:Dataset',
-         identifier='dcterms:identifier',
          creator='dcterms:creator',
          distribution='dcat:distribution',
          modified='dcterms:modified',
@@ -208,8 +221,6 @@ class Dataset(Resource):
         Creator of the resource (dcterms:creator)
     version: str = None
         Version of the resource (dcat:version)
-    identifier: HttpUrl = None
-        Identifier of the resource (dcterms:identifier)
     distribution: List[Distribution] = None
         Distribution of the resource (dcat:Distribution)
     landingPage: HttpUrl = None
@@ -221,7 +232,6 @@ class Dataset(Resource):
     theme: HttpUrl = None
         A main category of the resource. A resource can have multiple themes.
     """
-    identifier: HttpUrl = None  # dcterms:identifier, see https://www.w3.org/TR/vocab-dcat-3/#ex-identifier
     # http://www.w3.org/ns/prov#Person, see https://www.w3.org/TR/vocab-dcat-3/#ex-adms-identifier
     creator: Agent = None
     distribution: Union[Distribution, List[Distribution]] = None  # dcat:Distribution

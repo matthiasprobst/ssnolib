@@ -1,7 +1,7 @@
 from typing import Union, List
 
-from ontolutils import Thing, namespaces, urirefs
-from pydantic import EmailStr, HttpUrl, Field, field_validator
+from ontolutils import Thing, namespaces, urirefs, as_id
+from pydantic import EmailStr, HttpUrl, Field, field_validator, model_validator
 
 
 @namespaces(prov="http://www.w3.org/ns/prov#",
@@ -51,7 +51,11 @@ class Organization(Agent):
     """
     name: str  # foaf:name
     url: Union[str, HttpUrl] = None
-    hasRorId: Union[str, HttpUrl] = Field(alias="ror_id", default=None, use_as_id=True)
+    hasRorId: Union[str, HttpUrl] = Field(alias="ror_id", default=None)
+
+    @model_validator(mode="before")
+    def _change_id(self):
+        return as_id(self, "hasRorId")
 
     def to_text(self) -> str:
         """Return the text representation of the class"""
@@ -97,8 +101,12 @@ class Person(Agent):
     """
     firstName: str = Field(default=None, alias="first_name")  # foaf:firstName
     lastName: str = Field(default=None, alias="last_name")  # foaf:last_name
-    orcidId: str = Field(default=None, alias="orcid_id", use_as_id=True)  # m4i:orcidId
+    orcidId: str = Field(default=None, alias="orcid_id")  # m4i:orcidId
     affiliation: Organization = Field(default=None)  # schema:affiliation
+
+    @model_validator(mode="before")
+    def _change_id(self):
+        return as_id(self, "orcidId")
 
     def to_text(self) -> str:
         """Return the text representation of the class"""

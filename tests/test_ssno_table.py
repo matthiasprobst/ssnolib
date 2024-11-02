@@ -3,6 +3,7 @@ import pathlib
 import platform
 import shutil
 import unittest
+from datetime import datetime
 
 import h5rdmtoolbox as h5tbx
 import pydantic
@@ -11,7 +12,6 @@ import yaml
 from ontolutils import Thing
 from ontolutils.namespacelib.m4i import M4I
 from ontolutils.utils.qudt_units import parse_unit
-from win32ctypes.pywin32.pywintypes import datetime
 
 import ssnolib
 from ssnolib import Organization, Person, AgentRole

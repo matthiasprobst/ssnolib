@@ -7,9 +7,9 @@ from datetime import datetime
 from typing import List, Union, Dict, Optional, Tuple
 
 import rdflib
-from ontolutils import namespaces, urirefs, Thing
+from ontolutils import namespaces, urirefs, Thing, as_id
 from ontolutils.namespacelib.m4i import M4I
-from pydantic import field_validator, Field, HttpUrl, ValidationError
+from pydantic import field_validator, Field, HttpUrl, ValidationError, model_validator
 from rdflib import URIRef
 
 from ssnolib import config
@@ -275,7 +275,7 @@ class StandardNameTable(Concept):
     title: Optional[str] = None
     hasVersion: Optional[str] = Field(default=None, alias="version")
     description: Optional[str] = None
-    identifier: Optional[str] = None
+    identifier: Optional[str] = Field(default=None)
     created: Optional[str] = None
     modified: Optional[str] = None
     # creator: Optional[Union[Person, List[Person], Organization, List[Organization]]] = None  # depr!
@@ -297,6 +297,10 @@ class StandardNameTable(Concept):
         if self.title:
             return self.title
         return ''
+
+    @model_validator(mode="before")
+    def change_id(self):
+        return as_id(self, "identifier")
 
     @field_validator('qualifiedAttribution', mode='before')
     @classmethod

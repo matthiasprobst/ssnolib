@@ -138,6 +138,8 @@ class TestClasses(unittest.TestCase):
         for s, p, o in g.triples((None, None, None)):
             self.assertIsInstance(p, rdflib.URIRef)
 
+        snt.model_dump_jsonld()
+
     def test_standard_name(self):
         """describe "air_temperature" from
         http://cfconventions.org/Data/cf-standard-names/current/build/cf-standard-name-table.html"""

@@ -5,6 +5,7 @@ from .prov.attribution import Attribution
 from .ssno import StandardNameTable, Qualification, VectorQualification, Transformation, Character, AgentRole, \
     VectorStandardName, StandardName, ScalarStandardName
 from .utils import get_cache_dir
+from . import schema
 from .ssno.standard_name_table import parse_table
 
 CACHE_DIR = get_cache_dir()
