@@ -1,6 +1,4 @@
-from typing import Any
-from typing import List, Tuple
-from typing import Optional
+from typing import Optional, Union, List, Tuple, Any
 
 from ontolutils import Thing, namespaces, urirefs
 from pydantic import Field
@@ -9,6 +7,7 @@ from pydantic.functional_validators import WrapValidator
 from typing_extensions import Annotated
 
 from .. import StandardNameTable
+from ..dcat import Dataset as DcatDataset
 
 
 def is_internal_hdf5_path(path: str, handler):
@@ -47,7 +46,6 @@ class Group(Thing):
     @field_validator("member", mode="before")
     @classmethod
     def check_member(cls, group_or_dataset):
-        from .members import Group, Dataset
         if isinstance(group_or_dataset, (List, Tuple)):
             for item in group_or_dataset:
                 if not isinstance(item, (Group, Dataset)):
@@ -70,7 +68,6 @@ class RootGroup(Group):
     @field_validator("member", mode="before")
     @classmethod
     def check_member(cls, group_or_dataset):
-        from .members import Group, Dataset
         if isinstance(group_or_dataset, (List, Tuple)):
             for item in group_or_dataset:
                 if not isinstance(item, (Group, Dataset)):
@@ -89,4 +86,5 @@ class RootGroup(Group):
 class File(Thing):
     """Dataset"""
     rootGroup: Optional[RootGroup] = Field(default=None, alias="root_group")
-    usesStandardNameTable: Optional[StandardNameTable] = Field(default=None, alias="uses_standard_name_table")
+    usesStandardNameTable: Optional[Union[StandardNameTable, DcatDataset]] = Field(default=None,
+                                                                                   alias="uses_standard_name_table")

@@ -22,7 +22,6 @@ class TestHDF5(unittest.TestCase):
             Dataset(name='Dataset1')
         ds1 = Dataset(name='/Dataset1')
         self.assertEqual(ds1.name, '/Dataset1')
-        dataset = Dataset()
 
     def testGroup(self):
         with self.assertRaises(pydantic.ValidationError):
