@@ -584,10 +584,31 @@ class StandardNameTable(Concept):
         if filename.exists() and not overwrite:
             raise ValueError(f'File {filename} exists and overwrite is False.')
         if filename.suffix != ".jsonld":
-            raise ValueError(f'Expected a JSON-LD file, got {filename.suffix}')
+            raise ValueError(f'Expected a JSON-LD filename, got {filename.suffix}')
         with open(filename, 'w', encoding='utf-8') as f:
             f.write(self.model_dump_jsonld())
         return pathlib.Path(filename)
+
+
+    def to_ttl(self, filename, overwrite = False):
+        filename = pathlib.Path(filename)
+        if filename.exists() and not overwrite:
+            raise ValueError(f'File {filename} exists and overwrite is False.')
+        if filename.suffix != ".ttl":
+            raise ValueError(f'Expected a Turtle filename (.ttl), got {filename.suffix}')
+        g = rdflib.Graph().parse(data=self.model_dump_jsonld(), format="json-ld")
+        g.serialize(destination=filename, format="turtle")
+        return filename
+
+    def to_xml(self, filename, overwrite = False):
+        filename = pathlib.Path(filename)
+        if filename.exists() and not overwrite:
+            raise ValueError(f'File {filename} exists and overwrite is False.')
+        if filename.suffix != ".xml":
+            raise ValueError(f'Expected a XML filename (.xml), got {filename.suffix}')
+        g = rdflib.Graph().parse(data=self.model_dump_jsonld(), format="json-ld")
+        g.serialize(destination=filename, format="xml")
+        return filename
 
     def to_yaml(self, filename: Union[str, pathlib.Path], overwrite: bool = False, exists_ok=False) -> pathlib.Path:
         """Dump the Standard Name Table to a file.
