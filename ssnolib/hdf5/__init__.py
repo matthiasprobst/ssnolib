@@ -1,3 +1,3 @@
-from .allotrope import File, Group, Dataset, RootGroup
+from .allotrope import File, Group, Dataset
 
-__all__ = ("File", "Group", "Dataset", "RootGroup")
+__all__ = ("File", "Group", "Dataset")

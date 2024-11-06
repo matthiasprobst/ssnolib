@@ -31,7 +31,7 @@ HDF5RootPath = Annotated[str, WrapValidator(is_internal_hdf5_path)]
          name='hdf5:name')
 class Dataset(Thing):
     """Dataset"""
-    name: HDF5Path = Field(default=None)
+    name: HDF5Path
 
 
 @namespaces(hdf5="http://purl.allotrope.org/ontologies/hdf5/1.8#")
@@ -40,30 +40,8 @@ class Dataset(Thing):
          name='hdf5:name')
 class Group(Thing):
     """hdf5:Group"""
+    name: HDF5Path
     member: Any = Field(default=None)
-    name: HDF5Path = Field(default=None)
-
-    @field_validator("member", mode="before")
-    @classmethod
-    def check_member(cls, group_or_dataset):
-        if isinstance(group_or_dataset, (List, Tuple)):
-            for item in group_or_dataset:
-                if not isinstance(item, (Group, Dataset)):
-                    raise ValueError("Group member must be of type GroupOrDataset")
-            return group_or_dataset
-        if not isinstance(group_or_dataset, (Group, Dataset)):
-            raise ValueError("Group member must be of type GroupOrDataset")
-        return group_or_dataset
-
-
-@namespaces(hdf5="http://purl.allotrope.org/ontologies/hdf5/1.8#")
-@urirefs(RootGroup='hdf5:RootGroup',
-         member='hdf5:member',
-         name='hdf5:name')
-class RootGroup(Group):
-    """hdf5:RootGroup"""
-    member: Any = Field(default=None)
-    name: HDF5RootPath = Field(default="/")
 
     @field_validator("member", mode="before")
     @classmethod
@@ -85,6 +63,13 @@ class RootGroup(Group):
          usesStandardNameTable='hdf5:usesStandardNameTable')
 class File(Thing):
     """Dataset"""
-    rootGroup: Optional[RootGroup] = Field(default=None, alias="root_group")
+    rootGroup: Optional[Group] = Field(default=None, alias="root_group")
     usesStandardNameTable: Optional[Union[StandardNameTable, DcatDataset]] = Field(default=None,
                                                                                    alias="uses_standard_name_table")
+
+    @field_validator("rootGroup", mode="before")
+    @classmethod
+    def _rootGroup(cls, root_group):
+        if root_group.name != '/':
+            raise ValueError("rootGroup must be of type Group")
+        return root_group
