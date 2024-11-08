@@ -130,10 +130,11 @@ class Role(Thing):
     """prov:Role"""
 
 
-@namespaces(prov="http://www.w3.org/ns/prov#")
+@namespaces(prov="http://www.w3.org/ns/prov#",
+            dcat="http://www.w3.org/ns/dcat#")
 @urirefs(Attribution='prov:Attribution',
          agent='prov:agent',
-         hadRole='prov:hadRole')
+         hadRole='dcat:hadRole')
 class Attribution(Thing):
     """Pydantic Model for http://www.w3.org/ns/prov#Agent
 
