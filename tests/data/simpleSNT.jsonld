@@ -1,6 +1,6 @@
 {
     "@context": {
-        "owl": "http://www.w3.org/2002/07/owl#",
+        "owl": "https://www.w3.org/2002/07/owl#",
         "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
         "dcat": "http://www.w3.org/ns/dcat#",
         "dcterms": "http://purl.org/dc/terms/",
@@ -8,7 +8,7 @@
         "ssno": "https://matthiasprobst.github.io/ssno#",
         "foaf": "http://xmlns.com/foaf/0.1/",
         "m4i": "http://w3id.org/nfdi4ing/metadata4ing#",
-        "schema": "http://schema.org/",
+        "schema": "https://schema.org/",
         "skos": "http://www.w3.org/2004/02/skos/core#"
     },
     "@type": "ssno:StandardNameTable",

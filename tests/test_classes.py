@@ -58,19 +58,19 @@ class TestClasses(unittest.TestCase):
 
     def test_ssnolib_Distribution(self):
         distribution = ssnolib.dcat.Distribution(title='XML Table',
-                                                 downloadURL='http://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
+                                                 downloadURL='https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
                                                  mediaType='text/csv')
         self.assertEqual(str(distribution.mediaType),
                          "https://www.iana.org/assignments/media-types/text/csv")
 
         distribution = ssnolib.dcat.Distribution(title='XML Table',
-                                                 downloadURL='http://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
+                                                 downloadURL='https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
                                                  mediaType='application/xml')
         self.assertEqual(str(distribution.mediaType),
                          "https://www.iana.org/assignments/media-types/application/xml")
         self.assertEqual(distribution.title, 'XML Table')
         self.assertEqual(str(distribution.downloadURL),
-                         'http://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml')
+                         'https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml')
 
         download_filename = distribution.download('cf-standard-name-table.xml')
         self.assertIsInstance(download_filename, pathlib.Path)
@@ -86,16 +86,16 @@ class TestClasses(unittest.TestCase):
                          f'StandardNameTable(id={snt.id}, title=CF Standard Name Table v79, standardNames=[])')
 
         distribution = ssnolib.dcat.Distribution(title='XML Table',
-                                                 downloadURL='http://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
+                                                 downloadURL='https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
                                                  mediaType='application/xml')
         self.assertEqual(distribution.title, 'XML Table')
         self.assertEqual(str(distribution.downloadURL),
-                         'http://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml')
+                         'https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml')
         snt = ssnolib.StandardNameTable(title='CF Standard Name Table v79',
                                         distribution=[distribution, ])
         self.assertEqual(snt.distribution[0].title, 'XML Table')
         self.assertEqual(str(snt.distribution[0].downloadURL),
-                         'http://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml')
+                         'https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml')
         table_filename = snt.distribution[0].download(
             dest_filename=CACHE_DIR / 'cf-standard-name-table.xml',
         )
@@ -142,7 +142,7 @@ class TestClasses(unittest.TestCase):
 
     def test_standard_name(self):
         """describe "air_temperature" from
-        http://cfconventions.org/Data/cf-standard-names/current/build/cf-standard-name-table.html"""
+        https://cfconventions.org/Data/cf-standard-names/current/build/cf-standard-name-table.html"""
 
         with self.assertRaises(pydantic.ValidationError):
             # invalid unit
@@ -206,7 +206,7 @@ class TestClasses(unittest.TestCase):
                          'Air temperature is the bulk temperature of the air, not the surface (skin) temperature.')
         self.assertEqual(jsonld_dict['ssno:unit'], 'http://qudt.org/vocab/unit/K')
 
-        # https://qudt.org/vocab/unit/K
+        # http://qudt.org/vocab/unit/K
 
     def test_snt_from_yaml(self):
         snt_yml_filename = __this_dir__ / 'data/test_snt.yaml'

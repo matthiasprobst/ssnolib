@@ -18,16 +18,16 @@ class TestDcat(utils.ClassTest):
             description='Resource description',
             creator=prov.Person(first_name='John', lastName='Doe'),
             version='1.0',
-            identifier='http://example.com/resource'
+            identifier='https://example.com/resource'
         )
-        self.assertEqual(resource1.id, 'http://example.com/resource')
+        self.assertEqual(resource1.id, 'https://example.com/resource')
         self.assertEqual(resource1.title, 'Resource title')
         self.assertEqual(resource1.description, 'Resource description')
         self.assertIsInstance(resource1.creator, prov.Person)
         self.assertEqual(resource1.creator.firstName, 'John')
         self.assertEqual(resource1.creator.lastName, 'Doe')
         self.assertEqual(resource1.version, '1.0')
-        self.assertEqual(str(resource1.identifier), 'http://example.com/resource')
+        self.assertEqual(str(resource1.identifier), 'https://example.com/resource')
 
     def test_Distribution(self):
         distribution_none_downloadURL = dcat.Distribution(
@@ -52,20 +52,20 @@ class TestDcat(utils.ClassTest):
             description='Distribution description',
             creator=prov.Person(first_name='John', lastName='Doe'),
             version='1.0',
-            identifier='http://example.com/distribution',
-            accessURL='http://example.com/distribution',
-            downloadURL='http://example.com/distribution/download'
+            identifier='https://example.com/distribution',
+            accessURL='https://example.com/distribution',
+            downloadURL='https://example.com/distribution/download'
         )
-        self.assertEqual(distribution1.id, 'http://example.com/distribution')
+        self.assertEqual(distribution1.id, 'https://example.com/distribution')
         self.assertEqual(distribution1.title, 'Distribution title')
         self.assertEqual(distribution1.description, 'Distribution description')
         self.assertIsInstance(distribution1.creator, prov.Person)
         self.assertEqual(distribution1.creator.firstName, 'John')
         self.assertEqual(distribution1.creator.lastName, 'Doe')
         self.assertEqual(distribution1.version, '1.0')
-        self.assertEqual(str(distribution1.identifier), 'http://example.com/distribution')
-        self.assertEqual(str(distribution1.accessURL), 'http://example.com/distribution')
-        self.assertEqual(str(distribution1.downloadURL), 'http://example.com/distribution/download')
+        self.assertEqual(str(distribution1.identifier), 'https://example.com/distribution')
+        self.assertEqual(str(distribution1.accessURL), 'https://example.com/distribution')
+        self.assertEqual(str(distribution1.downloadURL), 'https://example.com/distribution/download')
 
         with self.assertRaises(requests.exceptions.HTTPError):
             distribution1.download(timeout=60)
@@ -102,28 +102,28 @@ class TestDcat(utils.ClassTest):
             description='Dataset description',
             creator=prov.Person(first_name='John', lastName='Doe'),
             version='1.0',
-            identifier='http://example.com/dataset',
+            identifier='https://example.com/dataset',
             distribution=[
                 dcat.Distribution(
                     title='Distribution title',
                     description='Distribution description',
                     creator=prov.Person(first_name='John', lastName='Doe'),
                     version='1.0',
-                    identifier='http://example.com/distribution',
-                    accessURL='http://example.com/distribution',
-                    downloadURL='http://example.com/distribution/download'
+                    identifier='https://example.com/distribution',
+                    accessURL='https://example.com/distribution',
+                    downloadURL='https://example.com/distribution/download'
                 )
             ]
         )
-        self.assertEqual(dataset1.id, 'http://example.com/dataset')
-        self.assertEqual(dataset1.identifier, 'http://example.com/dataset')
+        self.assertEqual(dataset1.id, 'https://example.com/dataset')
+        self.assertEqual(dataset1.identifier, 'https://example.com/dataset')
         self.assertEqual(dataset1.title, 'Dataset title')
         self.assertEqual(dataset1.description, 'Dataset description')
         self.assertIsInstance(dataset1.creator, prov.Person)
         self.assertEqual(dataset1.creator.firstName, 'John')
         self.assertEqual(dataset1.creator.lastName, 'Doe')
         self.assertEqual(dataset1.version, '1.0')
-        self.assertEqual(str(dataset1.identifier), 'http://example.com/dataset')
+        self.assertEqual(str(dataset1.identifier), 'https://example.com/dataset')
         self.assertIsInstance(dataset1.distribution[0], dcat.Distribution)
         self.assertEqual(dataset1.distribution[0].title, 'Distribution title')
         self.assertEqual(dataset1.distribution[0].description, 'Distribution description')
@@ -131,7 +131,7 @@ class TestDcat(utils.ClassTest):
         self.assertEqual(dataset1.distribution[0].creator.firstName, 'John')
         self.assertEqual(dataset1.distribution[0].creator.lastName, 'Doe')
         self.assertEqual(dataset1.distribution[0].version, '1.0')
-        self.assertEqual(str(dataset1.distribution[0].id), 'http://example.com/distribution')
-        self.assertEqual(str(dataset1.distribution[0].identifier), 'http://example.com/distribution')
-        self.assertEqual(str(dataset1.distribution[0].accessURL), 'http://example.com/distribution')
-        self.assertEqual(str(dataset1.distribution[0].downloadURL), 'http://example.com/distribution/download')
+        self.assertEqual(str(dataset1.distribution[0].id), 'https://example.com/distribution')
+        self.assertEqual(str(dataset1.distribution[0].identifier), 'https://example.com/distribution')
+        self.assertEqual(str(dataset1.distribution[0].accessURL), 'https://example.com/distribution')
+        self.assertEqual(str(dataset1.distribution[0].downloadURL), 'https://example.com/distribution/download')

@@ -33,7 +33,7 @@ To start the GUI, run the following command:
 ```bash
 ssnolib --app
 ```
-This will start a local development server with the default port 5000 and the local host IP: `http://127.0.0.1:5000/`
+This will start a local development server with the default port 5000 and the local host IP: `https://127.0.0.1:5000/`
 (see image below).
 
 **Note**: The web app is work in progress! Some errors might not be caught correctly. Also, you should not expose this 
@@ -52,7 +52,7 @@ from ssnolib.dcat import Distribution
 
 distribution = Distribution(
     title='XML Table',
-    download_URL='http://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
+    download_URL='https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
     media_type='application/xml'
 )
 snt = ssnolib.StandardNameTable(title='CF Standard Name Table (latest version)',
@@ -65,7 +65,7 @@ The last line dumps the object to a JSON-LD string:
 ```json
 {
     "@context": {
-        "owl": "http://www.w3.org/2002/07/owl#",
+        "owl": "https://www.w3.org/2002/07/owl#",
         "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
         "dcat": "http://www.w3.org/ns/dcat#",
         "dcterms": "http://purl.org/dc/terms/",
@@ -80,7 +80,7 @@ The last line dumps the object to a JSON-LD string:
             "@type": "dcat:Distribution",
             "@id": "_:Nce83c15ff61640e68ba4468ebf016787",
             "dcterms:title": "XML Table",
-            "dcat:downloadURL": "http://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml",
+            "dcat:downloadURL": "https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml",
             "dcat:mediaType": "https://www.iana.org/assignments/media-types/application/xml"
         }
     ]
@@ -130,7 +130,7 @@ from ssnolib.dcat import Distribution
 
 # Create a distribution object (downloadable XML file containing the standard name table)
 distribution = Distribution(title='XML Table',
-                            downloadURL='http://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
+                            downloadURL='https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
                             mediaType='application/xml')
 
 # Create a standard name table object
@@ -147,7 +147,7 @@ The corresponding JSON-LD file looks like this (showing only 2 standard names fo
 ```json
 {
     "@context": {
-        "owl": "http://www.w3.org/2002/07/owl#",
+        "owl": "https://www.w3.org/2002/07/owl#",
         "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
         "dcat": "http://www.w3.org/ns/dcat#",
         "dcterms": "http://purl.org/dc/terms/",
@@ -162,7 +162,7 @@ The corresponding JSON-LD file looks like this (showing only 2 standard names fo
             "@type": "dcat:Distribution",
             "@id": "_:N8588e715cf1e4216ba142eea6f1b297d",
             "dcterms:title": "XML Table",
-            "dcat:downloadURL": "http://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml",
+            "dcat:downloadURL": "https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml",
             "dcat:mediaType": "https://www.iana.org/assignments/media-types/application/xml"
         }
     ]
@@ -189,7 +189,7 @@ The corresponding JSON-LD file:
 ```json
 {
     "@context": {
-        "owl": "http://www.w3.org/2002/07/owl#",
+        "owl": "https://www.w3.org/2002/07/owl#",
         "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
         "skos": "http://www.w3.org/2004/02/skos/core#",
         "ssno": "https://matthiasprobst.github.io/ssno#",

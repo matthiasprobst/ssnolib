@@ -29,12 +29,13 @@ CACHE_DIR = ssnolib.utils.get_cache_dir()
 
 SNT_JSONLD = """{
   "@context": {
-    "owl": "http://www.w3.org/2002/07/owl#",
+    "owl": "https://www.w3.org/2002/07/owl#",
     "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
     "dcat": "http://www.w3.org/ns/dcat#",
     "dct": "http://purl.org/dc/terms/",
     "prov": "http://www.w3.org/ns/prov#",
-    "ssno": "https://matthiasprobst.github.io/ssno#"
+    "ssno": "https://matthiasprobst.github.io/ssno#",
+    "schema": "https://schema.org/"
   },
   "@type": "ssno:StandardNameTable",
   "dct:title": "OpenCeFaDB Fan Standard Name Table",
@@ -285,7 +286,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
     def test_standard_name_table_from_yaml(self):
         pathlib.Path('snt.yaml').unlink(missing_ok=True)
 
-        dist = Distribution(downloadURL='http://example.org/snt.yaml',
+        dist = Distribution(downloadURL='https://example.org/snt.yaml',
                             mediaType='application/yaml')
         snt = StandardNameTable()
         with self.assertRaises(requests.exceptions.HTTPError):
@@ -308,7 +309,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         self.assertEqual(snt.title, 'SNT')
 
     def test_standard_name_table_from_xml(self):
-        cf_contention = 'http://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml'
+        cf_contention = 'https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml'
         snt_xml_filename = download_file(cf_contention,
                                          dest_filename='snt.xml',
                                          exist_ok=True)
@@ -337,7 +338,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         snt_xml_filename.unlink(missing_ok=True)
 
         dist = Distribution(
-            downloadURL='http://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
+            downloadURL='https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
             mediaType='application/xml')
 
         snt = StandardNameTable.parse(dist, make_standard_names_lowercase=True)
@@ -563,7 +564,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
 
     if platform.system() != "Darwin":  # pandoc could not be installed in CI for macOS... to be solved...
         def test_to_html(self):
-            cf_contention = 'http://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml'
+            cf_contention = 'https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml'
             snt_xml_filename = download_file(cf_contention,
                                              dest_filename='snt.xml',
                                              exist_ok=True)

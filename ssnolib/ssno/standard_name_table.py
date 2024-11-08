@@ -105,7 +105,7 @@ def _generate_ordered_list_of_qualifications(qres):
 
 
 @namespaces(ssno="https://matthiasprobst.github.io/ssno#",
-            schema="http://schema.org/",
+            schema="https://schema.org/",
             dcterms="http://purl.org/dc/terms/")
 @urirefs(StandardNameModification='ssno:StandardNameModification',
          name='schema:name',
@@ -709,7 +709,7 @@ class StandardNameTable(Concept):
 
         query = """
                 PREFIX ssno: <https://matthiasprobst.github.io/ssno#>
-                PREFIX schema: <http://schema.org/>
+                PREFIX schema: <https://schema.org/>
 
                 SELECT ?qualification ?name ?before ?after ?preposition
                 WHERE {
@@ -779,7 +779,7 @@ class StandardNameTable(Concept):
 
         query = """
                 PREFIX ssno: <https://matthiasprobst.github.io/ssno#>
-                PREFIX schema: <http://schema.org/>
+                PREFIX schema: <https://schema.org/>
 
                 SELECT ?qualification ?name ?before ?after ?preposition
                 WHERE {
@@ -1099,7 +1099,7 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
 
     # get namespaces:
     prefixes = StandardNameTable.get_context()
-    prefixes.update({"schema": "http://schema.org/"})
+    prefixes.update({"schema": "https://schema.org/"})
     prefixes.update({"foaf": "http://xmlns.com/foaf/0.1/"})
     prefixes.update({"m4i": "http://w3id.org/nfdi4ing/metadata4ing#"})
 
@@ -1292,7 +1292,7 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
             ]
         )
         # sparql_get_standard_names = f"""
-        #     PREFIX owl: <http://www.w3.org/2002/07/owl#>
+        #     PREFIX owl: <https://www.w3.org/2002/07/owl#>
         #     PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
         #     PREFIX dcat: <http://www.w3.org/ns/dcat#>
         #     PREFIX dcterms: <http://purl.org/dc/terms/>

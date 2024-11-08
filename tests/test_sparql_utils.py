@@ -11,12 +11,12 @@ class TestSparqlUtils(unittest.TestCase):
 
     def test_build_sparql_query(self):
         sparql_query = build_simple_sparql_query(dict(
-            owl="http://www.w3.org/2002/07/owl#",
+            owl="https://www.w3.org/2002/07/owl#",
             rdfs="http://www.w3.org/2000/01/rdf-schema#"
         ),
             wheres=[WHERE(s="?id", p="a", o="ssno:StandardNameTable")]
         )
-        expected_sparql_string = """PREFIX owl: <http://www.w3.org/2002/07/owl#>
+        expected_sparql_string = """PREFIX owl: <https://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT ?id
 WHERE {?id a ssno:StandardNameTable .

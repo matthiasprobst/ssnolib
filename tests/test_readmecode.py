@@ -14,7 +14,7 @@ class TestReadme(unittest.TestCase):
 
         distribution = Distribution(
             title='XML Table',
-            downloadURL='http://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
+            downloadURL='https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
             mediaType='application/xml'
         )
         snt = ssnolib.StandardNameTable(title='CF Standard Name Table (latest version)',
@@ -27,7 +27,7 @@ class TestReadme(unittest.TestCase):
 
         # Create a distribution object (downloadable XML file containing the standard name table)
         distribution = Distribution(title='XML Table',
-                                    downloadURL='http://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
+                                    downloadURL='https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
                                     mediaType='application/xml')
 
         # Create a standard name table object

@@ -25,23 +25,23 @@ class TestSchema(utils.ClassTest):
         )
 
         proj = Project(
-            identifier='http://example.com/project',
+            identifier='https://example.com/project',
             funder=prov.Organization(name='Funder'),
             usesStandardnameTable=dataset
         )
 
-        self.assertEqual(str(proj.identifier), 'http://example.com/project')
+        self.assertEqual(str(proj.identifier), 'https://example.com/project')
         self.assertIsInstance(proj.funder, prov.Organization)
         self.assertEqual(proj.funder.name, 'Funder')
-        self.assertEqual(proj.id, 'http://example.com/project')
+        self.assertEqual(proj.id, 'https://example.com/project')
 
     def test_research_project(self):
         snt = StandardNameTable(title="My SNT")
         proj = ResearchProject(
-            identifier='http://example.com/research_project',
+            identifier='https://example.com/research_project',
             funder=prov.Organization(name='Funder'),
             usesStandardnameTable=snt
         )
         self.assertEqual(proj.usesStandardnameTable.title, 'My SNT')
-        self.assertEqual(proj.id, 'http://example.com/research_project')
+        self.assertEqual(proj.id, 'https://example.com/research_project')
 
