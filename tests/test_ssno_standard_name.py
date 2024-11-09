@@ -17,6 +17,16 @@ CACHE_DIR = ssnolib.utils.get_cache_dir()
 
 class TestSSNOStandardName(unittest.TestCase):
 
+    def test_standard_name_and_table(self):
+        snt = StandardNameTable(title="my snt")
+        sn = StandardName(
+            standard_name='x_velocity',
+            unit="m/s",
+            description='x component of velocity',
+            standardNameTable=snt
+        )
+        self.assertEqual(sn.standardNameTable.title, "my snt")
+
     def test_standard_name_alias(self):
         sn = StandardName(standard_name='x_velocity',
                           description='x component of velocity',

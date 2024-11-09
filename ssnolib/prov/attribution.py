@@ -2,7 +2,10 @@ from typing import Union, List
 
 from ontolutils import Thing, namespaces, urirefs, as_id
 from pydantic import EmailStr, HttpUrl, Field, field_validator, model_validator
+from typing import Optional, TYPE_CHECKING
 
+if TYPE_CHECKING:
+    from ..dcat.role import Role  # Only imported for type checking and forward reference
 
 @namespaces(prov="http://www.w3.org/ns/prov#",
             foaf="http://xmlns.com/foaf/0.1/")
@@ -94,8 +97,6 @@ class Person(Agent):
         Last name (foaf:lastName)
     orcidId: str = None
         ORCID ID of person (m4i:orcidId)
-    wasRoleIn: HttpUrl
-        prov:wasRoleIn references the association (e.g. between an agent and an activity) in which a role shall be defined. Inverse property of prov:hadRole.
 
     Extra fields are possible but not explicitly defined here.
     """
@@ -124,12 +125,6 @@ class Person(Agent):
         return '; '.join(parts)
 
 
-@namespaces(prov="http://www.w3.org/ns/prov#")
-@urirefs(Role='prov:Role')
-class Role(Thing):
-    """prov:Role"""
-
-
 @namespaces(prov="http://www.w3.org/ns/prov#",
             dcat="http://www.w3.org/ns/dcat#")
 @urirefs(Attribution='prov:Attribution',
@@ -156,6 +151,9 @@ class Attribution(Thing):
     @field_validator('hadRole', mode='before')
     @classmethod
     def _hadRole(cls, hadRole: HttpUrl):
+        from ..dcat.role import Role
+        if isinstance(hadRole, Role):
+            return hadRole
         HttpUrl(hadRole)
         return str(hadRole)
 

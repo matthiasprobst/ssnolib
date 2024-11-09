@@ -1292,7 +1292,7 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
             ]
         )
         # sparql_get_standard_names = f"""
-        #     PREFIX owl: <https://www.w3.org/2002/07/owl#>
+        #     PREFIX owl: <http://www.w3.org/2002/07/owl#>
         #     PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
         #     PREFIX dcat: <http://www.w3.org/ns/dcat#>
         #     PREFIX dcterms: <http://purl.org/dc/terms/>

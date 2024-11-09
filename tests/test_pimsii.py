@@ -16,7 +16,7 @@ class TestPIMSII(unittest.TestCase):
         self.assertDictEqual(
             {
                 "@context": {
-                    "owl": "https://www.w3.org/2002/07/owl#",
+                    "owl": "http://www.w3.org/2002/07/owl#",
                     "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
                     "pims": "http://www.molmod.info/semantics/pims-ii.ttl#"
                 },
@@ -39,7 +39,7 @@ class TestPIMSII(unittest.TestCase):
         self.assertDictEqual(
             {
                 "@context": {
-                    "owl": "https://www.w3.org/2002/07/owl#",
+                    "owl": "http://www.w3.org/2002/07/owl#",
                     "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
                     "pims": "http://www.molmod.info/semantics/pims-ii.ttl#",
                     "m4i": "http://w3id.org/nfdi4ing/metadata4ing#",
