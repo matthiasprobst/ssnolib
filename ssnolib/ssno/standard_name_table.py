@@ -110,7 +110,7 @@ def _generate_ordered_list_of_qualifications(qres):
 @urirefs(StandardNameModification='ssno:StandardNameModification',
          name='schema:name',
          description='dcterms:description')
-class StandardNameModification(Thing):
+class StandardNameModification(Concept):
     """Implementation of ssno:StandardNameModification"""
 
     name: str  # schema:name
@@ -193,7 +193,7 @@ class VectorQualification(Qualification):
 @urirefs(Character='ssno:Character',
          character='ssno:character',
          associatedWith='ssno:associatedWith')
-class Character(Thing):
+class Character(Concept):
     """Implementation of ssno:Transformation"""
 
     character: str  # ssno:character
@@ -589,8 +589,7 @@ class StandardNameTable(Concept):
             f.write(self.model_dump_jsonld())
         return pathlib.Path(filename)
 
-
-    def to_ttl(self, filename, overwrite = False):
+    def to_ttl(self, filename, overwrite=False):
         filename = pathlib.Path(filename)
         if filename.exists() and not overwrite:
             raise ValueError(f'File {filename} exists and overwrite is False.')
@@ -600,7 +599,7 @@ class StandardNameTable(Concept):
         g.serialize(destination=filename, format="turtle")
         return filename
 
-    def to_xml(self, filename, overwrite = False):
+    def to_xml(self, filename, overwrite=False):
         filename = pathlib.Path(filename)
         if filename.exists() and not overwrite:
             raise ValueError(f'File {filename} exists and overwrite is False.')
