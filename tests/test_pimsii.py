@@ -18,7 +18,8 @@ class TestPIMSII(unittest.TestCase):
                 "@context": {
                     "owl": "http://www.w3.org/2002/07/owl#",
                     "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
-                    "pims": "http://www.molmod.info/semantics/pims-ii.ttl#"
+                    "pims": "http://www.molmod.info/semantics/pims-ii.ttl#",
+                    "m4i": "http://w3id.org/nfdi4ing/metadata4ing#"
                 },
                 "@type": "pims:Variable",
                 "rdfs:label": "my variable",
@@ -31,6 +32,7 @@ class TestPIMSII(unittest.TestCase):
         prop = Property(
             id="_:b1",
             label="my property",
+            hasValue=5.4,
             hasStandardName=StandardName(
                 id="_:b2",
                 standardName='x_velocity',
@@ -47,8 +49,9 @@ class TestPIMSII(unittest.TestCase):
                     "skos": "http://www.w3.org/2004/02/skos/core#",
                     "dcat": "http://www.w3.org/ns/dcat#"
                 },
-                "@type": "pims-ii:Property",
+                "@type": "pims:Property",
                 "rdfs:label": "my property",
+                "m4i:hasValue": 5.4,
                 "ssno:hasStandardName": {
                     "@type": "ssno:StandardName",
                     "ssno:standardName": "x_velocity",

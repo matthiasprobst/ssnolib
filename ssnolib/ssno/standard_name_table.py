@@ -237,7 +237,8 @@ class Transformation(StandardNameModification):
 
 
 @namespaces(ssno="https://matthiasprobst.github.io/ssno#",
-            dcterms="http://purl.org/dc/terms/")
+            dcterms="http://purl.org/dc/terms/",
+            schema="https://schema.org/")
 @urirefs(StandardNameTable='ssno:StandardNameTable',
          title='dcterms:title',
          hasVersion='dcterms:hasVersion',
@@ -247,7 +248,8 @@ class Transformation(StandardNameModification):
          qualifiedAttribution='prov:qualifiedAttribution',
          standardNames='ssno:standardNames',
          hasModifier='ssno:hasModifier',
-         subject='dcterms:subject'
+         subject='dcterms:subject',
+         keywords='schema:keywords'
          )
 class StandardNameTable(Concept):
     """Implementation of ssno:StandardNameTable
@@ -290,6 +292,7 @@ class StandardNameTable(Concept):
         List[Union[Qualification, VectorQualification, Transformation]]
     ] = Field(default=None, alias="has_modifier")  # ssno:hasModifier
     subject: Optional[Union[str, HttpUrl]] = Field(default=None)
+    keywords: Optional[Union[str, List[str]]] = Field(default=None)
 
     def __str__(self) -> str:
         if self.identifier:
