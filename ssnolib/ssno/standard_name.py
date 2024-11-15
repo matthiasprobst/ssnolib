@@ -29,7 +29,7 @@ class StandardName(Concept):
     )
 
     standardName: str = Field(alias="standard_name")
-    unit: Union[str, HttpUrl]=None
+    unit: Union[str, HttpUrl]=None  # required!
     description: Union[str, List[str]] = None  # ssno:description
     standardNameTable: Union[str, Dataset, "StandardNameTable"] = Field(default=None, alias="standard_name_table")
     alias: Optional[Union["StandardName", HttpUrl, str]] = Field(default=None)

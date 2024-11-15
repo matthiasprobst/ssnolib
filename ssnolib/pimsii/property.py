@@ -1,7 +1,7 @@
-from typing import Optional
+from typing import Union, Optional
 
 from ontolutils import namespaces, urirefs
-from pydantic import Field
+from pydantic import Field, HttpUrl, field_validator
 
 from ssnolib.ssno import StandardName
 from .variable import Variable
@@ -12,4 +12,11 @@ from .variable import Variable
 @urirefs(Property='pims:Property',
          hasStandardName='ssno:hasStandardName')
 class Property(Variable):
-    hasStandardName: Optional[StandardName] = Field(alias="has_standard_name", default=None)
+    hasStandardName: Optional[Union[StandardName, HttpUrl]] = Field(alias="has_standard_name", default=None)
+
+    @field_validator("hasStandardName", mode='before')
+    @classmethod
+    def _hasStandardName(cls, hasStandardName: Union[StandardName, HttpUrl, str], cfg):
+        if isinstance(hasStandardName, StandardName):
+            return hasStandardName
+        return str(HttpUrl(hasStandardName))
