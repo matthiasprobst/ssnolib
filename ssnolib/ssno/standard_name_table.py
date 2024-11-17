@@ -582,33 +582,33 @@ class StandardNameTable(Concept):
         raise ValueError(
             f"The standard name {standard_name} is not part of the table and does not conform to the qualification rules.")
 
-    def to_jsonld(self, filename, overwrite: bool = False) -> pathlib.Path:
+    def to_jsonld(self, filename, overwrite: bool = False, context: Optional[Dict]=None) -> pathlib.Path:
         filename = pathlib.Path(filename)
         if filename.exists() and not overwrite:
             raise ValueError(f'File {filename} exists and overwrite is False.')
         if filename.suffix != ".jsonld":
             raise ValueError(f'Expected a JSON-LD filename, got {filename.suffix}')
         with open(filename, 'w', encoding='utf-8') as f:
-            f.write(self.model_dump_jsonld())
+            f.write(self.model_dump_jsonld(context=context))
         return pathlib.Path(filename)
 
-    def to_ttl(self, filename, overwrite=False):
+    def to_ttl(self, filename, overwrite=False, context: Optional[Dict]=None):
         filename = pathlib.Path(filename)
         if filename.exists() and not overwrite:
             raise ValueError(f'File {filename} exists and overwrite is False.')
         if filename.suffix != ".ttl":
             raise ValueError(f'Expected a Turtle filename (.ttl), got {filename.suffix}')
-        g = rdflib.Graph().parse(data=self.model_dump_jsonld(), format="json-ld")
+        g = rdflib.Graph().parse(data=self.model_dump_jsonld(context=context), format="json-ld")
         g.serialize(destination=filename, format="turtle")
         return filename
 
-    def to_xml(self, filename, overwrite=False):
+    def to_xml(self, filename, overwrite=False, context: Optional[Dict]=None):
         filename = pathlib.Path(filename)
         if filename.exists() and not overwrite:
             raise ValueError(f'File {filename} exists and overwrite is False.')
         if filename.suffix != ".xml":
             raise ValueError(f'Expected a XML filename (.xml), got {filename.suffix}')
-        g = rdflib.Graph().parse(data=self.model_dump_jsonld(), format="json-ld")
+        g = rdflib.Graph().parse(data=self.model_dump_jsonld(context=context), format="json-ld")
         g.serialize(destination=filename, format="xml")
         return filename
 
