@@ -5,6 +5,7 @@ import re
 import warnings
 from datetime import datetime
 from typing import List, Union, Dict, Optional, Tuple
+from dataclasses import make_dataclass
 
 import rdflib
 from ontolutils import namespaces, urirefs, Thing, as_id
@@ -19,7 +20,7 @@ from ssnolib.namespace import SSNO
 from ssnolib.prov import Person, Organization, Attribution
 from ssnolib.qudt.utils import iri2str
 from ssnolib.sparql_utils import build_simple_sparql_query, WHERE
-from ssnolib.utils import parse_and_exclude_none
+from ssnolib.utils import parse_and_exclude_none, download_file
 from . import plugins
 from .standard_name import StandardName, VectorStandardName, ScalarStandardName
 from ..skos import Concept
@@ -535,6 +536,15 @@ class StandardNameTable(Concept):
                 return False
         return False
 
+    def get_standard_name_dict(self) -> Dict[str, StandardName]:
+        return {sn.standardName: sn for sn in self.standardNames}
+
+    def get_standard_names_as_frozen_dataclass(self):
+        """Returns a frozen dataclass with the standard names as attributes."""
+        sn_dict = self.get_standard_name_dict()
+        s = make_dataclass("StandardNames", [(k, type(v)) for k, v in sn_dict.items()], frozen=True)
+        return s(**sn_dict)
+
     def get_standard_name(self, standard_name: str) -> Union[StandardName, None]:
         """Check if the Standard Name Table has a given standard name. If the name is not found it will be checked
         if it can be constructed using the qualification objects. Otherwise, None is returned.
@@ -582,7 +592,7 @@ class StandardNameTable(Concept):
         raise ValueError(
             f"The standard name {standard_name} is not part of the table and does not conform to the qualification rules.")
 
-    def to_jsonld(self, filename, overwrite: bool = False, context: Optional[Dict]=None) -> pathlib.Path:
+    def to_jsonld(self, filename, overwrite: bool = False, context: Optional[Dict] = None) -> pathlib.Path:
         filename = pathlib.Path(filename)
         if filename.exists() and not overwrite:
             raise ValueError(f'File {filename} exists and overwrite is False.')
@@ -592,7 +602,7 @@ class StandardNameTable(Concept):
             f.write(self.model_dump_jsonld(context=context))
         return pathlib.Path(filename)
 
-    def to_ttl(self, filename, overwrite=False, context: Optional[Dict]=None):
+    def to_ttl(self, filename, overwrite=False, context: Optional[Dict] = None):
         filename = pathlib.Path(filename)
         if filename.exists() and not overwrite:
             raise ValueError(f'File {filename} exists and overwrite is False.')
@@ -602,7 +612,7 @@ class StandardNameTable(Concept):
         g.serialize(destination=filename, format="turtle")
         return filename
 
-    def to_xml(self, filename, overwrite=False, context: Optional[Dict]=None):
+    def to_xml(self, filename, overwrite=False, context: Optional[Dict] = None):
         filename = pathlib.Path(filename)
         if filename.exists() and not overwrite:
             raise ValueError(f'File {filename} exists and overwrite is False.')
@@ -701,6 +711,22 @@ class StandardNameTable(Concept):
             yaml.dump(yaml_data, f, sort_keys=False)
 
         return pathlib.Path(filename)
+
+    @staticmethod
+    def download(url: str, fmt: str, **kwargs):
+        """Download a Standard Name Table from a URL.
+
+        Parameters
+        ----------
+        url: str
+            The URL of the Standard Name Table.
+        fmt: str
+            The format of the Standard Name Table.
+        kwargs
+            Additional keyword arguments passed to the reader plugin.
+        """
+        filename = download_file(url=url)
+        return parse_table(source=filename, fmt=fmt)
 
     def get_qualification_regex(self) -> Tuple[str, List[str]]:
         hasModifier = self.hasModifier or []

@@ -215,6 +215,11 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         with open('snt.json', 'w') as f:
             f.write(snt.model_dump_jsonld())
 
+        sn_dict = snt.get_standard_name_dict()
+        self.assertEqual(2, len(sn_dict))
+        self.assertEqual('x_velocity', sn_dict['x_velocity'].standardName)
+        self.assertEqual('y_velocity', sn_dict['y_velocity'].standardName)
+
         snt_loaded = list(StandardNameTable.from_jsonld(data=snt.model_dump_jsonld(), limit=None))
         self.assertEqual(len(snt_loaded), 1)
         self.assertEqual(len(snt_loaded[0].standardNames), 2)
@@ -234,6 +239,12 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         self.assertEqual(snt_loaded.standardNames[1].description, 'y component of velocity')
         self.assertEqual(snt_loaded.standardNames[1].unit, str(parse_unit('m s-1')))
         pathlib.Path('snt.json').unlink(missing_ok=True)
+
+    def test_frozen_standard_name_dataclass(self):
+        snt = ssnolib.parse_table(__this_dir__ / "data/cf.jsonld", fmt='jsonld')
+        frz_dc = snt.get_standard_names_as_frozen_dataclass()
+        self.assertIsInstance(frz_dc.x_wind, StandardName)
+        self.assertEqual(frz_dc.x_wind.standardName, "x_wind")
 
     def test_standard_name_from_jsonld(self):
         sn_jsonld = """{"@id": "local:39257b94-d31c-480e-a43c-8ae7f57fae6d",
