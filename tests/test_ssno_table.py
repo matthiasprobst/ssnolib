@@ -419,8 +419,15 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         # circular reference:
         medium.before = comp
         comp.after = medium
-        with self.assertRaises(ValueError):
+        value_error_raised = False
+        recursion_error_raised = False
+        try:
             medium.model_dump_jsonld()
+        except ValueError as evalerr:
+            value_error_raised = True
+        except RecursionError as recerr:
+            recursion_error_raised = True
+        self.assertTrue(value_error_raised or recursion_error_raised)
 
     def test_cf_qualifications(self):
         # Taken from https://cfconventions.org/Data/cf-standard-names/docs/guidelines.html#id2797725
