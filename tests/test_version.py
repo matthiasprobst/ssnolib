@@ -44,3 +44,14 @@ class TestVersion(unittest.TestCase):
         _ssno_version = f'{_version[0]}.{_version[1]}.{_version[2]}'
         ssno_url = f'https://matthiasprobst.github.io/ssno/{_ssno_version}/'
         assert requests.get(ssno_url).status_code == 200
+
+    def test_citation_cff(self):
+        """checking if the version in CITATION.cff is the same as the one of the ssnolib"""
+        this_version = 'x.x.x'
+        setupcfg_filename = __this_dir__ / '../CITATION.cff'
+        with open(setupcfg_filename, 'r') as f:
+            lines = f.readlines()
+            for line in lines:
+                if 'version: ' in line:
+                    this_version = line.split(':')[-1].strip()
+        self.assertEqual(ssnolib.__version__, this_version)
