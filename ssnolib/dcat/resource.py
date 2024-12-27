@@ -89,7 +89,9 @@ class Resource(Thing):
     @classmethod
     def _identifier(cls, identifier):
         """parse datetime"""
-        return str(HttpUrl(identifier))
+        if identifier.startswith('http'):
+            return str(HttpUrl(identifier))
+        return identifier
 
 
 @namespaces(dcat="http://www.w3.org/ns/dcat#")
