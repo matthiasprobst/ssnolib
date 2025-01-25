@@ -1,6 +1,6 @@
 from .standard_name import StandardName, ScalarStandardName, VectorStandardName
 from .standard_name_table import StandardNameTable, Qualification, VectorQualification, Transformation, Character, \
-    parse_table, AgentRole
+    parse_table, AgentRole, StandardNameModification
 
 __all__ = ('StandardNameTable',
            'Qualification',
@@ -10,5 +10,6 @@ __all__ = ('StandardNameTable',
            'Transformation',
            'StandardName',
            'Character',
-           'AgentRole'
+           'AgentRole',
+           'StandardNameModification'
            )

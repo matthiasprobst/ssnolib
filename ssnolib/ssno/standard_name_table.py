@@ -3,9 +3,9 @@ import json
 import pathlib
 import re
 import warnings
+from dataclasses import make_dataclass
 from datetime import datetime
 from typing import List, Union, Dict, Optional, Tuple
-from dataclasses import make_dataclass
 
 import rdflib
 from ontolutils import namespaces, urirefs, Thing, as_id
@@ -19,11 +19,11 @@ from ssnolib.m4i import TextVariable
 from ssnolib.namespace import SSNO
 from ssnolib.prov import Person, Organization, Attribution
 from ssnolib.qudt.utils import iri2str
+from ssnolib.skos import Concept
 from ssnolib.sparql_utils import build_simple_sparql_query, WHERE
 from ssnolib.utils import parse_and_exclude_none, download_file
 from . import plugins
 from .standard_name import StandardName, VectorStandardName, ScalarStandardName
-from ..skos import Concept
 
 MAX_ITER = 1000
 __this_dir__ = pathlib.Path(__file__).parent
