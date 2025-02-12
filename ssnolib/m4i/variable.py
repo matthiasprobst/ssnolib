@@ -1,16 +1,17 @@
+import warnings
 from typing import Optional
 
 from ontolutils import namespaces, urirefs
-from pydantic import Field
+from ontolutils import parse_unit
+from pydantic import Field, field_validator
 
-from ssnolib.ssno import StandardName
 from ssnolib.pimsii import Variable
+from ssnolib.ssno import StandardName
 
 
 @namespaces(m4i="http://w3id.org/nfdi4ing/metadata4ing#")
 @urirefs(TextVariable='m4i:TextVariable',
-         hasStringValue='m4i:hasStringValue',
-         hasVariableDescription='m4i:hasVariableDescription')
+         hasStringValue='m4i:hasStringValue')
 class TextVariable(Variable):
     """Pydantic Model for http://www.w3.org/ns/prov#Agent
 
@@ -23,11 +24,8 @@ class TextVariable(Variable):
     ----------
     hasStringValue: str
         String value
-    hasVariableDescription: str
-        Variable description
     """
     hasStringValue: Optional[str] = Field(alias="has_string_value", default=None)
-    hasVariableDescription: Optional[str] = Field(alias="has_variable_description", default=None)
 
 
 @namespaces(m4i="http://w3id.org/nfdi4ing/metadata4ing#",
@@ -36,11 +34,21 @@ class TextVariable(Variable):
          hasUnit='m4i:hasUnit',
          hasNumericalValue='m4i:hasNumericalValue',
          hasMaximumValue='m4i:hasMaximumValue',
-         hasVariableDescription='m4i:hasVariableDescription',
          hasStandardName='ssno:hasStandardName')
 class NumericalVariable(Variable):
     hasUnit: Optional[str] = Field(alias="has_unit", default=None)
     hasNumericalValue: Optional[float] = Field(alias="has_numerical_value", default=None)
     hasMaximumValue: Optional[float] = Field(alias="has_maximum_value", default=None)
-    hasVariableDescription: Optional[str] = Field(alias="has_variable_description", default=None)
     hasStandardName: Optional[StandardName] = Field(alias="has_standard_name", default=None)
+
+    @field_validator("hasUnit", mode='before')
+    @classmethod
+    def _parse_unit(cls, unit):
+        if unit.startswith("http"):
+            return str(unit)
+        try:
+            return parse_unit(unit)
+        except KeyError as e:
+            warnings.warn(f"Unit '{unit}' could not be parsed to QUDT IRI. This is a process based on a dictionary "
+                          f"lookup. Either the unit is wrong or it is not yet included in the dictionary. ")
+        return str(unit)

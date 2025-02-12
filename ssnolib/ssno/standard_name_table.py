@@ -250,7 +250,8 @@ class Transformation(StandardNameModification):
          standardNames='ssno:standardNames',
          hasModifier='ssno:hasModifier',
          subject='dcterms:subject',
-         keywords='schema:keywords'
+         keywords='schema:keywords',
+         relation='dcterms:relation'
          )
 class StandardNameTable(Concept):
     """Implementation of ssno:StandardNameTable
@@ -274,6 +275,7 @@ class StandardNameTable(Concept):
     hasModifier: Optional[List[Union[Qualification, Transformation]]]
         List of Qualifications and Transformations
     subject: Optional[str, HttpUrl]
+    relation: Relation to another Resource
     """
     title: Optional[str] = None
     hasVersion: Optional[str] = Field(default=None, alias="version")
@@ -294,6 +296,7 @@ class StandardNameTable(Concept):
     ] = Field(default=None, alias="has_modifier")  # ssno:hasModifier
     subject: Optional[Union[str, HttpUrl]] = Field(default=None)
     keywords: Optional[Union[str, List[str]]] = Field(default=None)
+    relation: Optional[Union[Thing, List[Thing]]] = Field(default=None)
 
     def __str__(self) -> str:
         if self.identifier:
