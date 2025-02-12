@@ -1,5 +1,5 @@
 import warnings
-from typing import Optional
+from typing import Optional, Union, List
 
 from ontolutils import namespaces, urirefs
 from ontolutils import parse_unit
@@ -37,7 +37,7 @@ class TextVariable(Variable):
          hasStandardName='ssno:hasStandardName')
 class NumericalVariable(Variable):
     hasUnit: Optional[str] = Field(alias="has_unit", default=None)
-    hasNumericalValue: Optional[float] = Field(alias="has_numerical_value", default=None)
+    hasNumericalValue: Optional[Union[float, List[float]]] = Field(alias="has_numerical_value", default=None)
     hasMaximumValue: Optional[float] = Field(alias="has_maximum_value", default=None)
     hasStandardName: Optional[StandardName] = Field(alias="has_standard_name", default=None)
 
