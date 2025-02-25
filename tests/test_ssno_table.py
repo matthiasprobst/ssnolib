@@ -102,7 +102,6 @@ SNT_JSONLD = """{
   ]
 }"""
 
-
 class TestSSNOStandardNameTable(unittest.TestCase):
 
     def tearDown(self):
@@ -682,14 +681,14 @@ class TestSSNOStandardNameTable(unittest.TestCase):
             with self.assertRaises(ValueError):
                 _ = xml_snt.to_html(folder="tmp", filename="snt.html")
 
-            filename = xml_snt.to_html()
+            filename = xml_snt.to_html(folder=__this_dir__)
             self.assertTrue(filename.exists())
             self.assertEqual(filename.name, f"{xml_snt.title}.html")
             filename.unlink(missing_ok=True)
             snt_xml_filename.unlink(missing_ok=True)
 
             # save using a custom file:
-            filename = xml_snt.to_html(filename='snt.html')
+            filename = xml_snt.to_html(filename=__this_dir__ / 'snt.html')
             self.assertTrue(filename.exists())
             self.assertEqual(filename.name, "snt.html")
             filename.unlink(missing_ok=True)
