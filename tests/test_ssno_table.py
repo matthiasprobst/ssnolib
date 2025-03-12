@@ -9,7 +9,7 @@ import h5rdmtoolbox as h5tbx
 import pydantic
 import requests.exceptions
 import yaml
-from ontolutils import Thing
+from ontolutils import Thing, QUDT_UNIT
 from ontolutils.namespacelib.m4i import M4I
 from ontolutils.utils.qudt_units import parse_unit
 
@@ -21,6 +21,8 @@ from ssnolib.namespace import SSNO
 from ssnolib.prov import Attribution
 from ssnolib.skos import Concept
 from ssnolib.ssno.standard_name import ScalarStandardName, VectorStandardName
+from ssnolib.ssno.standard_name_table import _compute_new_unit
+from ssnolib.ssno.standard_name_table import check_if_standard_name_can_be_build_with_transformation
 from ssnolib.utils import download_file
 
 __this_dir__ = pathlib.Path(__file__).parent
@@ -102,6 +104,7 @@ SNT_JSONLD = """{
   ]
 }"""
 
+
 class TestSSNOStandardNameTable(unittest.TestCase):
 
     def tearDown(self):
@@ -176,6 +179,14 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         snt = StandardNameTable.from_jsonld(__this_dir__ / 'data/simpleSNT.jsonld', limit=1)
         qualifications = [q for q in snt.hasModifier if isinstance(q, ssnolib.Qualification)]
         self.assertEqual(1, len(qualifications))
+        self.assertEqual(3, len(qualifications[0].hasValidValues))
+        self.assertTrue(snt.verify_name("x_velocity"))
+        self.assertFalse(snt.verify_name("u_velocity"))
+        self.assertTrue(snt.verify_name("x_air_density"))
+        sn = snt.get_standard_name("x_velocity")
+        self.assertEqual("The velocity vector of an object or fluid.The component of a vector", sn.description)
+        self.assertEqual('http://qudt.org/vocab/unit/M-PER-SEC', sn.unit)
+        self.assertEqual("x_velocity", sn.standardName)
 
     def test_standard_name_table_types(self):
         snt = StandardNameTable()
@@ -779,6 +790,37 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         self.assertEqual(t.name, "derivative_of_X_wrt_Y")
         self.assertEqual(t.name, snt.hasModifier[0].name)
 
+    def test_get_transformed_standard_name(self):
+        snt = StandardNameTable(name="Fluid SNT")
+        velocity = StandardName(standardName="velocity", description="velocity", unit="m/s")
+        X = ssnolib.Character(character="X", associatedWith=ssnolib.namespace.SSNO.AnyStandardName)
+        Y = ssnolib.Character(character="Y", associatedWith=ssnolib.namespace.SSNO.AnyStandardName)
+        mean_transformation = ssnolib.Transformation(
+            name="mean_of_X",
+            altersUnit="[X]",
+            hasCharacter=[X, ],
+            description="mean value of X"
+        )
+        x_deriv_of_y = ssnolib.Transformation(
+            name="X_derivative_of_Y",
+            altersUnit="[X]/[Y]",
+            hasCharacter=[X, Y],
+            description="X deriv of Y"
+        )
+        snt.hasModifier = [mean_transformation, x_deriv_of_y]
+        snt.append("standardNames", velocity)
+        self.assertEqual("velocity", snt.get_standard_name("velocity").standardName)
+        matches, found_transformation = check_if_standard_name_can_be_build_with_transformation("mean_of_velocity", snt)
+        self.assertTrue(found_transformation is not None)
+        new_standard_name = snt.get_standard_name("mean_of_velocity")
+        self.assertEqual("mean_of_velocity", new_standard_name.standardName)
+        self.assertEqual(str(new_standard_name.unit), str(QUDT_UNIT.M_PER_SEC))
+
+        new_standard_name = snt.get_standard_name("velocity_derivative_of_mean_of_velocity")
+        self.assertEqual("velocity_derivative_of_mean_of_velocity", new_standard_name.standardName)
+        self.assertEqual(str(new_standard_name.unit), str(QUDT_UNIT.UNITLESS))
+        print(new_standard_name.description)
+
     def test_hdf5_accessor(self):
         # noinspection PyUnresolvedReferences
         from ssnolib import h5accessor
@@ -793,3 +835,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
                              'https://matthiasprobst.github.io/ssno#hasStandardName')
             self.assertEqual(h5.rdf.predicate['snt'],
                              'https://matthiasprobst.github.io/ssno#hasStandardNameTable')
+
+    def test_computing_new_unit(self):
+        new_unit = _compute_new_unit({"X": "m/s", "Y": "m"}, operation="[X]/[Y]")
+        self.assertEqual(new_unit, "1/s")

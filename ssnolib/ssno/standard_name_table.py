@@ -7,9 +7,11 @@ from dataclasses import make_dataclass
 from datetime import datetime
 from typing import List, Union, Dict, Optional, Tuple
 
+import pint
 import rdflib
 from ontolutils import namespaces, urirefs, Thing, as_id
 from ontolutils.namespacelib.m4i import M4I
+from ontolutils.utils.qudt_units import qudt_lookup
 from pydantic import field_validator, Field, HttpUrl, ValidationError, model_validator
 from rdflib import URIRef
 
@@ -46,6 +48,8 @@ ROLE_LOOKUP: Dict[str, str] = {
 }
 
 ROLE2IRI = {v.lower().replace(" ", ""): k for k, v in ROLE_LOOKUP.items()}
+
+_CACHE_VALID_STANDARD_NAMES = {}
 
 
 def _parse_id(_id):
@@ -548,7 +552,31 @@ class StandardNameTable(Concept):
         s = make_dataclass("StandardNames", [(k, type(v)) for k, v in sn_dict.items()], frozen=True)
         return s(**sn_dict)
 
+    def _get_by_transformation(self, standard_name: str) -> Union[StandardName, None]:
+        matches, found_transformation = check_if_standard_name_can_be_build_with_transformation(standard_name, self)
+        if found_transformation is not None:
+            combined_description = " and ".join([f"'{m.standardName}'" for m in matches])
+            if len(matches) == 1:
+                new_description = f"Derived Standard Name using transformation '{found_transformation.name}' ({found_transformation.description}) from standard name {combined_description}."
+            else:
+                new_description = f"Derived Standard Name using transformation '{found_transformation.name}' ({found_transformation.description}) from standard names {combined_description}."
+            valid_standard_name = StandardName(standardName=standard_name,
+                                               unit=alter_unit(matches, found_transformation),
+                                               description=new_description)
+
+            _cache_valid_standard_name(self, valid_standard_name)
+            return valid_standard_name
+
     def get_standard_name(self, standard_name: str) -> Union[StandardName, None]:
+        cached_name = _get_cached_name(self, standard_name)
+        if cached_name is not None:
+            return cached_name
+        is_sn_by_qualification = self._get_by_qualification(standard_name)
+        if is_sn_by_qualification is not None:
+            return is_sn_by_qualification
+        return self._get_by_transformation(standard_name)
+
+    def _get_by_qualification(self, standard_name: str) -> Union[StandardName, None]:
         """Check if the Standard Name Table has a given standard name. If the name is not found it will be checked
         if it can be constructed using the qualification objects. Otherwise, None is returned.
 
@@ -590,10 +618,13 @@ class StandardNameTable(Concept):
                             for s in self.standardNames:
                                 if s.standardName == existing_standard_name.standardName:
                                     q_description = q.description
-                    return StandardName(standardName=standard_name, unit=core_standard_name.unit,
-                                        description=core_standard_name.description + q_description)
-        raise ValueError(
-            f"The standard name {standard_name} is not part of the table and does not conform to the qualification rules.")
+                    constructed_sn = StandardName(standardName=standard_name, unit=core_standard_name.unit,
+                                                  description=core_standard_name.description + q_description)
+                    _cache_valid_standard_name(self, constructed_sn)
+                    return constructed_sn
+        return
+        # raise ValueError(
+        #     f"The standard name {standard_name} is not part of the table and does not conform to the qualification rules.")
 
     def to_jsonld(self, filename, overwrite: bool = False, context: Optional[Dict] = None) -> pathlib.Path:
         filename = pathlib.Path(filename)
@@ -1402,3 +1433,60 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
     if snts:
         return snts[0]
     raise ValueError("No Standard Name Table found.")
+
+
+def get_regex_from_transformation(transformation: Transformation) -> str:
+    """Generate a regex pattern from a transformation."""
+    regex_pattern = transformation.name
+    for character in transformation.hasCharacter:
+        regex_pattern = regex_pattern.replace(character.character, "([a-zA-Z_]+)")
+    return regex_pattern
+
+
+def check_if_standard_name_can_be_build_with_transformation(standard_name: str, snt: StandardNameTable) -> Tuple[
+    List[StandardName], Union[Transformation, None]]:
+    transformations = [t for t in snt.hasModifier if isinstance(t, Transformation)]
+    for transformation in transformations:
+        pattern = get_regex_from_transformation(transformation)
+        match = re.fullmatch(f"^{pattern}$", standard_name)
+        if match:
+            terms = match.groups()
+            matching_standard_names = [snt.get_standard_name(t) for t in terms]
+            if all(matching_standard_names):
+                return (matching_standard_names, transformation)
+    return [], None
+
+
+def _cache_valid_standard_name(snt: StandardNameTable, standard_name: StandardName):
+    if snt.identifier not in _CACHE_VALID_STANDARD_NAMES:
+        _CACHE_VALID_STANDARD_NAMES[snt.identifier] = [standard_name, ]
+    else:
+        _CACHE_VALID_STANDARD_NAMES[snt.identifier].append(standard_name)
+
+
+def _get_cached_name(snt: StandardNameTable, standard_name: str) -> Union[StandardName, None]:
+    for sn in _CACHE_VALID_STANDARD_NAMES.get(snt.identifier, []):
+        if sn.standardName == standard_name:
+            return sn
+
+
+def _compute_new_unit(units: Dict, operation) -> str:
+    """Uses pint to determine the new unit"""
+    ureg = pint.UnitRegistry()
+    punits = {k: pint.Unit(v) for k, v in units.items()}
+    result_unit = operation
+    for k, v in punits.items():
+        result_unit = result_unit.replace(f"[{k}]", f"({v})")
+    return "{:~}".format(ureg(result_unit).to_base_units().units).replace(" ", "")
+
+
+def alter_unit(standard_names: List[StandardName], transformation: Transformation):
+    keys = [character.character for character in transformation.hasCharacter]
+    character_to_unit = {k: reverse_qudt_lookup(v.unit) for k, v in zip(keys, standard_names)}
+    return _compute_new_unit(character_to_unit, transformation.altersUnit)
+
+
+def reverse_qudt_lookup(qudt_unit: Union[str, rdflib.URIRef]):
+    for k, v in qudt_lookup.items():
+        if str(v) == str(qudt_unit):
+            return k

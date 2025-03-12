@@ -1,5 +1,5 @@
 rdflib>=7.0.0
-ontolutils>=0.12.4
+ontolutils>=0.14.1
 pydantic[email]>=2.7.4
 appdirs>=1.4.4
 python-dateutil>=2.9.0
