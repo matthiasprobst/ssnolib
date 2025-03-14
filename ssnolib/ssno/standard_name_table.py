@@ -7,11 +7,9 @@ from dataclasses import make_dataclass
 from datetime import datetime
 from typing import List, Union, Dict, Optional, Tuple
 
-import pint
 import rdflib
 from ontolutils import namespaces, urirefs, Thing, as_id
 from ontolutils.namespacelib.m4i import M4I
-from ontolutils.utils.qudt_units import qudt_lookup
 from pydantic import field_validator, Field, HttpUrl, ValidationError, model_validator
 from rdflib import URIRef
 
@@ -26,6 +24,7 @@ from ssnolib.sparql_utils import build_simple_sparql_query, WHERE
 from ssnolib.utils import parse_and_exclude_none, download_file
 from . import plugins
 from .standard_name import StandardName, VectorStandardName, ScalarStandardName
+from .unit_utils import _parse_unit, reverse_qudt_lookup, _format_unit
 
 MAX_ITER = 1000
 __this_dir__ = pathlib.Path(__file__).parent
@@ -1472,21 +1471,14 @@ def _get_cached_name(snt: StandardNameTable, standard_name: str) -> Union[Standa
 
 def _compute_new_unit(units: Dict, operation) -> str:
     """Uses pint to determine the new unit"""
-    ureg = pint.UnitRegistry()
-    punits = {k: pint.Unit(v) for k, v in units.items()}
+    punits = {k: _parse_unit(v) for k, v in units.items()}
     result_unit = operation
     for k, v in punits.items():
         result_unit = result_unit.replace(f"[{k}]", f"({v})")
-    return "{:~}".format(ureg(result_unit).to_base_units().units).replace(" ", "")
+    return _format_unit(result_unit)
 
 
 def alter_unit(standard_names: List[StandardName], transformation: Transformation):
     keys = [character.character for character in transformation.hasCharacter]
     character_to_unit = {k: reverse_qudt_lookup(v.unit) for k, v in zip(keys, standard_names)}
     return _compute_new_unit(character_to_unit, transformation.altersUnit)
-
-
-def reverse_qudt_lookup(qudt_unit: Union[str, rdflib.URIRef]):
-    for k, v in qudt_lookup.items():
-        if str(v) == str(qudt_unit):
-            return k
