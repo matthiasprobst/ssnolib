@@ -12,7 +12,6 @@ from ontolutils import namespaces, urirefs, Thing, as_id
 from ontolutils.namespacelib.m4i import M4I
 from pydantic import field_validator, Field, HttpUrl, ValidationError, model_validator
 from rdflib import URIRef
-
 from ssnolib import config
 from ssnolib.dcat import Distribution
 from ssnolib.m4i import TextVariable
@@ -22,6 +21,7 @@ from ssnolib.qudt.utils import iri2str
 from ssnolib.skos import Concept
 from ssnolib.sparql_utils import build_simple_sparql_query, WHERE
 from ssnolib.utils import parse_and_exclude_none, download_file
+
 from . import plugins
 from .standard_name import StandardName, VectorStandardName, ScalarStandardName
 from .unit_utils import _parse_unit, reverse_qudt_lookup, _format_unit
@@ -592,6 +592,7 @@ class StandardNameTable(Concept):
         for sn in self.standardNames:
             if sn.standardName == standard_name:
                 return sn
+
         # let's try to construct the standard name:
         if not re.match(config.standard_name_core_pattern, standard_name):
             print("General pattern not matched. Must be lowercase and parts may be separated by '_'.")
@@ -622,8 +623,6 @@ class StandardNameTable(Concept):
                     _cache_valid_standard_name(self, constructed_sn)
                     return constructed_sn
         return
-        # raise ValueError(
-        #     f"The standard name {standard_name} is not part of the table and does not conform to the qualification rules.")
 
     def to_jsonld(self, filename, overwrite: bool = False, context: Optional[Dict] = None) -> pathlib.Path:
         filename = pathlib.Path(filename)
@@ -805,11 +804,9 @@ class StandardNameTable(Concept):
         qres_orig = qres.copy()
         sorted_list = _generate_ordered_list_of_qualifications(qres)
 
-        qualification_dict = {}
         qualifications_output = []
         for e in sorted_list:
             if e in qres_orig:
-                # q = qres_orig[e]
                 qualifications_output.append(f'{qres_orig[e]["id"]}')
             else:
                 qualifications_output.append("standard_name")
@@ -1250,6 +1247,7 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
                     WHERE(snt_id, "ssno:hasModifier", "?modifierID"),
                     WHERE("?modifierID", "a", _type),
                     WHERE("?modifierID", "schema:name", "?name"),
+                    WHERE("?modifierID", "ssno:hasPreposition", "?hasPreposition", is_optional=True),
                     WHERE("?modifierID", "ssno:before", "?before", is_optional=True),
                     WHERE("?modifierID", "ssno:after", "?after", is_optional=True),
                     WHERE("?modifierID", "dcterms:description", "?description", is_optional=True)
@@ -1287,7 +1285,8 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
                         has_modifier_dict['after'] = _parse_id(res['after'])
                     else:
                         has_modifier_dict['after'] = res['after'].value
-
+                if res['hasPreposition']:
+                    has_modifier_dict['hasPreposition'] = res['hasPreposition'].value
                 if _type == "ssno:VectorQualification":
                     has_modifier.append(
                         VectorQualification(
@@ -1436,23 +1435,52 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
 
 def get_regex_from_transformation(transformation: Transformation) -> str:
     """Generate a regex pattern from a transformation."""
-    regex_pattern = transformation.name
-    for character in transformation.hasCharacter:
-        regex_pattern = regex_pattern.replace(character.character, "([a-zA-Z_]+)")
-    return regex_pattern
+
+    # Convert character.character values into a set for quick lookup
+    placeholders = {char.character for char in transformation.hasCharacter}
+
+    # Split the transformation name into chunks
+    chunks = transformation.name.split("_")
+
+    # Replace chunks that match placeholders
+    regex_chunks = ["([a-zA-Z_]+)" if chunk in placeholders else chunk for chunk in chunks]
+
+    # Rebuild the regex pattern
+    return "_".join(regex_chunks)
 
 
 def check_if_standard_name_can_be_build_with_transformation(standard_name: str, snt: StandardNameTable) -> Tuple[
     List[StandardName], Union[Transformation, None]]:
     transformations = [t for t in snt.hasModifier if isinstance(t, Transformation)]
+    qualifications = [t for t in snt.hasModifier if isinstance(t, Qualification)]
     for transformation in transformations:
         pattern = get_regex_from_transformation(transformation)
+        if standard_name == "difference_of_total_pressure_and_total_pressure_between_fan_outlet_and_fan_inlet":
+            if transformation.name == "difference_of_X_and_Y_between_A_and_B":
+                print(standard_name, ' | ', pattern)
         match = re.fullmatch(f"^{pattern}$", standard_name)
         if match:
             terms = match.groups()
-            matching_standard_names = [snt.get_standard_name(t) for t in terms]
-            if all(matching_standard_names):
-                return (matching_standard_names, transformation)
+            # the number of terms must match the number of defined characters:
+            if len(terms) != len(transformation.hasCharacter):
+                return [], None
+            else:
+                matching_standard_names = []
+                for char, term in zip(transformation.hasCharacter, terms):
+                    if str(char.associatedWith) == str(SSNO.AnyStandardName):
+                        found_ns = snt.get_standard_name(term)
+                        if found_ns:
+                            matching_standard_names.append(found_ns)
+                    else: # must be qualificaiton
+                        # search in qualifications
+                        found_q = snt._get_by_qualification(term)
+                        if found_q:
+                            matching_standard_names.append(found_q)
+                if len(matching_standard_names) == len(terms):
+                    return matching_standard_names, transformation
+                # matching_standard_names = [snt.get_standard_name(t) for t in terms]
+                # if all(matching_standard_names):
+                #     return matching_standard_names, transformation
     return [], None
 
 

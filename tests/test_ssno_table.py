@@ -14,14 +14,17 @@ from ontolutils.namespacelib.m4i import M4I
 from ontolutils.utils.qudt_units import parse_unit
 
 import ssnolib
-from ssnolib import Organization, Person, AgentRole
-from ssnolib import StandardName, StandardNameTable, Transformation
+from ssnolib import Qualification, Transformation, Character
+from ssnolib import StandardNameTable, AgentRole, StandardName, VectorStandardName
+from ssnolib import parse_table
 from ssnolib.dcat import Distribution
+from ssnolib.m4i import TextVariable
 from ssnolib.namespace import SSNO
 from ssnolib.prov import Attribution
+from ssnolib.prov import Organization, Person
 from ssnolib.skos import Concept
-from ssnolib.ssno.standard_name import ScalarStandardName, VectorStandardName
-from ssnolib.ssno.standard_name_table import _compute_new_unit
+from ssnolib.ssno.standard_name import ScalarStandardName
+from ssnolib.ssno.standard_name_table import _compute_new_unit, get_regex_from_transformation
 from ssnolib.ssno.standard_name_table import check_if_standard_name_can_be_build_with_transformation
 from ssnolib.utils import download_file
 
@@ -115,6 +118,52 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         pathlib.Path('snt_with_mod.yaml').unlink(missing_ok=True)
         if pathlib.Path(__this_dir__ / 'tmp').exists():
             shutil.rmtree(pathlib.Path(__this_dir__ / 'tmp'))
+
+    def test_qualification(self):
+        qloc = Qualification(
+            id=f"https://example.org/location",
+            name="location",
+            description="Specific location in the problem domain.",
+            hasPreposition="at",
+            after=SSNO.AnyStandardName,
+            hasValidValues=[
+                TextVariable(
+                    id=f"https://example.org/inlet",
+                    has_string_value="inlet",
+                    has_variable_description="A generic inlet location, typically defined as a surface through which air enters a fan component. The exact position of the inlet depends on the specific design concept it is associated with. For example, the inlet to the impeller is a curved surface area that aligns with the leading edges of the blades."),
+                TextVariable(
+                    id=f"https://example.org/outlet",
+                    has_string_value="outlet",
+                    has_variable_description="A generic outlet location, typically defined as a surface through which air exits a fan component. The exact position of the outlet depends on the specific design concept it is associated with. For example, the outlet of the impeller spans a curved surface area at the trailing edges of the blades, directing airflow toward the volute or downstream components."
+                ),
+                TextVariable(
+                    id=f"https://example.org/fan_inlet",
+                    has_string_value="fan_inlet",
+                    has_variable_description="The fan inlet is the entry location for airflow into the fan assembly, typically located at the entrance of the fan housing or volute. It serves as the initial interface where ambient or ducted air is drawn into the fan system. The fan inlet may connect directly to an intake duct or remain open to the surrounding environment, depending on the fan's application."
+                ),
+                TextVariable(
+                    id=f"https://example.org/fan_outlet",
+                    has_string_value="fan_outlet",
+                    has_variable_description="The fan outlet is the exit location for airflow leaving the fan assembly, typically located at the discharge end of the fan housing or volute. It serves as the primary interface for directing the processed air into downstream components or an exhaust system. The outlet may connect to a discharge duct or vent directly into the environment, depending on the specific fan application."
+                )
+            ]
+        )
+        self.assertEqual("location", qloc.name)
+        self.assertEqual("at", qloc.hasPreposition)
+        self.assertEqual(sorted(["inlet", "outlet", "fan_inlet", "fan_outlet"]),
+                         sorted([p.hasStringValue for p in qloc.hasValidValues]))
+
+        snt = StandardNameTable()
+        snt.hasModifier = [qloc]
+
+        pathlib.Path("minimal_snt.jsonld").unlink(missing_ok=True)
+        snt.to_jsonld("minimal_snt.jsonld")
+        new_snt = parse_table("minimal_snt.jsonld", fmt='jsonld')
+
+        self.assertEqual(new_snt.hasModifier[0].name, "location")
+        self.assertEqual(new_snt.hasModifier[0].hasPreposition, "at")
+
+        pathlib.Path("minimal_snt.jsonld").unlink(missing_ok=True)
 
     def test_add_author(self):
         snt = StandardNameTable.parse(__this_dir__ / 'data/test_snt.yaml')
@@ -819,7 +868,41 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         new_standard_name = snt.get_standard_name("velocity_derivative_of_mean_of_velocity")
         self.assertEqual("velocity_derivative_of_mean_of_velocity", new_standard_name.standardName)
         self.assertEqual(str(new_standard_name.unit), str(QUDT_UNIT.UNITLESS))
-        print(new_standard_name.description)
+
+    def test_complicated_transformation(self):
+        qloc = Qualification(
+            name="location",
+            description="Specific location in the problem domain.",
+            hasPreposition="at",
+            after=SSNO.AnyStandardName,
+            hasValidValues=[
+                TextVariable(
+                    has_string_value="inlet",
+                    has_variable_description="inlet"),
+                TextVariable(
+                    has_string_value="outlet",
+                    has_variable_description="outlet"
+                )
+            ]
+        )
+        AnySNX = Character(character="X", associatedWith=SSNO.AnyStandardName)
+        AnySNY = Character(character="Y", associatedWith=SSNO.AnyStandardName)
+        AnyLocA = Character(character="A", associatedWith=qloc)
+        AnyLocB = Character(character="B", associatedWith=qloc)
+
+        difference_of_X_and_Y_between_A_and_B = Transformation(
+            name="difference_of_X_and_Y_between_A_and_B",
+            altersUnit="[X]",
+            hasCharacter=[AnySNX, AnySNY, AnyLocA, AnyLocB],
+            description="Difference of two standard names between two locations."
+        )
+        pattern = get_regex_from_transformation(difference_of_X_and_Y_between_A_and_B)
+        # print(pattern)
+        # self.assertEqual(
+        #     "difference_of_([a-z([a-zA-Z_]+)-Z_]+)_and_([a-z([a-zA-Z_]+)-Z_]+)_between_([a-zA-Z_]+)_and_([a-zA-Z_]+)"
+        #     "difference_of_([a-zA-Z_]+)_and_([a-zA-Z_]+)_between_([a-zA-Z_]+)_and_([a-zA-Z_]+)",
+        #     pattern
+        # )
 
     def test_hdf5_accessor(self):
         # noinspection PyUnresolvedReferences
