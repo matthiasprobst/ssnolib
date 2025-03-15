@@ -554,14 +554,22 @@ class StandardNameTable(Concept):
     def _get_by_transformation(self, standard_name: str) -> Union[StandardName, None]:
         matches, found_transformation = check_if_standard_name_can_be_build_with_transformation(standard_name, self)
         if found_transformation is not None:
-            combined_description = " and ".join([f"'{m.standardName}'" for m in matches])
+            descriptions = []
+            for m in matches:
+                if isinstance(m, StandardName):
+                    descriptions.append(m.description.strip("."))
+                else:
+                    descriptions.append(m.hasVariableDescription.strip("."))
+            match_descriptions = ". ".join(descriptions)
+            matches_standard_names = [m for m in matches if isinstance(m, StandardName)]
+            combined_description = " and ".join([f"'{m.standardName}'" for m in matches_standard_names])
             if len(matches) == 1:
                 new_description = f"Derived Standard Name using transformation '{found_transformation.name}' ({found_transformation.description}) from standard name {combined_description}."
             else:
                 new_description = f"Derived Standard Name using transformation '{found_transformation.name}' ({found_transformation.description}) from standard names {combined_description}."
             valid_standard_name = StandardName(standardName=standard_name,
-                                               unit=alter_unit(matches, found_transformation),
-                                               description=new_description)
+                                               unit=alter_unit(matches_standard_names, found_transformation),
+                                               description=new_description + " " + match_descriptions + ".")
 
             _cache_valid_standard_name(self, valid_standard_name)
             return valid_standard_name
@@ -1315,8 +1323,9 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
             ]
         )
 
-        hasCharacter = []
+
         for res in sparql_transformation.query(g):
+            hasCharacter = []
             modifierID = _parse_id(res['modifierID'])
             # now look for the valid values:
             sparql_hasCharacter = build_simple_sparql_query(
@@ -1330,7 +1339,7 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
             )
             for character in sparql_hasCharacter.query(g):
                 hasCharacter.append(
-                    Character(character=character["character"].value, associatedWith=character["associatedWith"].value))
+                    Character(id=character["hasCharacterID"], character=character["character"].value, associatedWith=character["associatedWith"].value))
             has_modifier.append(
                 Transformation(name=res['name'].value, description=res['description'], altersUnit=res['altersUnit'],
                                hasCharacter=hasCharacter)
@@ -1452,7 +1461,7 @@ def get_regex_from_transformation(transformation: Transformation) -> str:
 def check_if_standard_name_can_be_build_with_transformation(standard_name: str, snt: StandardNameTable) -> Tuple[
     List[StandardName], Union[Transformation, None]]:
     transformations = [t for t in snt.hasModifier if isinstance(t, Transformation)]
-    qualifications = [t for t in snt.hasModifier if isinstance(t, Qualification)]
+    qualifications = {t.id: t for t in snt.hasModifier if isinstance(t, Qualification)}
     for transformation in transformations:
         pattern = get_regex_from_transformation(transformation)
         match = re.fullmatch(f"^{pattern}$", standard_name)
@@ -1470,9 +1479,11 @@ def check_if_standard_name_can_be_build_with_transformation(standard_name: str, 
                             matching_standard_names.append(found_ns)
                     else: # must be qualificaiton
                         # search in qualifications
-                        found_q = snt._get_by_qualification(term)
+                        found_q = qualifications.get(char.associatedWith)
                         if found_q:
-                            matching_standard_names.append(found_q)
+                            if term in [v.hasStringValue for v in found_q.hasValidValues]:
+                                found_valid_value = [v for v in found_q.hasValidValues if v.hasStringValue == term][0]
+                                matching_standard_names.append(found_valid_value)
                 if len(matching_standard_names) == len(terms):
                     return matching_standard_names, transformation
                 # matching_standard_names = [snt.get_standard_name(t) for t in terms]
