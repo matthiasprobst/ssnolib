@@ -1455,9 +1455,6 @@ def check_if_standard_name_can_be_build_with_transformation(standard_name: str, 
     qualifications = [t for t in snt.hasModifier if isinstance(t, Qualification)]
     for transformation in transformations:
         pattern = get_regex_from_transformation(transformation)
-        if standard_name == "difference_of_total_pressure_and_total_pressure_between_fan_outlet_and_fan_inlet":
-            if transformation.name == "difference_of_X_and_Y_between_A_and_B":
-                print(standard_name, ' | ', pattern)
         match = re.fullmatch(f"^{pattern}$", standard_name)
         if match:
             terms = match.groups()

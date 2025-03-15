@@ -135,26 +135,24 @@ class TestSSNOStandardNameTable(unittest.TestCase):
                     id=f"https://example.org/outlet",
                     has_string_value="outlet",
                     has_variable_description="A generic outlet location, typically defined as a surface through which air exits a fan component. The exact position of the outlet depends on the specific design concept it is associated with. For example, the outlet of the impeller spans a curved surface area at the trailing edges of the blades, directing airflow toward the volute or downstream components."
-                ),
-                TextVariable(
-                    id=f"https://example.org/fan_inlet",
-                    has_string_value="fan_inlet",
-                    has_variable_description="The fan inlet is the entry location for airflow into the fan assembly, typically located at the entrance of the fan housing or volute. It serves as the initial interface where ambient or ducted air is drawn into the fan system. The fan inlet may connect directly to an intake duct or remain open to the surrounding environment, depending on the fan's application."
-                ),
-                TextVariable(
-                    id=f"https://example.org/fan_outlet",
-                    has_string_value="fan_outlet",
-                    has_variable_description="The fan outlet is the exit location for airflow leaving the fan assembly, typically located at the discharge end of the fan housing or volute. It serves as the primary interface for directing the processed air into downstream components or an exhaust system. The outlet may connect to a discharge duct or vent directly into the environment, depending on the specific fan application."
                 )
             ]
         )
         self.assertEqual("location", qloc.name)
         self.assertEqual("at", qloc.hasPreposition)
-        self.assertEqual(sorted(["inlet", "outlet", "fan_inlet", "fan_outlet"]),
+        self.assertEqual(sorted(["inlet", "outlet"]),
                          sorted([p.hasStringValue for p in qloc.hasValidValues]))
 
+
+        comp = ssnolib.Qualification(name="component",
+                                     description="component of the vector",
+                                     hasValidValues=['x', 'y', "z"])
+        medium = ssnolib.Qualification(name="medium", description="medium", hasPreposition='in')
+        medium.after = SSNO.AnyStandardName
+        comp.before = SSNO.AnyStandardName
+
         snt = StandardNameTable()
-        snt.hasModifier = [qloc]
+        snt.hasModifier = [qloc, comp]
 
         pathlib.Path("minimal_snt.jsonld").unlink(missing_ok=True)
         snt.to_jsonld("minimal_snt.jsonld")
@@ -164,6 +162,74 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         self.assertEqual(new_snt.hasModifier[0].hasPreposition, "at")
 
         pathlib.Path("minimal_snt.jsonld").unlink(missing_ok=True)
+
+        self.assertEqual(snt.hasModifier[0].name, "location")
+        self.assertEqual(snt.hasModifier[1].name, "component")
+
+    def test_tansformation(self):
+        qloc = Qualification(
+            id=f"https://example.org/location",
+            name="location",
+            description="Specific location in the problem domain.",
+            hasPreposition="at",
+            after=SSNO.AnyStandardName,
+            hasValidValues=[
+                TextVariable(
+                    id=f"https://example.org/inlet",
+                    has_string_value="inlet",
+                    has_variable_description="A generic inlet location, typically defined as a surface through which air enters a fan component. The exact position of the inlet depends on the specific design concept it is associated with. For example, the inlet to the impeller is a curved surface area that aligns with the leading edges of the blades."),
+                TextVariable(
+                    id=f"https://example.org/outlet",
+                    has_string_value="outlet",
+                    has_variable_description="A generic outlet location, typically defined as a surface through which air exits a fan component. The exact position of the outlet depends on the specific design concept it is associated with. For example, the outlet of the impeller spans a curved surface area at the trailing edges of the blades, directing airflow toward the volute or downstream components."
+                )
+            ]
+        )
+        AnySNX = Character(character="X", associatedWith=SSNO.AnyStandardName)
+        AnySNY = Character(character="Y", associatedWith=SSNO.AnyStandardName)
+        AnyLocA = Character(character="A", associatedWith=qloc)
+        AnyLocB = Character(character="B", associatedWith=qloc)
+
+        component = ssnolib.Qualification(
+            name="component",
+            before=SSNO.AnyStandardName,
+            description='The direction of the spatial component of a vector is indicated by one of the words upward, downward, northward, southward, eastward, westward, x, y. The last two indicate directions along the horizontal grid being used when they are not true longitude and latitude (if there is a rotated pole, for instance). If the standard name indicates a tensor quantity, two of these direction words may be included, applying to two of the spatial dimensions Z Y X, in that order. If only one component is indicated for a tensor, it means the flux in the indicated direction of the magnitude of the vector quantity in the plane of the other two spatial dimensions. The names of vertical components of radiative fluxes are prefixed with net_, thus: net_downward and net_upward. This treatment is not applied for any kinds of flux other than radiative. Radiative fluxes from above and below are often measured and calculated separately, the "net" being the difference. Within the atmosphere, radiation from below (not net) is indicated by a prefix of upwelling, and from above with downwelling. For the top of the atmosphere, the prefixes incoming and outgoing are used instead.,',
+            hasValidValues=["upward", "downward", "northward", "southward", "eastward", "westward", "x", "y"]
+        )
+        C_derivative_of_X = Transformation(
+            name="C_derivative_of_U",
+            description="derivative of X with respect to distance in the component direction, which may be northward, "
+                        "southward, eastward, westward, x or y. The last two indicate derivatives along the axes of "
+                        "the grid, in the case where they are not true longitude and latitude.",
+            altersUnit="[U]/[C]",
+            hasCharacter=[ssnolib.Character(character="C", associatedWith=component),
+                          ssnolib.Character(character="U", associatedWith=SSNO.AnyStandardName)]
+        )
+
+        difference_of_X_and_Y_between_A_and_B = Transformation(
+            name="difference_of_X_and_Y_between_A_and_B",
+            altersUnit="[X]",
+            hasCharacter=[AnySNX, AnySNY, AnyLocA, AnyLocB],
+            description="Difference of two standard names between two locations."
+        )
+        snt = StandardNameTable()
+        snt.hasModifier = [qloc, difference_of_X_and_Y_between_A_and_B, component, C_derivative_of_X]
+
+        pathlib.Path("minimal_snt.jsonld").unlink(missing_ok=True)
+        snt.to_jsonld("minimal_snt.jsonld")
+        new_snt = parse_table("minimal_snt.jsonld", fmt='jsonld')
+
+        self.assertEqual(new_snt.hasModifier[0].name, "location")
+        self.assertEqual(new_snt.hasModifier[0].hasPreposition, "at")
+
+        pathlib.Path("minimal_snt.jsonld").unlink(missing_ok=True)
+
+        self.assertEqual(snt.hasModifier[0].name, "location")
+        self.assertIn("difference_of_X_and_Y_between_A_and_B", [q.name for q in snt.hasModifier])
+        difference_of_X_and_Y_between_A_and_B = [q for q in snt.hasModifier if q.name == "difference_of_X_and_Y_between_A_and_B"][0]
+        self.assertEqual(["A", "B", "X", "Y"], sorted([c.character for c in difference_of_X_and_Y_between_A_and_B.hasCharacter]))
+        C_derivative_of_U = [q for q in snt.hasModifier if q.name == "C_derivative_of_U"][0]
+        self.assertEqual(["C", "U"], sorted([c.character for c in C_derivative_of_U.hasCharacter]))
 
     def test_add_author(self):
         snt = StandardNameTable.parse(__this_dir__ / 'data/test_snt.yaml')
