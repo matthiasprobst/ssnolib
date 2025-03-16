@@ -236,7 +236,7 @@ class Dataset(Resource):
         A main category of the resource. A resource can have multiple themes.
     """
     # http://www.w3.org/ns/prov#Person, see https://www.w3.org/TR/vocab-dcat-3/#ex-adms-identifier
-    creator: Agent = None
+    creator: Union[Agent, HttpUrl, Person] = Field(default=None)
     distribution: Union[Distribution, List[Distribution]] = None  # dcat:Distribution
     modified: datetime = None  # dcterms:modified
     landingPage: HttpUrl = Field(default=None, alias='landing_page')  # dcat:landingPage

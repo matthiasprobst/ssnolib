@@ -1,5 +1,3 @@
-from email.policy import default
-
 import streamlit as st
 
 if "rdf_file" not in st.session_state:
@@ -17,6 +15,9 @@ if "hdf5_file" not in st.session_state:
 else:
     hdf5_file = st.session_state.hdf5_file
 
+uploaded_snt = st.session_state.uploaded_snt
+hdf5_file = st.session_state.hdf5_file
+rdf_file = st.session_state.rdf_file
 st.set_page_config(layout="wide")
 
 # Streamlit UI
@@ -75,6 +76,7 @@ def update_standard_name_semantics(hdf_src, snt: StandardNameTable):
                 except Exception as e:
                     errs.append((sn, e))
                     st.toast(f"Error updating standard name '{sn}': {str(e)}", icon="⚠️")
+        _h5.flush()
     return updated_names, errs
 
 
@@ -118,9 +120,9 @@ def upload_snt(file):
 if st.button("Apply"):
     with st.spinner("Processing ..."):
 
-        uploaded_snt = None
         if rdf_file is not None:
-            uploaded_snt = upload_snt(rdf_file)
+            if uploaded_snt is None:
+                uploaded_snt = upload_snt(rdf_file)
             st.session_state.uploaded_snt = uploaded_snt
         else:
             st.toast("Please upload a JSON-LD or TTL file.", icon="⚠️")
@@ -130,10 +132,14 @@ if st.button("Apply"):
                 standard_names = get_standard_names_from_hdf5(hdf5_file)
 
                 updated_names, err_names = update_standard_name_semantics(hdf5_file, uploaded_snt)
+                st.write(hdf5_file)
+
+                if hdf5_file is not None:
+                    name, ext = hdf5_file.name.rsplit('.', 1)
+                    st.download_button("Download Modified HDF5", hdf5_file, f"{name}_sn_enriched.{ext}")
 
                 with h5tbx.File(hdf5_file, mode="r") as h5:
                     st.html(h5.hdfrepr.html_repr(group=h5, collapsed=True, preamble=None, chunks=False, maxshape=False))
-
 
                 err_df = pd.DataFrame(err_names, columns=["Standard Name", "Error"])
 
@@ -169,11 +175,3 @@ if rdf_file is not None:
 
             container2 = st.container(border=True)
             container2.code(uploaded_snt.serialize(format="ttl", structural=False), language="turtle")
-
-# if hdf5_file is not None:
-#     checkbox = st.checkbox("Structural", value=False)
-#     btn = st.button("Display serialized HDF5 file")
-#     if btn:
-#         with h5tbx.File(hdf5_file, mode="r") as h5:
-#             container3 = st.container(border=True)
-#             container3.code(h5.serialize(fmt="ttl", structural=checkbox), language="turtle")
