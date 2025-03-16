@@ -9,18 +9,23 @@ import h5rdmtoolbox as h5tbx
 import pydantic
 import requests.exceptions
 import yaml
-from ontolutils import Thing
+from ontolutils import Thing, QUDT_UNIT
 from ontolutils.namespacelib.m4i import M4I
 from ontolutils.utils.qudt_units import parse_unit
 
 import ssnolib
-from ssnolib import Organization, Person, AgentRole
-from ssnolib import StandardName, StandardNameTable, Transformation
-from ssnolib.dcat import Distribution
+from ssnolib import Qualification, Transformation, Character
+from ssnolib import StandardNameTable, AgentRole, StandardName, VectorStandardName
+from ssnolib import parse_table
+from ssnolib.dcat import Distribution, Dataset
+from ssnolib.m4i import TextVariable
 from ssnolib.namespace import SSNO
 from ssnolib.prov import Attribution
+from ssnolib.prov import Organization, Person
 from ssnolib.skos import Concept
-from ssnolib.ssno.standard_name import ScalarStandardName, VectorStandardName
+from ssnolib.ssno.standard_name import ScalarStandardName
+from ssnolib.ssno.standard_name_table import _compute_new_unit, get_regex_from_transformation
+from ssnolib.ssno.standard_name_table import check_if_standard_name_can_be_build_with_transformation
 from ssnolib.utils import download_file
 
 __this_dir__ = pathlib.Path(__file__).parent
@@ -102,6 +107,7 @@ SNT_JSONLD = """{
   ]
 }"""
 
+
 class TestSSNOStandardNameTable(unittest.TestCase):
 
     def tearDown(self):
@@ -112,6 +118,118 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         pathlib.Path('snt_with_mod.yaml').unlink(missing_ok=True)
         if pathlib.Path(__this_dir__ / 'tmp').exists():
             shutil.rmtree(pathlib.Path(__this_dir__ / 'tmp'))
+
+    def test_qualification(self):
+        qloc = Qualification(
+            id=f"https://example.org/location",
+            name="location",
+            description="Specific location in the problem domain.",
+            hasPreposition="at",
+            after=SSNO.AnyStandardName,
+            hasValidValues=[
+                TextVariable(
+                    id=f"https://example.org/inlet",
+                    has_string_value="inlet",
+                    has_variable_description="A generic inlet location, typically defined as a surface through which air enters a fan component. The exact position of the inlet depends on the specific design concept it is associated with. For example, the inlet to the impeller is a curved surface area that aligns with the leading edges of the blades."),
+                TextVariable(
+                    id=f"https://example.org/outlet",
+                    has_string_value="outlet",
+                    has_variable_description="A generic outlet location, typically defined as a surface through which air exits a fan component. The exact position of the outlet depends on the specific design concept it is associated with. For example, the outlet of the impeller spans a curved surface area at the trailing edges of the blades, directing airflow toward the volute or downstream components."
+                )
+            ]
+        )
+        self.assertEqual("location", qloc.name)
+        self.assertEqual("at", qloc.hasPreposition)
+        self.assertEqual(sorted(["inlet", "outlet"]),
+                         sorted([p.hasStringValue for p in qloc.hasValidValues]))
+
+
+        comp = ssnolib.Qualification(name="component",
+                                     description="component of the vector",
+                                     hasValidValues=['x', 'y', "z"])
+        medium = ssnolib.Qualification(name="medium", description="medium", hasPreposition='in')
+        medium.after = SSNO.AnyStandardName
+        comp.before = SSNO.AnyStandardName
+
+        snt = StandardNameTable()
+        snt.hasModifier = [qloc, comp]
+
+        pathlib.Path("minimal_snt.jsonld").unlink(missing_ok=True)
+        snt.to_jsonld("minimal_snt.jsonld")
+        new_snt = parse_table("minimal_snt.jsonld", fmt='jsonld')
+
+        self.assertEqual(new_snt.hasModifier[0].name, "location")
+        self.assertEqual(new_snt.hasModifier[0].hasPreposition, "at")
+
+        pathlib.Path("minimal_snt.jsonld").unlink(missing_ok=True)
+
+        self.assertEqual(snt.hasModifier[0].name, "location")
+        self.assertEqual(snt.hasModifier[1].name, "component")
+
+    def test_tansformation(self):
+        qloc = Qualification(
+            id=f"https://example.org/location",
+            name="location",
+            description="Specific location in the problem domain.",
+            hasPreposition="at",
+            after=SSNO.AnyStandardName,
+            hasValidValues=[
+                TextVariable(
+                    id=f"https://example.org/inlet",
+                    has_string_value="inlet",
+                    has_variable_description="A generic inlet location, typically defined as a surface through which air enters a fan component. The exact position of the inlet depends on the specific design concept it is associated with. For example, the inlet to the impeller is a curved surface area that aligns with the leading edges of the blades."),
+                TextVariable(
+                    id=f"https://example.org/outlet",
+                    has_string_value="outlet",
+                    has_variable_description="A generic outlet location, typically defined as a surface through which air exits a fan component. The exact position of the outlet depends on the specific design concept it is associated with. For example, the outlet of the impeller spans a curved surface area at the trailing edges of the blades, directing airflow toward the volute or downstream components."
+                )
+            ]
+        )
+        AnySNX = Character(character="X", associatedWith=SSNO.AnyStandardName)
+        AnySNY = Character(character="Y", associatedWith=SSNO.AnyStandardName)
+        AnyLocA = Character(character="A", associatedWith=qloc)
+        AnyLocB = Character(character="B", associatedWith=qloc)
+
+        component = ssnolib.Qualification(
+            name="component",
+            before=SSNO.AnyStandardName,
+            description='The direction of the spatial component of a vector is indicated by one of the words upward, downward, northward, southward, eastward, westward, x, y. The last two indicate directions along the horizontal grid being used when they are not true longitude and latitude (if there is a rotated pole, for instance). If the standard name indicates a tensor quantity, two of these direction words may be included, applying to two of the spatial dimensions Z Y X, in that order. If only one component is indicated for a tensor, it means the flux in the indicated direction of the magnitude of the vector quantity in the plane of the other two spatial dimensions. The names of vertical components of radiative fluxes are prefixed with net_, thus: net_downward and net_upward. This treatment is not applied for any kinds of flux other than radiative. Radiative fluxes from above and below are often measured and calculated separately, the "net" being the difference. Within the atmosphere, radiation from below (not net) is indicated by a prefix of upwelling, and from above with downwelling. For the top of the atmosphere, the prefixes incoming and outgoing are used instead.,',
+            hasValidValues=["upward", "downward", "northward", "southward", "eastward", "westward", "x", "y"]
+        )
+        C_derivative_of_X = Transformation(
+            name="C_derivative_of_U",
+            description="derivative of X with respect to distance in the component direction, which may be northward, "
+                        "southward, eastward, westward, x or y. The last two indicate derivatives along the axes of "
+                        "the grid, in the case where they are not true longitude and latitude.",
+            altersUnit="[U]/[C]",
+            hasCharacter=[ssnolib.Character(character="C", associatedWith=component),
+                          ssnolib.Character(character="U", associatedWith=SSNO.AnyStandardName)]
+        )
+
+        difference_of_X_and_Y_between_A_and_B = Transformation(
+            name="difference_of_X_and_Y_between_A_and_B",
+            altersUnit="[X]",
+            hasCharacter=[AnySNX, AnySNY, AnyLocA, AnyLocB],
+            description="Difference of two standard names between two locations."
+        )
+        snt = StandardNameTable()
+        snt.hasModifier = [qloc, difference_of_X_and_Y_between_A_and_B, component, C_derivative_of_X]
+
+        pathlib.Path("minimal_snt.jsonld").unlink(missing_ok=True)
+        snt.to_jsonld("minimal_snt.jsonld")
+        new_snt = parse_table("minimal_snt.jsonld", fmt='jsonld')
+
+        self.assertEqual(new_snt.hasModifier[0].name, "location")
+        self.assertEqual(new_snt.hasModifier[0].hasPreposition, "at")
+
+        pathlib.Path("minimal_snt.jsonld").unlink(missing_ok=True)
+
+        self.assertEqual(snt.hasModifier[0].name, "location")
+        self.assertIn("difference_of_X_and_Y_between_A_and_B", [q.name for q in snt.hasModifier])
+        difference_of_X_and_Y_between_A_and_B = [q for q in snt.hasModifier if q.name == "difference_of_X_and_Y_between_A_and_B"][0]
+        self.assertEqual(["A", "B", "X", "Y"], sorted([c.character for c in difference_of_X_and_Y_between_A_and_B.hasCharacter]))
+        C_derivative_of_U = [q for q in snt.hasModifier if q.name == "C_derivative_of_U"][0]
+        self.assertEqual(["C", "U"], sorted([c.character for c in C_derivative_of_U.hasCharacter]))
 
     def test_add_author(self):
         snt = StandardNameTable.parse(__this_dir__ / 'data/test_snt.yaml')
@@ -176,6 +294,14 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         snt = StandardNameTable.from_jsonld(__this_dir__ / 'data/simpleSNT.jsonld', limit=1)
         qualifications = [q for q in snt.hasModifier if isinstance(q, ssnolib.Qualification)]
         self.assertEqual(1, len(qualifications))
+        self.assertEqual(3, len(qualifications[0].hasValidValues))
+        self.assertTrue(snt.verify_name("x_velocity"))
+        self.assertFalse(snt.verify_name("u_velocity"))
+        self.assertTrue(snt.verify_name("x_air_density"))
+        sn = snt.get_standard_name("x_velocity")
+        self.assertEqual("The velocity vector of an object or fluid.The component of a vector", sn.description)
+        self.assertEqual('http://qudt.org/vocab/unit/M-PER-SEC', sn.unit)
+        self.assertEqual("x_velocity", sn.standardName)
 
     def test_standard_name_table_types(self):
         snt = StandardNameTable()
@@ -779,6 +905,71 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         self.assertEqual(t.name, "derivative_of_X_wrt_Y")
         self.assertEqual(t.name, snt.hasModifier[0].name)
 
+    def test_get_transformed_standard_name(self):
+        snt = StandardNameTable(name="Fluid SNT")
+        velocity = StandardName(standardName="velocity", description="velocity", unit="m/s")
+        X = ssnolib.Character(character="X", associatedWith=ssnolib.namespace.SSNO.AnyStandardName)
+        Y = ssnolib.Character(character="Y", associatedWith=ssnolib.namespace.SSNO.AnyStandardName)
+        mean_transformation = ssnolib.Transformation(
+            name="mean_of_X",
+            altersUnit="[X]",
+            hasCharacter=[X, ],
+            description="mean value of X"
+        )
+        x_deriv_of_y = ssnolib.Transformation(
+            name="X_derivative_of_Y",
+            altersUnit="[X]/[Y]",
+            hasCharacter=[X, Y],
+            description="X deriv of Y"
+        )
+        snt.hasModifier = [mean_transformation, x_deriv_of_y]
+        snt.append("standardNames", velocity)
+        self.assertEqual("velocity", snt.get_standard_name("velocity").standardName)
+        matches, found_transformation = check_if_standard_name_can_be_build_with_transformation("mean_of_velocity", snt)
+        self.assertTrue(found_transformation is not None)
+        new_standard_name = snt.get_standard_name("mean_of_velocity")
+        self.assertEqual("mean_of_velocity", new_standard_name.standardName)
+        self.assertEqual(str(new_standard_name.unit), str(QUDT_UNIT.M_PER_SEC))
+
+        new_standard_name = snt.get_standard_name("velocity_derivative_of_mean_of_velocity")
+        self.assertEqual("velocity_derivative_of_mean_of_velocity", new_standard_name.standardName)
+        self.assertEqual(str(new_standard_name.unit), str(QUDT_UNIT.UNITLESS))
+
+    def test_complicated_transformation(self):
+        qloc = Qualification(
+            name="location",
+            description="Specific location in the problem domain.",
+            hasPreposition="at",
+            after=SSNO.AnyStandardName,
+            hasValidValues=[
+                TextVariable(
+                    has_string_value="inlet",
+                    has_variable_description="inlet"),
+                TextVariable(
+                    has_string_value="outlet",
+                    has_variable_description="outlet"
+                )
+            ]
+        )
+        AnySNX = Character(character="X", associatedWith=SSNO.AnyStandardName)
+        AnySNY = Character(character="Y", associatedWith=SSNO.AnyStandardName)
+        AnyLocA = Character(character="A", associatedWith=qloc)
+        AnyLocB = Character(character="B", associatedWith=qloc)
+
+        difference_of_X_and_Y_between_A_and_B = Transformation(
+            name="difference_of_X_and_Y_between_A_and_B",
+            altersUnit="[X]",
+            hasCharacter=[AnySNX, AnySNY, AnyLocA, AnyLocB],
+            description="Difference of two standard names between two locations."
+        )
+        pattern = get_regex_from_transformation(difference_of_X_and_Y_between_A_and_B)
+        # print(pattern)
+        # self.assertEqual(
+        #     "difference_of_([a-z([a-zA-Z_]+)-Z_]+)_and_([a-z([a-zA-Z_]+)-Z_]+)_between_([a-zA-Z_]+)_and_([a-zA-Z_]+)"
+        #     "difference_of_([a-zA-Z_]+)_and_([a-zA-Z_]+)_between_([a-zA-Z_]+)_and_([a-zA-Z_]+)",
+        #     pattern
+        # )
+
     def test_hdf5_accessor(self):
         # noinspection PyUnresolvedReferences
         from ssnolib import h5accessor
@@ -793,3 +984,12 @@ class TestSSNOStandardNameTable(unittest.TestCase):
                              'https://matthiasprobst.github.io/ssno#hasStandardName')
             self.assertEqual(h5.rdf.predicate['snt'],
                              'https://matthiasprobst.github.io/ssno#hasStandardNameTable')
+
+    def test_computing_new_unit(self):
+        new_unit = _compute_new_unit({"X": "m/s", "Y": "m"}, operation="[X]/[Y]")
+        self.assertEqual(new_unit, "1/s")
+
+    def test_snt_relate_with_dataset(self):
+        ds = Dataset(label="my-snt-dataset")
+        snt = StandardNameTable(title="my-snt", dataset=ds)
+        self.assertEqual(snt.dataset.label, "my-snt-dataset")

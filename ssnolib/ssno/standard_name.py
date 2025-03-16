@@ -2,6 +2,7 @@ import re
 import warnings
 from typing import Union, List, Optional
 
+import pint.errors
 from ontolutils import namespaces, urirefs
 from ontolutils.utils.qudt_units import qudt_lookup
 from pydantic import HttpUrl, field_validator, Field, ConfigDict
@@ -11,6 +12,7 @@ from pydantic_core import InitErrorDetails
 from ssnolib import config
 from ssnolib.dcat import Dataset
 from ssnolib.skos import Concept
+from .unit_utils import _parse_unit, _format_unit
 
 
 @namespaces(ssno="https://matthiasprobst.github.io/ssno#",
@@ -90,9 +92,19 @@ class StandardName(Concept):
         if isinstance(unit, str):
             if unit.startswith('http'):
                 return str(HttpUrl(unit))
+            err = False
             try:
                 return str(qudt_lookup[unit.strip()])
-            except KeyError as e:
+            except KeyError:
+                err = True
+
+            try:
+                _unit = _format_unit(str(_parse_unit(unit.strip())))
+                return str(qudt_lookup[_unit])
+            except (AttributeError, KeyError, pint.errors.DimensionalityError) as _:
+                err = True
+
+            if err:
                 if config.raise_error_on_unparsable_unit:
                     err = InitErrorDetails(
                         type="value_error",

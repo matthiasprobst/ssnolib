@@ -204,3 +204,7 @@ class TestSSNOStandardName(unittest.TestCase):
         )
         self.assertEqual(xvel.__str__(), 'x_velocity')
         self.assertEqual(xvel.standardNameTable, snt)
+
+    def test_standard_name_with_difficult_unit(self):
+        sn = StandardName(standardName="velocity", description="velocity", unit="m2/s2")
+        self.assertEqual(str(sn.unit), 'http://qudt.org/vocab/unit/M2-PER-SEC2')

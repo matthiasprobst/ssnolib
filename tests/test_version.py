@@ -35,8 +35,8 @@ class TestVersion(unittest.TestCase):
         with open(__this_dir__ / '../README.md', 'r') as f:
             readme = f.read()
 
-        assert "ssno-1.3.0-orange" in readme
-        assert "[SSNO ontology](https://matthiasprobst.github.io/ssno/1.3.0)" in readme
+        assert "ssno-1.4.0-orange" in readme
+        assert "[SSNO ontology](https://matthiasprobst.github.io/ssno/1.4.0)" in readme
 
     def test_ssno_url_exists(self):
         """checking if the ssno url exists"""
