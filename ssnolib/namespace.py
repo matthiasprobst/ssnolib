@@ -18,6 +18,7 @@ class SSNO(DefinedNamespace):
     alias: URIRef  # ['alias']
     associatedWith: URIRef  # ['associated with']
     before: URIRef  # ['before']
+    dataset: URIRef  # ['dataset']
     hasCharacter: URIRef  # ['has character']
     hasModifier: URIRef  # ['has modifier']
     hasStandardName: URIRef  # ['has standard name']
@@ -56,6 +57,7 @@ setattr(SSNO, "after", SSNO.after)
 setattr(SSNO, "alias", SSNO.alias)
 setattr(SSNO, "associated_with", SSNO.associatedWith)
 setattr(SSNO, "before", SSNO.before)
+setattr(SSNO, "dataset", SSNO.dataset)
 setattr(SSNO, "has_character", SSNO.hasCharacter)
 setattr(SSNO, "has_modifier", SSNO.hasModifier)
 setattr(SSNO, "has_standard_name", SSNO.hasStandardName)

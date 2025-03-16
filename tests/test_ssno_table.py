@@ -17,7 +17,7 @@ import ssnolib
 from ssnolib import Qualification, Transformation, Character
 from ssnolib import StandardNameTable, AgentRole, StandardName, VectorStandardName
 from ssnolib import parse_table
-from ssnolib.dcat import Distribution
+from ssnolib.dcat import Distribution, Dataset
 from ssnolib.m4i import TextVariable
 from ssnolib.namespace import SSNO
 from ssnolib.prov import Attribution
@@ -988,3 +988,8 @@ class TestSSNOStandardNameTable(unittest.TestCase):
     def test_computing_new_unit(self):
         new_unit = _compute_new_unit({"X": "m/s", "Y": "m"}, operation="[X]/[Y]")
         self.assertEqual(new_unit, "1/s")
+
+    def test_snt_relate_with_dataset(self):
+        ds = Dataset(label="my-snt-dataset")
+        snt = StandardNameTable(title="my-snt", dataset=ds)
+        self.assertEqual(snt.dataset.label, "my-snt-dataset")

@@ -6,14 +6,13 @@ import warnings
 from dataclasses import make_dataclass
 from datetime import datetime
 from typing import List, Union, Dict, Optional, Tuple
-
 import rdflib
 from ontolutils import namespaces, urirefs, Thing, as_id
 from ontolutils.namespacelib.m4i import M4I
 from pydantic import field_validator, Field, HttpUrl, ValidationError, model_validator
 from rdflib import URIRef
 from ssnolib import config
-from ssnolib.dcat import Distribution
+from ssnolib.dcat import Distribution, Dataset
 from ssnolib.m4i import TextVariable
 from ssnolib.namespace import SSNO
 from ssnolib.prov import Person, Organization, Attribution
@@ -254,7 +253,8 @@ class Transformation(StandardNameModification):
          hasModifier='ssno:hasModifier',
          subject='dcterms:subject',
          keywords='schema:keywords',
-         relation='dcterms:relation'
+         relation='dcterms:relation',
+         dataset='ssno:dataset'
          )
 class StandardNameTable(Concept):
     """Implementation of ssno:StandardNameTable
@@ -300,6 +300,7 @@ class StandardNameTable(Concept):
     subject: Optional[Union[str, HttpUrl]] = Field(default=None)
     keywords: Optional[Union[str, List[str]]] = Field(default=None)
     relation: Optional[Union[Thing, List[Thing]]] = Field(default=None)
+    dataset: Optional[Union[Thing, Dataset]] = Field(default=None)
 
     def __str__(self) -> str:
         if self.identifier:
@@ -567,7 +568,12 @@ class StandardNameTable(Concept):
                 new_description = f"Derived Standard Name using transformation '{found_transformation.name}' ({found_transformation.description}) from standard name {combined_description}."
             else:
                 new_description = f"Derived Standard Name using transformation '{found_transformation.name}' ({found_transformation.description}) from standard names {combined_description}."
-            valid_standard_name = StandardName(standardName=standard_name,
+            if self.id.endswith("/"):
+                new_sn_id = self.id + "derived_standard_name/" + standard_name
+            else:
+                new_sn_id = self.id + "/derived_standard_name/" + standard_name
+            valid_standard_name = StandardName(id=new_sn_id,
+                                               standardName=standard_name,
                                                unit=alter_unit(matches_standard_names, found_transformation),
                                                description=new_description + " " + match_descriptions + ".")
 
@@ -626,7 +632,12 @@ class StandardNameTable(Concept):
                             for s in self.standardNames:
                                 if s.standardName == existing_standard_name.standardName:
                                     q_description = q.description
-                    constructed_sn = StandardName(standardName=standard_name, unit=core_standard_name.unit,
+                    if self.id.endswith("/"):
+                        new_sn_id = self.id + "derived_standard_name/" + standard_name
+                    else:
+                        new_sn_id = self.id + "/derived_standard_name/" + standard_name
+                    constructed_sn = StandardName(id=new_sn_id,
+                                                  standardName=standard_name, unit=core_standard_name.unit,
                                                   description=core_standard_name.description + q_description)
                     _cache_valid_standard_name(self, constructed_sn)
                     return constructed_sn

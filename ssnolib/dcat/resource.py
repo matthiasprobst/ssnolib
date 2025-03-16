@@ -7,7 +7,7 @@ import pathlib
 import re
 import shutil
 from datetime import datetime
-from typing import Union, List
+from typing import Union, List, Optional
 
 import pydantic
 from dateutil import parser
@@ -17,6 +17,7 @@ from pydantic import HttpUrl, FileUrl, field_validator, Field, model_validator
 
 from ssnolib.utils import download_file
 from ..prov import Person, Organization, Agent
+from ..skos import Concept
 
 
 @namespaces(dcat="http://www.w3.org/ns/dcat#",
@@ -231,7 +232,7 @@ class Dataset(Resource):
         Last modified date of the resource (dcterms:modified)
     inSeries: DatasetSeries = None
         The series the dataset belongs to (dcat:inSeries)
-    theme: HttpUrl = None
+    theme: HttpUrl or StandardNameTable = None
         A main category of the resource. A resource can have multiple themes.
     """
     # http://www.w3.org/ns/prov#Person, see https://www.w3.org/TR/vocab-dcat-3/#ex-adms-identifier
@@ -240,7 +241,7 @@ class Dataset(Resource):
     modified: datetime = None  # dcterms:modified
     landingPage: HttpUrl = Field(default=None, alias='landing_page')  # dcat:landingPage
     inSeries: DatasetSeries = Field(default=None, alias='in_series')  # dcat:inSeries
-    theme: HttpUrl = Field(default=None)  # dcat:inSeries
+    theme: Optional[Union[HttpUrl, Concept]] = Field(default=None)  # dcat:inSeries
 
     @field_validator('distribution', mode='before')
     @classmethod

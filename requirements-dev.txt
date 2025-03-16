@@ -1,7 +1,7 @@
 -e .
 -r requirements.txt
 xmltodict>=0.13.0
-h5rdmtoolbox==1.7.1
+h5rdmtoolbox>1.7.2,<2.0.0
 pyyaml>6.0.0
 pytest>=8.3.2
 pytest-cov>=5.0.0

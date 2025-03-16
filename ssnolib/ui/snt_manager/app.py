@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from flask import Flask, render_template, request, redirect, jsonify
 
 import ssnolib
-from ssnolib.ui.utils import fetch_form_data, snt_to_cache_data
+from ssnolib.ui.snt_manager.utils import fetch_form_data, snt_to_cache_data
 
 app = Flask(__name__)
 
