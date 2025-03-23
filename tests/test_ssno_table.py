@@ -950,6 +950,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
 
         pathlib.Path('snt_with_domain_concept.jsonld').unlink(missing_ok=True)
 
+
     def test_get_transformed_standard_name(self):
         snt = StandardNameTable(name="Fluid SNT")
         velocity = StandardName(standardName="velocity", description="velocity", unit="m/s")

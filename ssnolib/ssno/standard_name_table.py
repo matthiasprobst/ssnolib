@@ -1562,7 +1562,7 @@ def check_if_standard_name_can_be_build_with_transformation(standard_name: str, 
                             found_valid_value = [v for v in found_dcs.hasValidValues if v.hasStringValue == term][0]
                             matching_standard_names.append(found_valid_value)
                     elif str(char.associatedWith) in qualifications:
-                        found_q = domain_concept_sets.get(char.associatedWith)
+                        found_q = qualifications.get(char.associatedWith)
                         if term in [v.hasStringValue for v in found_q.hasValidValues]:
                             found_valid_value = [v for v in found_q.hasValidValues if v.hasStringValue == term][0]
                             matching_standard_names.append(found_valid_value)
