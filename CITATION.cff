@@ -4,8 +4,8 @@ authors:
   - family-names: "Probst"
     given-names: "Matthias"
     orcid: "https://orcid.org/0000-0001-8729-0482"
-title: "ssnolib (1.4.0.0)"
-version: 1.4.0.0
-doi: 10.5281/zenodo.15034611
-date-released: 2025-03-16
+title: "ssnolib (1.5.0.0)"
+version: 1.5.0.0
+doi: 10.5281/zenodo.15072194
+date-released: 2025-03-23
 url: "https://github.com/matthiasprobst/ssnolib"

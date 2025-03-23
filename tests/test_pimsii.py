@@ -19,7 +19,9 @@ class TestPIMSII(unittest.TestCase):
                     "owl": "http://www.w3.org/2002/07/owl#",
                     "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
                     "pims": "http://www.molmod.info/semantics/pims-ii.ttl#",
-                    "m4i": "http://w3id.org/nfdi4ing/metadata4ing#"
+                    "m4i": "http://w3id.org/nfdi4ing/metadata4ing#",
+                    "skos": "http://www.w3.org/2004/02/skos/core#",
+                    "dcterms": "http://purl.org/dc/terms/",
                 },
                 "@type": "pims:Variable",
                 "rdfs:label": "my variable",
@@ -47,6 +49,7 @@ class TestPIMSII(unittest.TestCase):
                     "m4i": "http://w3id.org/nfdi4ing/metadata4ing#",
                     "ssno": "https://matthiasprobst.github.io/ssno#",
                     "skos": "http://www.w3.org/2004/02/skos/core#",
+                    "dcterms": "http://purl.org/dc/terms/",
                     "dcat": "http://www.w3.org/ns/dcat#"
                 },
                 "@type": "pims:Property",

@@ -6,11 +6,13 @@ import warnings
 from dataclasses import make_dataclass
 from datetime import datetime
 from typing import List, Union, Dict, Optional, Tuple
+
 import rdflib
 from ontolutils import namespaces, urirefs, Thing, as_id
 from ontolutils.namespacelib.m4i import M4I
 from pydantic import field_validator, Field, HttpUrl, ValidationError, model_validator
 from rdflib import URIRef
+
 from ssnolib import config
 from ssnolib.dcat import Distribution, Dataset
 from ssnolib.m4i import TextVariable
@@ -20,7 +22,6 @@ from ssnolib.qudt.utils import iri2str
 from ssnolib.skos import Concept
 from ssnolib.sparql_utils import build_simple_sparql_query, WHERE
 from ssnolib.utils import parse_and_exclude_none, download_file
-
 from . import plugins
 from .standard_name import StandardName, VectorStandardName, ScalarStandardName
 from .unit_utils import _parse_unit, reverse_qudt_lookup, _format_unit
@@ -123,6 +124,20 @@ class StandardNameModification(Concept):
         return f'{self.__class__.__name__}("{self.name}")'
 
 
+@namespaces(ssno="https://matthiasprobst.github.io/ssno#",
+            schema="https://schema.org/",
+            dcterms="http://purl.org/dc/terms/")
+@urirefs(DomainConceptSet='ssno:DomainConceptSet',
+         hasValidValues='ssno:hasValidValues',
+         name='schema:name',
+         description='dcterms:description')
+class DomainConceptSet(Concept):
+    """Implementation of ssno:Collection"""
+    name: str  # schema:name
+    description: str  # dcterms:description
+    hasValidValues: Optional[List[Union[str, Dict, TextVariable]]] = None  # ssno:hasValidValues
+
+
 @namespaces(ssno="https://matthiasprobst.github.io/ssno#")
 @urirefs(Qualification='ssno:Qualification',
          before='ssno:before',
@@ -200,7 +215,7 @@ class Character(Concept):
     """Implementation of ssno:Transformation"""
 
     character: str  # ssno:character
-    associatedWith: Union[str, HttpUrl, Qualification]  # ssno:associatedWith
+    associatedWith: Union[str, HttpUrl, Qualification, DomainConceptSet]  # ssno:associatedWith
 
     @field_validator('associatedWith', mode='before')
     @classmethod
@@ -251,6 +266,7 @@ class Transformation(StandardNameModification):
          qualifiedAttribution='prov:qualifiedAttribution',
          standardNames='ssno:standardNames',
          hasModifier='ssno:hasModifier',
+         hasDomainConceptSet='ssno:hasDomainConceptSet',
          subject='dcterms:subject',
          keywords='schema:keywords',
          relation='dcterms:relation',
@@ -297,6 +313,7 @@ class StandardNameTable(Concept):
     hasModifier: Optional[
         List[Union[Qualification, VectorQualification, Transformation]]
     ] = Field(default=None, alias="has_modifier")  # ssno:hasModifier
+    hasDomainConceptSet: Optional[List[DomainConceptSet]] = Field(default=None, alias="has_domain_concept_set")
     subject: Optional[Union[str, HttpUrl]] = Field(default=None)
     keywords: Optional[Union[str, List[str]]] = Field(default=None)
     relation: Optional[Union[Thing, List[Thing]]] = Field(default=None)
@@ -1260,7 +1277,7 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
         # jetzt qualifications holen:
         has_modifier = []
         for _type in ("ssno:Qualification", "ssno:VectorQualification"):
-            sparql = build_simple_sparql_query(
+            sparql_modifiers = build_simple_sparql_query(
                 prefixes=prefixes,
                 wheres=[
                     WHERE(snt_id, "ssno:hasModifier", "?modifierID"),
@@ -1272,7 +1289,7 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
                     WHERE("?modifierID", "dcterms:description", "?description", is_optional=True)
                 ]
             )
-            for res in sparql.query(g):
+            for res in sparql_modifiers.query(g):
                 modifierID = _parse_id(res['modifierID'])
                 # now look for the valid values:
                 sparql_valid_values = build_simple_sparql_query(
@@ -1334,7 +1351,6 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
             ]
         )
 
-
         for res in sparql_transformation.query(g):
             hasCharacter = []
             modifierID = _parse_id(res['modifierID'])
@@ -1350,13 +1366,57 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
             )
             for character in sparql_hasCharacter.query(g):
                 hasCharacter.append(
-                    Character(id=character["hasCharacterID"], character=character["character"].value, associatedWith=character["associatedWith"].value))
+                    Character(id=character["hasCharacterID"], character=character["character"].value,
+                              associatedWith=character["associatedWith"].value))
             has_modifier.append(
                 Transformation(name=res['name'].value, description=res['description'], altersUnit=res['altersUnit'],
                                hasCharacter=hasCharacter)
             )
         if has_modifier:
             snt.hasModifier = has_modifier
+
+        # domain concept sets holen:
+        domain_concept_sets = []
+        sparql_domain_concept_sets = build_simple_sparql_query(
+            prefixes=prefixes,
+            wheres=[
+                WHERE(snt_id, "ssno:hasDomainConceptSet", "?domainConceptSetID"),
+                WHERE("?domainConceptSetID", "a", "ssno:DomainConceptSet"),
+                WHERE("?domainConceptSetID", "schema:name", "?name"),
+                WHERE("?domainConceptSetID", "dcterms:description", "?description", is_optional=True),
+            ]
+        )
+
+        for res in sparql_domain_concept_sets.query(g):
+            domain_concept_set_id = _parse_id(res['domainConceptSetID'])
+            # now look for the valid values:
+            sparql_valid_values = build_simple_sparql_query(
+                prefixes=prefixes,
+                wheres=[
+                    WHERE(domain_concept_set_id, "ssno:hasValidValues", "?hasValidValuesID"),
+                    WHERE("?hasValidValuesID", "a", "m4i:TextVariable"),
+                    WHERE("?hasValidValuesID", "m4i:hasStringValue", "?hasStringValue"),
+                    WHERE("?hasValidValuesID", "m4i:hasVariableDescription", "?hasVariableDescription",
+                          is_optional=True),
+                ]
+            )
+            hasValidValues = []
+            for valid_values in sparql_valid_values.query(g):
+                validvalues_dict = dict(hasStringValue=valid_values['hasStringValue'],
+                                        hasVariableDescription=valid_values['hasVariableDescription'])
+                hasValidValues.append(
+                    TextVariable(**{k: v.value.strip() for k, v in validvalues_dict.items() if v}))
+
+            has_domain_concept_set_dict = dict(name=res['name'].value, description=res['description'].value)
+            domain_concept_sets.append(
+                DomainConceptSet(
+                    id=domain_concept_set_id,
+                    hasValidValues=hasValidValues,
+                    **{k: v for k, v in has_domain_concept_set_dict.items() if v}
+                )
+            )
+
+        snt.hasDomainConceptSet = domain_concept_sets
 
         standard_names = []
 
@@ -1471,8 +1531,16 @@ def get_regex_from_transformation(transformation: Transformation) -> str:
 
 def check_if_standard_name_can_be_build_with_transformation(standard_name: str, snt: StandardNameTable) -> Tuple[
     List[StandardName], Union[Transformation, None]]:
-    transformations = [t for t in snt.hasModifier if isinstance(t, Transformation)]
-    qualifications = {t.id: t for t in snt.hasModifier if isinstance(t, Qualification)}
+    if snt.hasModifier is None:
+        transformations = {}
+        qualifications = {}
+    else:
+        transformations = [t for t in snt.hasModifier if isinstance(t, Transformation)]
+        qualifications = {t.id: t for t in snt.hasModifier if isinstance(t, Qualification)}
+    if snt.hasDomainConceptSet is not None:
+        domain_concept_sets = {t.id: t for t in snt.hasDomainConceptSet if isinstance(t, DomainConceptSet)}
+    else:
+        domain_concept_sets = {}
     for transformation in transformations:
         pattern = get_regex_from_transformation(transformation)
         match = re.fullmatch(f"^{pattern}$", standard_name)
@@ -1488,13 +1556,18 @@ def check_if_standard_name_can_be_build_with_transformation(standard_name: str, 
                         found_ns = snt.get_standard_name(term)
                         if found_ns:
                             matching_standard_names.append(found_ns)
-                    else: # must be qualificaiton
-                        # search in qualifications
-                        found_q = qualifications.get(char.associatedWith)
-                        if found_q:
-                            if term in [v.hasStringValue for v in found_q.hasValidValues]:
-                                found_valid_value = [v for v in found_q.hasValidValues if v.hasStringValue == term][0]
-                                matching_standard_names.append(found_valid_value)
+                    elif str(char.associatedWith) in domain_concept_sets:
+                        found_dcs = domain_concept_sets.get(char.associatedWith)
+                        if term in [v.hasStringValue for v in found_dcs.hasValidValues]:
+                            found_valid_value = [v for v in found_dcs.hasValidValues if v.hasStringValue == term][0]
+                            matching_standard_names.append(found_valid_value)
+                    elif str(char.associatedWith) in qualifications:
+                        found_q = domain_concept_sets.get(char.associatedWith)
+                        if term in [v.hasStringValue for v in found_q.hasValidValues]:
+                            found_valid_value = [v for v in found_q.hasValidValues if v.hasStringValue == term][0]
+                            matching_standard_names.append(found_valid_value)
+                    else:  # must be qualification or domain concept set
+                        raise ValueError(f"Unknown associatedWith value {char.associatedWith}")
                 if len(matching_standard_names) == len(terms):
                     return matching_standard_names, transformation
                 # matching_standard_names = [snt.get_standard_name(t) for t in terms]

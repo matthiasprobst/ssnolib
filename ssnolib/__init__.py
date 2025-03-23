@@ -3,7 +3,7 @@ from .namespace import SSNO
 from .prov import Person, Organization
 from .prov.attribution import Attribution
 from .ssno import StandardNameTable, Qualification, VectorQualification, Transformation, Character, AgentRole, \
-    VectorStandardName, StandardName, ScalarStandardName
+    VectorStandardName, StandardName, ScalarStandardName, DomainConceptSet
 from .utils import get_cache_dir
 from . import schema
 from .ssno.standard_name_table import parse_table

@@ -6,6 +6,7 @@ class SSNO(DefinedNamespace):
     # uri = "https://matthiasprobst.github.io/ssno#"
     # Generated with ssnolib
     Character: URIRef  # ['Charakter']
+    DomainConceptSet: URIRef  # ['Domain Concept Set']
     Qualification: URIRef  # ['Qualification']
     ScalarStandardName: URIRef  # ['Scalar Standard Name']
     StandardName: URIRef  # ['Standard Name']
@@ -20,6 +21,7 @@ class SSNO(DefinedNamespace):
     before: URIRef  # ['before']
     dataset: URIRef  # ['dataset']
     hasCharacter: URIRef  # ['has character']
+    hasDomainConceptSet: URIRef  # ['has domain concept set']
     hasModifier: URIRef  # ['has modifier']
     hasStandardName: URIRef  # ['has standard name']
     hasValidValues: URIRef  # ['has valid values']
@@ -45,6 +47,7 @@ class SSNO(DefinedNamespace):
 
 
 setattr(SSNO, "Charakter", SSNO.Character)
+setattr(SSNO, "Domain_Concept_Set", SSNO.DomainConceptSet)
 setattr(SSNO, "Qualification", SSNO.Qualification)
 setattr(SSNO, "Scalar_Standard_Name", SSNO.ScalarStandardName)
 setattr(SSNO, "Standard_Name", SSNO.StandardName)
@@ -59,6 +62,7 @@ setattr(SSNO, "associated_with", SSNO.associatedWith)
 setattr(SSNO, "before", SSNO.before)
 setattr(SSNO, "dataset", SSNO.dataset)
 setattr(SSNO, "has_character", SSNO.hasCharacter)
+setattr(SSNO, "has_domain_concept_set", SSNO.hasDomainConceptSet)
 setattr(SSNO, "has_modifier", SSNO.hasModifier)
 setattr(SSNO, "has_standard_name", SSNO.hasStandardName)
 setattr(SSNO, "has_valid_values", SSNO.hasValidValues)

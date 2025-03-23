@@ -14,7 +14,7 @@ from ontolutils.namespacelib.m4i import M4I
 from ontolutils.utils.qudt_units import parse_unit
 
 import ssnolib
-from ssnolib import Qualification, Transformation, Character
+from ssnolib import Qualification, Transformation, Character, DomainConceptSet
 from ssnolib import StandardNameTable, AgentRole, StandardName, VectorStandardName
 from ssnolib import parse_table
 from ssnolib.dcat import Distribution, Dataset
@@ -143,7 +143,6 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         self.assertEqual(sorted(["inlet", "outlet"]),
                          sorted([p.hasStringValue for p in qloc.hasValidValues]))
 
-
         comp = ssnolib.Qualification(name="component",
                                      description="component of the vector",
                                      hasValidValues=['x', 'y', "z"])
@@ -226,8 +225,10 @@ class TestSSNOStandardNameTable(unittest.TestCase):
 
         self.assertEqual(snt.hasModifier[0].name, "location")
         self.assertIn("difference_of_X_and_Y_between_A_and_B", [q.name for q in snt.hasModifier])
-        difference_of_X_and_Y_between_A_and_B = [q for q in snt.hasModifier if q.name == "difference_of_X_and_Y_between_A_and_B"][0]
-        self.assertEqual(["A", "B", "X", "Y"], sorted([c.character for c in difference_of_X_and_Y_between_A_and_B.hasCharacter]))
+        difference_of_X_and_Y_between_A_and_B = \
+            [q for q in snt.hasModifier if q.name == "difference_of_X_and_Y_between_A_and_B"][0]
+        self.assertEqual(["A", "B", "X", "Y"],
+                         sorted([c.character for c in difference_of_X_and_Y_between_A_and_B.hasCharacter]))
         C_derivative_of_U = [q for q in snt.hasModifier if q.name == "C_derivative_of_U"][0]
         self.assertEqual(["C", "U"], sorted([c.character for c in C_derivative_of_U.hasCharacter]))
 
@@ -904,6 +905,50 @@ class TestSSNOStandardNameTable(unittest.TestCase):
             "dX/dY (keeping any other independent variables constant, i.e. the partial derivative if appropriate).")
         self.assertEqual(t.name, "derivative_of_X_wrt_Y")
         self.assertEqual(t.name, snt.hasModifier[0].name)
+
+    def test_transformation_with_domain_concept_set(self):
+        devices = DomainConceptSet(
+            id="https://example.org/domainConceptSet/devices",
+            name="devices",
+            description="my devices",
+            hasValidValues=[
+                TextVariable(
+                    has_string_value="fan",
+                    has_variable_description="my fan"),
+                TextVariable(
+                    has_string_value="orifice plate",
+                    has_variable_description="orifice plate to measure volume flow rate"
+                )]
+        )
+        difference_of_X_across_device = Transformation(
+            id=f"https://example.org/transformation/difference_of_X_across_device",
+            name="difference_of_X_across_DEVICE",
+            altersUnit="[X]",
+            hasCharacter=[Character(character="X", associatedWith=SSNO.AnyStandardName),
+                          Character(character="DEVICE", associatedWith=devices), ],
+            description="Difference of a quantity across a device."
+        )
+        test_snt = StandardNameTable(title="Test SNT")
+        test_snt.standardNames = [
+            StandardName(standardName="velocity", description="velocity", unit="m/s")
+        ]
+        test_snt.hasModifier = [difference_of_X_across_device, ]
+        test_snt.hasDomainConceptSet = [devices, ]
+        # vel = test_snt.get_standard_name("velocity")
+        # self.assertEqual("velocity", vel.standardName)
+        # self.assertEqual("http://qudt.org/vocab/unit/M-PER-SEC", vel.unit)
+        vel_across_fan = test_snt.get_standard_name("difference_of_velocity_across_fan")
+        self.assertEqual("difference_of_velocity_across_fan", vel_across_fan.standardName)
+        self.assertEqual("http://qudt.org/vocab/unit/M-PER-SEC", vel_across_fan.unit)
+
+        # test parsing domain concept set
+        test_snt.to_jsonld('snt_with_domain_concept.jsonld', overwrite=True)
+
+        parsed_snt = parse_table("snt_with_domain_concept.jsonld", fmt='jsonld')
+        self.assertEqual(parsed_snt.title, "Test SNT")
+        self.assertEqual(len(parsed_snt.hasDomainConceptSet), 1)
+
+        pathlib.Path('snt_with_domain_concept.jsonld').unlink(missing_ok=True)
 
     def test_get_transformed_standard_name(self):
         snt = StandardNameTable(name="Fluid SNT")

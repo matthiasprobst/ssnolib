@@ -11,15 +11,17 @@ __this_dir__ = pathlib.Path(__file__).parent
 
 class TestVersion(unittest.TestCase):
 
-    def test_version(self):
-        this_version = 'x.x.x'
+    def setUp(self):
+        self.this_version = 'x.x.x'
         setupcfg_filename = __this_dir__ / '../setup.cfg'
         with open(setupcfg_filename, 'r') as f:
             lines = f.readlines()
             for line in lines:
                 if 'version' in line:
-                    this_version = line.split(' = ')[-1].strip()
-        self.assertEqual(ssnolib.__version__, this_version)
+                    self.this_version = line.split(' = ')[-1].strip()
+
+    def test_version(self):
+        self.assertEqual(ssnolib.__version__, self.this_version)
 
     def test_codemeta(self):
         """checking if the version in codemeta.json is the same as the one of the toolbox"""
@@ -35,8 +37,10 @@ class TestVersion(unittest.TestCase):
         with open(__this_dir__ / '../README.md', 'r') as f:
             readme = f.read()
 
-        assert "ssno-1.4.0-orange" in readme
-        assert "[SSNO ontology](https://matthiasprobst.github.io/ssno/1.4.0)" in readme
+        ssno_version_splitted = self.this_version.split('.')
+        ssno_version = '.'.join(ssno_version_splitted[:3])
+        assert f"ssno-{ssno_version}-orange" in readme
+        assert f"[SSNO ontology](https://matthiasprobst.github.io/ssno/{ssno_version})" in readme
 
     def test_ssno_url_exists(self):
         """checking if the ssno url exists"""

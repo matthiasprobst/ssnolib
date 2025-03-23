@@ -2,6 +2,10 @@
 
 Log of changes in the versions
 
+## v1.5.0.0
+- `Collection` is added to allow constructing transformations that use terms, that are not of type `Qualification`
+- min `ontolutils` version is v0.15.0
+
 ## v1.4.0.0
 
 - update to newer version of the ontology
