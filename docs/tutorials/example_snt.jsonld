@@ -1,0 +1,76 @@
+{
+  "@context": {
+    "dcat": "http://www.w3.org/ns/dcat#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "foaf": "http://xmlns.com/foaf/0.1/",
+    "m4i": "http://w3id.org/nfdi4ing/metadata4ing#",
+    "owl": "https://www.w3.org/2002/07/owl#",
+    "prov": "http://www.w3.org/ns/prov#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "schema": "https://schema.org/",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "ssno": "https://matthiasprobst.github.io/ssno#"
+  },
+  "@id": "_:N89b4e0b4dc5d4c71849ec6399173e83e",
+  "@type": "ssno:StandardNameTable",
+  "dcat:version": "v1.0.0",
+  "dcterms:description": "This is a standard name table used as part of a tutorial of the Python library \"ssnolib\".",
+  "dcterms:title": "Tutorial Standard Name Table",
+  "prov:qualifiedAttribution": {
+    "@id": "_:Nbff76e9a730a471b935a5b06ece0ac93",
+    "@type": "prov:Attribution",
+    "prov:agent": {
+      "@id": "_:Nbb005645f5ca4b72b2f49a7edda9c726",
+      "@type": "prov:Person",
+      "foaf:firstName": "Matthias",
+      "foaf:lastName": "Probst",
+      "m4i:orcidId": "https://orcid.org/0000-0001-8729-0482"
+    },
+    "prov:hadRole": "http://w3id.org/nfdi4ing/metadata4ing#ContactPerson"
+  },
+  "ssno:hasModifier": [
+    {
+      "@id": "_:Nf002ad5f06d241c2b3b71646b7370c4d",
+      "@type": "ssno:VectorQualification",
+      "dcterms:description": "Components of vectors",
+      "schema:name": "component",
+      "ssno:before": "https://matthiasprobst.github.io/ssno#AnyStandardName",
+      "ssno:hasValidValues": [
+        {
+          "@id": "_:N8ec2e51c5ec14dc89c18fcc3308db5df",
+          "@type": "m4i:TextVariable",
+          "m4i:hasStringValue": "x",
+          "m4i:hasVariableDescription": "Component in y-direction"
+        },
+        {
+          "@id": "_:N8179a21111c845d4a4b2519e8fa51f95",
+          "@type": "m4i:TextVariable",
+          "m4i:hasStringValue": "y",
+          "m4i:hasVariableDescription": "Component in y-direction"
+        },
+        {
+          "@id": "_:Nc0eda6f47b0a423eaa065bf2f38371d6",
+          "@type": "m4i:TextVariable",
+          "m4i:hasStringValue": "z",
+          "m4i:hasVariableDescription": "Component in z-direction"
+        }
+      ]
+    }
+  ],
+  "ssno:standardNames": [
+    {
+      "@id": "_:Nb69d6af526a14fe9a1463098525d121a",
+      "@type": "ssno:VectorStandardName",
+      "ssno:description": "Velocity vector",
+      "ssno:standardName": "velocity",
+      "ssno:unit": "http://qudt.org/vocab/unit/M-PER-SEC"
+    },
+    {
+      "@id": "_:N91ad82942bdc422cb13da30e5d067912",
+      "@type": "ssno:ScalarStandardName",
+      "ssno:description": "Velocity component in x-direction",
+      "ssno:standardName": "x_velocity",
+      "ssno:unit": "http://qudt.org/vocab/unit/M-PER-SEC"
+    }
+  ]
+}
