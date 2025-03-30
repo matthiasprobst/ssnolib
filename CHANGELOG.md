@@ -5,6 +5,7 @@ Log of changes in the versions
 ## v1.5.1.0
 
 - Qualification is subclass of `DomainConceptSet` and `StandardNameModification`
+- add readthedocs documentation: https://ssnolib.readthedocs.io/en/latest/index.html
 
 ## v1.5.0.1
 
