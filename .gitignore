@@ -26,3 +26,4 @@ snt.xml
 docs/cf-standard-name-table.md
 
 tmp/
+tests/snt.json

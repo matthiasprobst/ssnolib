@@ -2,10 +2,16 @@
 
 Log of changes in the versions
 
+## v1.5.1.0
+
+- Qualification is subclass of `DomainConceptSet` and `StandardNameModification`
+
 ## v1.5.0.1
+
 - Hotfix determine standard name
 
 ## v1.5.0.0
+
 - `Collection` is added to allow constructing transformations that use terms, that are not of type `Qualification`
 - min `ontolutils` version is v0.15.0
 

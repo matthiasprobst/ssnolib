@@ -1,0 +1,3 @@
+-r requirements-dev.txt
+Sphinx==8.0.0
+myst_nb

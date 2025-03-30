@@ -137,19 +137,32 @@ class DomainConceptSet(Concept):
     description: str  # dcterms:description
     hasValidValues: Optional[List[Union[str, Dict, TextVariable]]] = None  # ssno:hasValidValues
 
+    @field_validator('hasValidValues', mode='before')
+    @classmethod
+    def _hasValidValues(cls, hasValidValues: Optional[List[Union[str, TextVariable]]] = None) -> List[
+        TextVariable]:
+        if isinstance(hasValidValues, dict):
+            return [TextVariable(**hasValidValues)]
+        if hasValidValues:
+            for k, v in enumerate(hasValidValues.copy()):
+                if isinstance(v, str):
+                    hasValidValues[k] = TextVariable(hasStringValue=v.strip(),
+                                                     hasVariableDescription="No description available.")
+                elif isinstance(v, dict):
+                    hasValidValues[k] = TextVariable(**v)
+        return hasValidValues
+
 
 @namespaces(ssno="https://matthiasprobst.github.io/ssno#")
 @urirefs(Qualification='ssno:Qualification',
          before='ssno:before',
          after='ssno:after',
-         hasPreposition='ssno:hasPreposition',
-         hasValidValues='ssno:hasValidValues')
-class Qualification(StandardNameModification):
+         hasPreposition='ssno:hasPreposition')
+class Qualification(StandardNameModification, DomainConceptSet):
     """Implementation of ssno:Qualification"""
     before: Optional[Union[str, HttpUrl, "Qualification"]] = None  # ssno:before
     after: Optional[Union[str, HttpUrl, "Qualification"]] = None  # ssno:after
     hasPreposition: Optional[str] = None  # ssno:hasPreposition
-    hasValidValues: Optional[List[Union[str, Dict, TextVariable]]] = None  # ssno:hasValidValues
 
     @field_validator('before')
     @classmethod
@@ -178,21 +191,6 @@ class Qualification(StandardNameModification):
                 SSNO.AnyStandardName):
             raise TypeError(f'Expected a AnyStandardName or Qualification, got {type(after)}')
         return after
-
-    @field_validator('hasValidValues', mode='before')
-    @classmethod
-    def _hasValidValues(cls, hasValidValues: Optional[List[Union[str, TextVariable]]] = None) -> List[
-        TextVariable]:
-        if isinstance(hasValidValues, dict):
-            return [TextVariable(**hasValidValues)]
-        if hasValidValues:
-            for k, v in enumerate(hasValidValues.copy()):
-                if isinstance(v, str):
-                    hasValidValues[k] = TextVariable(hasStringValue=v.strip(),
-                                                     hasVariableDescription="No description available.")
-                elif isinstance(v, dict):
-                    hasValidValues[k] = TextVariable(**v)
-        return hasValidValues
 
     def get_full_name(self):
         if not self.hasPreposition:
