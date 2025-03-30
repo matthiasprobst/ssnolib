@@ -18,16 +18,4 @@ Welcome to ssnolib's documentation!
 
    installation
    tutorials/index
-
-Usage
-=====
-
-.. _installation:
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   api
