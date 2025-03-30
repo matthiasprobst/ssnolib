@@ -12,6 +12,12 @@ and most importantly machine-actionable. The library can be integrated in you da
 > **_NOTE:_** The version of the library corresponds to the version of the ontology it supports. Hence, 1.5.0.1 refers 
 > to the ontology version 1.5.0 and the last part (.1) is the patch version of this library.
 
+
+## Documentation
+Please find the online documentation [here](https://ssnolib.readthedocs.io/en/latest/). What you will find, is 
+effectively the rendered versions of the Jupyter Notebooks under `/docs/tutorials/`. 
+
+
 ## Quickstart
 
 ### Programmatically

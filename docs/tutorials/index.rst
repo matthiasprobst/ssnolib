@@ -8,3 +8,6 @@ The main classes of the `ssnolib` package are `StandardNameTable` and `StandardN
 
    StandardNameTable
    StandardName
+   Agents
+   Qualifications
+   referencing_StandardNameTables
