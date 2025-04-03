@@ -4,3 +4,4 @@ pydantic[email]>=2.7.4,<=2.10.6
 appdirs>=1.4.4
 python-dateutil>=2.9.0
 requests>=2.32.3
+pint>=0.21.1

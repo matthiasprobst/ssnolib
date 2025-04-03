@@ -2,6 +2,10 @@
 
 Log of changes in the versions
 
+## v1.5.1.1
+
+- add dependency `pint`
+
 ## v1.5.1.0
 
 - Qualification is subclass of `DomainConceptSet` and `StandardNameModification`
