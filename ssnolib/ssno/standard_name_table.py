@@ -643,17 +643,20 @@ class StandardNameTable(Concept):
                 # found a corresponding core standard name. replace it in regex pattern:
                 core_standard_name: StandardName = existing_standard_name
                 pattern = rf'{regex_pattern.replace("standard_name", existing_standard_name.standardName)}'
+
+                qualification_descriptions = {}
+
                 if re.match(pattern, standard_name):
                     groups = re.match(pattern, standard_name).groups()
                     qs = [qdict[qid] for qid in qualifications]
-                    q_description = ""
                     for g, q in zip(groups, qs):
                         if g:
                             for s in self.standardNames:
                                 if s.standardName == existing_standard_name.standardName:
                                     for tv in q.hasValidValues:
                                         if tv.hasStringValue == g:
-                                            q_description = f"{g}: {tv.hasVariableDescription}"
+                                            q_description = tv.hasVariableDescription
+                                            qualification_descriptions[g] = q_description
                                             break
                     if self.id.endswith("/"):
                         new_sn_id = self.id + "derived_standard_name/" + standard_name
@@ -663,9 +666,13 @@ class StandardNameTable(Concept):
                         core_standard_name_description = "No description available."
                     else:
                         core_standard_name_description = core_standard_name.description
-                    constructed_sn = StandardName(id=new_sn_id,
-                                                  standardName=standard_name, unit=core_standard_name.unit,
-                                                  description=f"{core_standard_name.standardName}: {core_standard_name_description} {q_description}")
+
+                    qualification_description_string = " ".join(
+                        f"{k}: {v}" for k, v in qualification_descriptions.items())
+                    constructed_sn = StandardName(
+                        id=new_sn_id,
+                        standardName=standard_name, unit=core_standard_name.unit,
+                        description=f"{core_standard_name.standardName}: {core_standard_name_description} {qualification_description_string}")
                     _cache_valid_standard_name(self, constructed_sn)
                     return constructed_sn
         return

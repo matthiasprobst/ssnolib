@@ -300,7 +300,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         self.assertFalse(snt.verify_name("u_velocity"))
         self.assertTrue(snt.verify_name("x_air_density"))
         sn = snt.get_standard_name("x_velocity")
-        self.assertEqual("velocity: Velocity vector. x: The x-component of the vector.", sn.description)
+        self.assertEqual("velocity: The velocity vector of an object or fluid. x: No description available.", sn.description)
         self.assertEqual('http://qudt.org/vocab/unit/M-PER-SEC', sn.unit)
         self.assertEqual("x_velocity", sn.standardName)
 
@@ -657,9 +657,13 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         self.assertTrue(
             snt.verify_name("tropopause_coordinate")
         )
+        # self.assertEqual(
+        #     snt.get_standard_name("x_velocity").description,
+        #     "velocity: Velocity vector. x: The x-component of the vector."
+        # )
         self.assertEqual(
-            snt.get_standard_name("x_velocity").description,
-            "velocity: Velocity vector. x: The x-component of the vector."
+            snt.get_standard_name("surface_x_velocity").description,
+            "velocity: Velocity vector. surface: No description available. x: The x-component of the vector."
         )
         self.assertTrue(snt.verify_name("air_density"))  # equals "air_density"
         self.assertTrue(snt.verify_name("tropopause_air_pressure"))  # using regex
