@@ -629,7 +629,7 @@ class StandardNameTable(Concept):
 
         # let's try to construct the standard name:
         if not re.match(config.standard_name_core_pattern, standard_name):
-            print("General pattern not matched. Must be lowercase and parts may be separated by '_'.")
+            warnings.warn("General pattern not matched. Must be lowercase and parts may be separated by '_'.")
             return None
 
         hasModifier = self.hasModifier or []
@@ -651,14 +651,21 @@ class StandardNameTable(Concept):
                         if g:
                             for s in self.standardNames:
                                 if s.standardName == existing_standard_name.standardName:
-                                    q_description = q.description
+                                    for tv in q.hasValidValues:
+                                        if tv.hasStringValue == g:
+                                            q_description = f"{g}: {tv.hasVariableDescription}"
+                                            break
                     if self.id.endswith("/"):
                         new_sn_id = self.id + "derived_standard_name/" + standard_name
                     else:
                         new_sn_id = self.id + "/derived_standard_name/" + standard_name
+                    if core_standard_name.description == "" or core_standard_name.description is None:
+                        core_standard_name_description = "No description available."
+                    else:
+                        core_standard_name_description = core_standard_name.description
                     constructed_sn = StandardName(id=new_sn_id,
                                                   standardName=standard_name, unit=core_standard_name.unit,
-                                                  description=core_standard_name.description + q_description)
+                                                  description=f"{core_standard_name.standardName}: {core_standard_name_description} {q_description}")
                     _cache_valid_standard_name(self, constructed_sn)
                     return constructed_sn
         return

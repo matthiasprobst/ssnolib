@@ -300,7 +300,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         self.assertFalse(snt.verify_name("u_velocity"))
         self.assertTrue(snt.verify_name("x_air_density"))
         sn = snt.get_standard_name("x_velocity")
-        self.assertEqual("The velocity vector of an object or fluid.The component of a vector", sn.description)
+        self.assertEqual("velocity: Velocity vector. x: The x-component of the vector.", sn.description)
         self.assertEqual('http://qudt.org/vocab/unit/M-PER-SEC', sn.unit)
         self.assertEqual("x_velocity", sn.standardName)
 
@@ -565,7 +565,8 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         component = ssnolib.VectorQualification(
             name="component",
             description='The direction of the spatial component of a vector is indicated by one of the words upward, downward, northward, southward, eastward, westward, x, y. The last two indicate directions along the horizontal grid being used when they are not true longitude and latitude (if there is a rotated pole, for instance). If the standard name indicates a tensor quantity, two of these direction words may be included, applying to two of the spatial dimensions Z Y X, in that order. If only one component is indicated for a tensor, it means the flux in the indicated direction of the magnitude of the vector quantity in the plane of the other two spatial dimensions. The names of vertical components of radiative fluxes are prefixed with net_, thus: net_downward and net_upward. This treatment is not applied for any kinds of flux other than radiative. Radiative fluxes from above and below are often measured and calculated separately, the "net" being the difference. Within the atmosphere, radiation from below (not net) is indicated by a prefix of upwelling, and from above with downwelling. For the top of the atmosphere, the prefixes incoming and outgoing are used instead.,',
-            hasValidValues=["upward", "downward", "northward", "southward", "eastward", "westward", "x", "y"]
+            hasValidValues=["upward", "downward", "northward", "southward", "eastward", "westward",
+                            TextVariable(hasStringValue="x", hasVariableDescription="The x-component of the vector."), "y"]
         )
         at_surface = ssnolib.Qualification(
             name="surface",
@@ -635,8 +636,8 @@ class TestSSNOStandardNameTable(unittest.TestCase):
             ("temperature", "K"),
         ]
         core_vector_standard_names = [
-            ("coordinate", "m"),
-            ("velocity", "m/s"),
+            ("coordinate", "m", "spatial coordinate"),
+            ("velocity", "m/s", "Velocity vector."),
         ]
         with self.assertRaises(pydantic.ValidationError):
             snt.append("standardNames", 1.5)
@@ -645,7 +646,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         for csn in core_scalar_standard_names:
             snt.append("standardNames", ScalarStandardName(standardName=csn[0], description="", unit=csn[1]))
         for cvn in core_vector_standard_names:
-            snt.append("standardNames", VectorStandardName(standardName=cvn[0], description="", unit=cvn[1]))
+            snt.append("standardNames", VectorStandardName(standardName=cvn[0], description=cvn[2], unit=cvn[1]))
 
         self.assertFalse(
             snt.verify_name("x_air_density")
@@ -656,13 +657,17 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         self.assertTrue(
             snt.verify_name("tropopause_coordinate")
         )
+        self.assertEqual(
+            snt.get_standard_name("x_velocity").description,
+            "velocity: Velocity vector. x: The x-component of the vector."
+        )
         self.assertTrue(snt.verify_name("air_density"))  # equals "air_density"
         self.assertTrue(snt.verify_name("tropopause_air_pressure"))  # using regex
         tropopause_air_pressure = snt.get_standard_name("tropopause_air_pressure")  # using regex
 
         self.assertEqual(
             tropopause_air_pressure.description,
-            snt.get_standard_name("air_pressure").description + surface.description)
+            'air_pressure: No description available. tropopause: No description available.')
         snt.add_new_standard_name(
             StandardName(
                 standardName="tropopause_air_pressure",
