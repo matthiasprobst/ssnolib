@@ -165,7 +165,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         self.assertEqual(snt.hasModifier[0].name, "location")
         self.assertEqual(snt.hasModifier[1].name, "component")
 
-    def test_tansformation(self):
+    def test_transformation(self):
         qloc = Qualification(
             id=f"https://example.org/location",
             name="location",
@@ -562,7 +562,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
             description='A surface is defined as a function of horizontal position. Surfaces which are defined using a coordinate value (e.g. height of 1.5 m) are indicated by a single-valued coordinate variable, not by the standard name. In the standard name, some surfaces are named by single words which are placed at the start: toa (top of atmosphere), tropopause, surface. Other surfaces are named by multi-word phrases put after at: at_adiabatic_condensation_level, at_cloud_top, at_convective_cloud_top, at_cloud_base, at_convective_cloud_base, at_freezing_level, at_ground_level, at_maximum_wind_speed_level, at_sea_floor, at_sea_ice_base, at_sea_level, at_top_of_atmosphere_boundary_layer, at_top_of_atmosphere_model, at_top_of_dry_convection. The surface called "surface" means the lower boundary of the atmosphere. sea_level means mean sea level, which is close to the geoid in sea areas. ground_level means the land surface (beneath the snow and surface water, if any). cloud_base refers to the base of the lowest cloud. cloud_top refers to the top of the highest cloud. Fluxes at the top_of_atmosphere_model differ from TOA fluxes only if the model TOA fluxes make some allowance for the atmosphere above the top of the model; if not, it is usual to give standard names with toa to the fluxes at the top of the model atmosphere.',
             hasValidValues=["toa", "tropopause", "surface"]
         )
-        component = ssnolib.Qualification(
+        component = ssnolib.VectorQualification(
             name="component",
             description='The direction of the spatial component of a vector is indicated by one of the words upward, downward, northward, southward, eastward, westward, x, y. The last two indicate directions along the horizontal grid being used when they are not true longitude and latitude (if there is a rotated pole, for instance). If the standard name indicates a tensor quantity, two of these direction words may be included, applying to two of the spatial dimensions Z Y X, in that order. If only one component is indicated for a tensor, it means the flux in the indicated direction of the magnitude of the vector quantity in the plane of the other two spatial dimensions. The names of vertical components of radiative fluxes are prefixed with net_, thus: net_downward and net_upward. This treatment is not applied for any kinds of flux other than radiative. Radiative fluxes from above and below are often measured and calculated separately, the "net" being the difference. Within the atmosphere, radiation from below (not net) is indicated by a prefix of upwelling, and from above with downwelling. For the top of the atmosphere, the prefixes incoming and outgoing are used instead.,',
             hasValidValues=["upward", "downward", "northward", "southward", "eastward", "westward", "x", "y"]
@@ -644,10 +644,10 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         # snt.standardNames = StandardName(standardName="density", description="density", unit="kg/m-3")
         for csn in core_scalar_standard_names:
             snt.append("standardNames", ScalarStandardName(standardName=csn[0], description="", unit=csn[1]))
-        for csn in core_vector_standard_names:
-            snt.append("standardNames", VectorStandardName(standardName=csn[0], description="", unit=csn[1]))
+        for cvn in core_vector_standard_names:
+            snt.append("standardNames", VectorStandardName(standardName=cvn[0], description="", unit=cvn[1]))
 
-        self.assertTrue(
+        self.assertFalse(
             snt.verify_name("x_air_density")
         )  # density is not a vector standard name, hence x_ cannot be applied!
         self.assertTrue(

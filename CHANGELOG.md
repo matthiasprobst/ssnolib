@@ -2,6 +2,10 @@
 
 Log of changes in the versions
 
+## v1.5.1.2
+
+- correctly testing vector qualifications
+
 ## v1.5.1.1
 
 - add dependency `pint`

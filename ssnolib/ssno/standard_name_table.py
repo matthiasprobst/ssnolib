@@ -76,7 +76,7 @@ class AgentRole(enum.Enum):
 
 
 def _generate_ordered_list_of_qualifications(qres):
-    sorted_list = ['https://matthiasprobst.github.io/ssno#AnyStandardName', ]
+    sorted_list = [str(SSNO.AnyStandardName), ]
     i = 0
     while len(qres) > 0:
         i += 1
@@ -88,8 +88,8 @@ def _generate_ordered_list_of_qualifications(qres):
             if v["before"]:
                 if v["before"] in sorted_list:
                     # find the element corresponding to v["before"]:
-                    i = sorted_list.index(v["before"])
-                    sorted_list.insert(i, k)
+                    _idx = sorted_list.index(v["before"])
+                    sorted_list.insert(_idx, k)
                     qres.pop(k)
                 # elif str(v["before"]) in (str(SSNO.AnyStandardName), str(SSNO.AnyScalarStandardName)):
                 #     i = sorted_list.index('https://matthiasprobst.github.io/ssno#AnyStandardName')
@@ -98,8 +98,8 @@ def _generate_ordered_list_of_qualifications(qres):
 
             elif v["after"]:
                 if v["after"] in sorted_list:
-                    i = sorted_list.index(v["after"])
-                    sorted_list.insert(i + 1, k)
+                    _idx = sorted_list.index(v["after"])
+                    sorted_list.insert(_idx + 1, k)
                     qres.pop(k)
                 # elif str(v["after"]) in (str(SSNO.AnyStandardName), str(SSNO.AnyScalarStandardName)):
                 #     i = sorted_list.index('https://matthiasprobst.github.io/ssno#AnyStandardName')
@@ -491,7 +491,10 @@ class StandardNameTable(Concept):
         return cls(**data)
 
     def verify_name(self, standard_name: str):
-        """Verifies a string standard name"""
+        """Verifies a string standard name. Focuses on verifying a string representation of a standard name.
+        It checks if the name matches a general pattern, exists in the standardNames list, or can be constructed
+        using qualifications and transformations.
+        """
         # first some technical checks: must not start with a "_" etc.
         general_pattern = config.standard_name_core_pattern
         if not re.match(general_pattern, standard_name):
@@ -513,6 +516,7 @@ class StandardNameTable(Concept):
         regex_pattern, qualifications = self.get_qualification_regex()
 
         for existing_standard_name in str_standard_names:
+
             if existing_standard_name in standard_name:
                 # found a corresponding core standard name. replace it in regex pattern:
                 pattern = rf'{regex_pattern.replace("standard_name", existing_standard_name)}'
@@ -535,7 +539,8 @@ class StandardNameTable(Concept):
         return False
 
     def verify(self, standard_name: StandardName):
-        """Verifies a string standard name"""
+        """Verifies a string standard name. Verifies a StandardName object, including its unit.
+        It ensures that the unit of the input matches the canonical unit of the corresponding standard name."""
         # first some technical checks: must not start with a "_" etc.
         if not re.match(config.standard_name_core_pattern, standard_name.standardName):
             print("General pattern not matched. Must be lowercase and parts may be separated by '_'.")
@@ -1177,6 +1182,8 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
     if source is None and data is None:
         raise ValueError("Either source or data must be provided.")
     if source:
+        if str(source).startswith("https://") or str(source).startswith("http://"):
+            download_file(source)
         filename = pathlib.Path(source)
         assert filename.exists(), f"File {filename} does not exist."
         if fmt:
