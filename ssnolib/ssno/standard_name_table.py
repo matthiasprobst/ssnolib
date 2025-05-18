@@ -578,16 +578,16 @@ class StandardNameTable(Concept):
             descriptions = []
             for m in matches:
                 if isinstance(m, StandardName):
-                    descriptions.append(m.description.strip("."))
+                    descriptions.append(f"{m.standardName}: {m.description.strip('.')}.")
                 else:
-                    descriptions.append(m.hasVariableDescription.strip("."))
-            match_descriptions = ". ".join(descriptions)
+                    descriptions.append(f"{m.hasStringValue}: {m.hasVariableDescription.strip('.')}.")
+            match_descriptions = " ".join(descriptions)
             matches_standard_names = [m for m in matches if isinstance(m, StandardName)]
             combined_description = " and ".join([f"'{m.standardName}'" for m in matches_standard_names])
             if len(matches) == 1:
-                new_description = f"Derived Standard Name using transformation '{found_transformation.name}' ({found_transformation.description}) from standard name {combined_description}."
+                new_description = f"Derived standard name using transformation '{found_transformation.name}' ({found_transformation.description}) applied to {combined_description}."
             else:
-                new_description = f"Derived Standard Name using transformation '{found_transformation.name}' ({found_transformation.description}) from standard names {combined_description}."
+                new_description = f"Derived standard name using transformation '{found_transformation.name}' ({found_transformation.description}) applied to {combined_description}."
             if self.id.endswith("/"):
                 new_sn_id = self.id + "derived_standard_name/" + standard_name
             else:
@@ -595,7 +595,7 @@ class StandardNameTable(Concept):
             valid_standard_name = StandardName(id=new_sn_id,
                                                standardName=standard_name,
                                                unit=alter_unit(matches_standard_names, found_transformation),
-                                               description=new_description + " " + match_descriptions + ".")
+                                               description=new_description.strip(".") + ". " + match_descriptions)
 
             _cache_valid_standard_name(self, valid_standard_name)
             return valid_standard_name

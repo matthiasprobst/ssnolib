@@ -300,7 +300,8 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         self.assertFalse(snt.verify_name("u_velocity"))
         self.assertTrue(snt.verify_name("x_air_density"))
         sn = snt.get_standard_name("x_velocity")
-        self.assertEqual("velocity: The velocity vector of an object or fluid. x: No description available.", sn.description)
+        self.assertEqual("velocity: The velocity vector of an object or fluid. x: No description available.",
+                         sn.description)
         self.assertEqual('http://qudt.org/vocab/unit/M-PER-SEC', sn.unit)
         self.assertEqual("x_velocity", sn.standardName)
 
@@ -566,7 +567,8 @@ class TestSSNOStandardNameTable(unittest.TestCase):
             name="component",
             description='The direction of the spatial component of a vector is indicated by one of the words upward, downward, northward, southward, eastward, westward, x, y. The last two indicate directions along the horizontal grid being used when they are not true longitude and latitude (if there is a rotated pole, for instance). If the standard name indicates a tensor quantity, two of these direction words may be included, applying to two of the spatial dimensions Z Y X, in that order. If only one component is indicated for a tensor, it means the flux in the indicated direction of the magnitude of the vector quantity in the plane of the other two spatial dimensions. The names of vertical components of radiative fluxes are prefixed with net_, thus: net_downward and net_upward. This treatment is not applied for any kinds of flux other than radiative. Radiative fluxes from above and below are often measured and calculated separately, the "net" being the difference. Within the atmosphere, radiation from below (not net) is indicated by a prefix of upwelling, and from above with downwelling. For the top of the atmosphere, the prefixes incoming and outgoing are used instead.,',
             hasValidValues=["upward", "downward", "northward", "southward", "eastward", "westward",
-                            TextVariable(hasStringValue="x", hasVariableDescription="The x-component of the vector."), "y"]
+                            TextVariable(hasStringValue="x", hasVariableDescription="The x-component of the vector."),
+                            "y"]
         )
         at_surface = ssnolib.Qualification(
             name="surface",
@@ -923,7 +925,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
             hasValidValues=[
                 TextVariable(
                     has_string_value="fan",
-                    has_variable_description="my fan"),
+                    has_variable_description="The investigated fan."),
                 TextVariable(
                     has_string_value="orifice plate",
                     has_variable_description="orifice plate to measure volume flow rate"
@@ -933,8 +935,9 @@ class TestSSNOStandardNameTable(unittest.TestCase):
             id=f"https://example.org/transformation/difference_of_X_across_device",
             name="difference_of_X_across_DEVICE",
             altersUnit="[X]",
-            hasCharacter=[Character(character="X", associatedWith=SSNO.AnyStandardName),
-                          Character(character="DEVICE", associatedWith=devices), ],
+            hasCharacter=[
+                Character(character="X", associatedWith=SSNO.AnyStandardName),
+                Character(character="DEVICE", associatedWith=devices), ],
             description="Difference of a quantity across a device."
         )
         test_snt = StandardNameTable(title="Test SNT")
@@ -948,6 +951,10 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         # self.assertEqual("http://qudt.org/vocab/unit/M-PER-SEC", vel.unit)
         vel_across_fan = test_snt.get_standard_name("difference_of_velocity_across_fan")
         self.assertEqual("difference_of_velocity_across_fan", vel_across_fan.standardName)
+        self.assertEqual(
+            "Derived standard name using transformation 'difference_of_X_across_DEVICE' (Difference of a quantity across a device.) applied to 'velocity'. velocity: velocity. fan: The investigated fan.",
+            vel_across_fan.description
+        )
         self.assertEqual("http://qudt.org/vocab/unit/M-PER-SEC", vel_across_fan.unit)
 
         # test parsing domain concept set
@@ -958,7 +965,6 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         self.assertEqual(len(parsed_snt.hasDomainConceptSet), 1)
 
         pathlib.Path('snt_with_domain_concept.jsonld').unlink(missing_ok=True)
-
 
     def test_get_transformed_standard_name(self):
         snt = StandardNameTable(name="Fluid SNT")
