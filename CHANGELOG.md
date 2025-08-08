@@ -14,6 +14,7 @@ Log of changes in the versions
 
 - correctly testing vector qualifications
 - improve on description generation when constructing a standard name from qualifications
+- drop support for Python 3.8
 
 ## v1.5.1.1
 
