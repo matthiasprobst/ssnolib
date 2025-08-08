@@ -197,7 +197,14 @@ class JSONLDReader(TableReader):
         from .standard_name_table import StandardNameTable
         with open(self.filename, 'r') as f:
             import json
-            snt = StandardNameTable.from_jsonld(data=json.load(f), limit=1)
+            _data = json.load(f)
+            _context = _data.get('@context', None)
+            if _context is not None:
+                from .standard_name_table import _expand_short_uri_from_dict
+                data = _expand_short_uri_from_dict(_data, _context)
+            else:
+                data = _data
+            snt = StandardNameTable.from_jsonld(data=data, limit=1)
             return snt.model_dump(exclude_none=True)
 
 

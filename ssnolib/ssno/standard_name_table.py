@@ -1235,6 +1235,18 @@ def _expand_short_uri(possibly_short_uri, context):
         return context[split_short_uri[0]] + split_short_uri[1]
     return possibly_short_uri
 
+def _expand_short_uri_from_dict(data: dict, context: dict) -> dict:
+    """Erweitert kurze URIs im Dictionary mithilfe des Kontextes."""
+    if not isinstance(data, dict):
+        return data
+    for key, value in data.items():
+        if isinstance(value, str):
+            data[key] = _expand_short_uri(value, context)
+        elif isinstance(value, list):
+            data[key] = [_expand_short_uri(v, context) if isinstance(v, str) else _expand_short_uri_from_dict(v, context) for v in value]
+        elif isinstance(value, dict):
+            data[key] = _expand_short_uri_from_dict(value, context)
+    return data
 
 def parse_table(source=None, data=None, fmt: Optional[str] = None):
     """Instantiates a table from a file."""

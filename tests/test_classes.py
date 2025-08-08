@@ -57,15 +57,19 @@ class TestClasses(unittest.TestCase):
         self.assertEqual(contact_alias.last_name, 'Doe')
 
     def test_ssnolib_Distribution(self):
-        distribution = ssnolib.dcat.Distribution(title='XML Table',
-                                                 downloadURL='https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
-                                                 mediaType='text/csv')
+        distribution = ssnolib.dcat.Distribution(
+            title='XML Table',
+            downloadURL='https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
+            mediaType='text/csv'
+        )
         self.assertEqual(str(distribution.mediaType),
                          "https://www.iana.org/assignments/media-types/text/csv")
 
-        distribution = ssnolib.dcat.Distribution(title='XML Table',
-                                                 downloadURL='https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
-                                                 mediaType='application/xml')
+        distribution = ssnolib.dcat.Distribution(
+            title='XML Table',
+            downloadURL='https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
+            mediaType='application/xml'
+        )
         self.assertEqual(str(distribution.mediaType),
                          "https://www.iana.org/assignments/media-types/application/xml")
         self.assertEqual(distribution.title, 'XML Table')
