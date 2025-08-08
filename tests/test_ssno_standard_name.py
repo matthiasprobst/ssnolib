@@ -208,3 +208,6 @@ class TestSSNOStandardName(unittest.TestCase):
     def test_standard_name_with_difficult_unit(self):
         sn = StandardName(standardName="velocity", description="velocity", unit="m2/s2")
         self.assertEqual(str(sn.unit), 'http://qudt.org/vocab/unit/M2-PER-SEC2')
+
+    def test_standard_name_table_parsing(self):
+        snt_loaded = StandardNameTable.parse(__this_dir__ / f"data/snt_from_scratch.jsonld")
