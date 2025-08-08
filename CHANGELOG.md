@@ -2,10 +2,18 @@
 
 Log of changes in the versions
 
+## v1.5.1.3
+
+- upgrade to ontolutils v0.19.1
+- it is enforced to use base-uri (a doi) when calling `to_jsonld()` from `StandardNameTable` to ensure that the standard
+  names
+  are unique
+- bugfix `hasDomainConceptSet`
+
 ## v1.5.1.2
 
 - correctly testing vector qualifications
-- improve on description generation when constructing a standard name from qualifications
+- improve on description generation when constructing a standard name from qualifications and transformations
 
 ## v1.5.1.1
 
