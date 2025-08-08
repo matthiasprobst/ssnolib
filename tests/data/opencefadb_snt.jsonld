@@ -1,0 +1,949 @@
+{
+    "@context": {
+        "owl": "http://www.w3.org/2002/07/owl#",
+        "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+        "dcterms": "http://purl.org/dc/terms/",
+        "skos": "http://www.w3.org/2004/02/skos/core#",
+        "ssno": "https://matthiasprobst.github.io/ssno#",
+        "schema": "https://schema.org/",
+        "prov": "http://www.w3.org/ns/prov#",
+        "dcat": "http://www.w3.org/ns/dcat#",
+        "foaf": "http://xmlns.com/foaf/0.1/",
+        "m4i": "http://w3id.org/nfdi4ing/metadata4ing#",
+        "pims": "http://www.molmod.info/semantics/pims-ii.ttl#"
+    },
+    "@type": "ssno:StandardNameTable",
+    "dcterms:title": "Standard Name Table for the openCeFaDB",
+    "dcterms:hasVersion": "1.0.0",
+    "dcterms:description": "This table provides standardized names for the opencefadb (open centrifugal fan database).",
+    "dcterms:created": "2025-05-18",
+    "dcterms:modified": "2025-05-18",
+    "prov:qualifiedAttribution": [
+        {
+            "@type": "prov:Attribution",
+            "prov:agent": {
+                "@type": "prov:Person",
+                "foaf:firstName": "Matthias",
+                "foaf:lastName": "Probst",
+                "m4i:orcidId": "https://orcid.org/0000-0001-8729-0482",
+                "schema:affiliation": {
+                    "@type": "prov:Organization",
+                    "foaf:name": "Karlsruhe Institute of Technology, Institute of Thermal Turbomachinery",
+                    "m4i:hasRorId": "https://ror.org/04t3en479",
+                    "@id": "https://ror.org/04t3en479"
+                },
+                "@id": "https://orcid.org/0000-0001-8729-0482"
+            },
+            "dcat:hadRole": "http://w3id.org/nfdi4ing/metadata4ing#ContactPerson",
+            "@id": "local:N9daeec350ea24fe385241146d3a6a773"
+        },
+        {
+            "@type": "prov:Attribution",
+            "prov:agent": {
+                "@type": "prov:Person",
+                "foaf:firstName": "Balazs",
+                "foaf:lastName": "Pritz",
+                "m4i:orcidId": "https://orcid.org/0000-0001-9560-500X",
+                "schema:affiliation": {
+                    "@type": "prov:Organization",
+                    "foaf:name": "Karlsruhe Institute of Technology, Institute of Thermal Turbomachinery",
+                    "m4i:hasRorId": "https://ror.org/04t3en479",
+                    "@id": "https://ror.org/04t3en479"
+                },
+                "@id": "https://orcid.org/0000-0001-9560-500X"
+            },
+            "dcat:hadRole": "http://w3id.org/nfdi4ing/metadata4ing#Supervisor",
+            "@id": "local:N95232590b41e431ea0bd8dca99184561"
+        }
+    ],
+    "ssno:standardNames": [
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "blade_angle",
+            "ssno:unit": "http://qudt.org/vocab/unit/RAD",
+            "ssno:description": "The angle between the blade surface and the radial plane.",
+            "@id": "_:blade_angle"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "blade_angle_at_inlet",
+            "ssno:unit": "http://qudt.org/vocab/unit/RAD",
+            "ssno:description": "The blade angle at the leading edge of the impeller (\u03b21). For three-dimensionally curved blades, measured at half the blade height.",
+            "@id": "_:blade_angle_at_inlet"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "blade_angle_at_outlet",
+            "ssno:unit": "http://qudt.org/vocab/unit/RAD",
+            "ssno:description": "The blade angle at the trailing edge of the impeller (\u03b22). For three-dimensionally curved blades, measured at half the blade height.",
+            "@id": "_:blade_angle_at_outlet"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "blade_diameter_at_inlet",
+            "ssno:unit": "http://qudt.org/vocab/unit/M",
+            "ssno:description": "Inner diameter of the fan (D1). If the blade edge is not parallel to the z-axis, measured at half the blade height.",
+            "@id": "_:blade_diameter_at_inlet"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "blade_diameter_at_outlet",
+            "ssno:unit": "http://qudt.org/vocab/unit/M",
+            "ssno:description": "Outer diameter of the fan (D2). If the blade edge is not parallel to the z-axis, measured at half the blade height.",
+            "@id": "_:blade_diameter_at_outlet"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "blade_height_at_inlet",
+            "ssno:unit": "http://qudt.org/vocab/unit/M",
+            "ssno:description": "Height of the blade at the inlet (b1).",
+            "@id": "_:blade_height_at_inlet"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "blade_height_at_outlet",
+            "ssno:unit": "http://qudt.org/vocab/unit/M",
+            "ssno:description": "Height of the blade at the outlet (b2).",
+            "@id": "_:blade_height_at_outlet"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "blade_number",
+            "ssno:unit": "http://qudt.org/vocab/unit/UNITLESS",
+            "ssno:description": "Number of blades on the fan impeller.",
+            "@id": "_:blade_number"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "blade_thickness",
+            "ssno:unit": "http://qudt.org/vocab/unit/M",
+            "ssno:description": "Thickness of each blade (t).",
+            "@id": "_:blade_thickness"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "cross_sectional_area_at_fan_inlet",
+            "ssno:unit": "http://qudt.org/vocab/unit/M2",
+            "ssno:description": "Cross-sectional area of the fan at the location \"fan_inlet\" for fans with a casing. The position of the referred cross-sectional area is in the pipe upstream of the fan. The area is generally taken to compute the dynamic pressure at the inlet of the fan based on the volume flow rate.",
+            "@id": "_:cross_sectional_area_at_fan_inlet"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "cross_sectional_area_at_fan_outlet",
+            "ssno:unit": "http://qudt.org/vocab/unit/M2",
+            "ssno:description": "Cross-sectional area of the fan at the location \"fan_outlet\" for fans with a casing. The position of the referred cross-sectional area is in the pipe downstream of the fan. The area is generally taken to compute the dynamic pressure at the outlet of the fan based on the volume flow rate.",
+            "@id": "_:cross_sectional_area_at_fan_outlet"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "fan_design_flow_coefficient",
+            "ssno:unit": "http://qudt.org/vocab/unit/UNITLESS",
+            "ssno:description": "Flow coefficient at the design point",
+            "@id": "_:fan_design_flow_coefficient"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "fan_design_pressure_coefficient",
+            "ssno:unit": "http://qudt.org/vocab/unit/UNITLESS",
+            "ssno:description": "Pressure coefficient at the design point.",
+            "@id": "_:fan_design_pressure_coefficient"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "fan_design_rotational_speed",
+            "ssno:unit": "http://qudt.org/vocab/unit/PER-SEC",
+            "ssno:description": "Design rotational speed.",
+            "@id": "_:fan_design_rotational_speed"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "fan_design_total_efficiency",
+            "ssno:unit": "http://qudt.org/vocab/unit/UNITLESS",
+            "ssno:description": "Total fan efficiency at the design point.",
+            "@id": "_:fan_design_total_efficiency"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "fan_design_volumetric_efficiency",
+            "ssno:unit": "http://qudt.org/vocab/unit/UNITLESS",
+            "ssno:description": "Volumetric fan efficiency at the design point.",
+            "@id": "_:fan_design_volumetric_efficiency"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "hub_diameter",
+            "ssno:unit": "http://qudt.org/vocab/unit/M",
+            "ssno:description": "Diameter of the hub (D3). In many designs, the hub_diameter is equal to the blade_diameter_at_outlet (D2=D3). If not, the impeller uses a rotating diffusor design.",
+            "@id": "_:hub_diameter"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "impeller_axial_gap",
+            "ssno:unit": "http://qudt.org/vocab/unit/M",
+            "ssno:description": "Axial gap between the impeller and the nozzle.",
+            "@id": "_:impeller_axial_gap"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "impeller_height_at_outlet",
+            "ssno:unit": "http://qudt.org/vocab/unit/M",
+            "ssno:description": "Height of the impeller at the outlet (b3). In most designs b1=b2, if not a rotating diffusor design is used.",
+            "@id": "_:impeller_height_at_outlet"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "impeller_weight",
+            "ssno:unit": "http://qudt.org/vocab/unit/KiloGM",
+            "ssno:description": "Weight of the impeller.",
+            "@id": "_:impeller_weight"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "impeller_width_at_inlet",
+            "ssno:unit": "http://qudt.org/vocab/unit/M",
+            "ssno:description": "Width of the impeller at its inlet.",
+            "@id": "_:impeller_width_at_inlet"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "impeller_width_at_outlet",
+            "ssno:unit": "http://qudt.org/vocab/unit/M",
+            "ssno:description": "Width of the impeller at its outlet.",
+            "@id": "_:impeller_width_at_outlet"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "volute_depth",
+            "ssno:unit": "http://qudt.org/vocab/unit/M",
+            "ssno:description": "Depth of the volute (B).",
+            "@id": "_:volute_depth"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "volute_width",
+            "ssno:unit": "http://qudt.org/vocab/unit/M",
+            "ssno:description": "Width of the volute (L).",
+            "@id": "_:volute_width"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "fan_blade_angle",
+            "ssno:unit": "http://qudt.org/vocab/unit/RAD",
+            "ssno:description": "Angle of blade shape typically at inlet or outlet.",
+            "@id": "_:fan_blade_angle"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "blade_inner_diameter",
+            "ssno:unit": "http://qudt.org/vocab/unit/M",
+            "ssno:description": "The inner diameter of the test fan (D1).",
+            "@id": "_:blade_inner_diameter"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "blade_outer_diameter",
+            "ssno:unit": "http://qudt.org/vocab/unit/M",
+            "ssno:description": "The outer diameter of the test fan (D2).",
+            "@id": "_:blade_outer_diameter"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "impeller_diameter",
+            "ssno:unit": "http://qudt.org/vocab/unit/M",
+            "ssno:description": "The diameter of the impeller of the test fan, also D3. For some fans D2 is equal to D3.",
+            "@id": "_:impeller_diameter"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "fan_inlet_area",
+            "ssno:unit": "http://qudt.org/vocab/unit/M",
+            "ssno:description": "The fan cross-sectional area at the location \"fan_inlet\" for fans with a casing. The position of the referred cross-sectional area is in the pipe upstream of the fan. The area is generally taken to compute the dynamic pressure at the inlet of the fan based on the volume flow rate.",
+            "@id": "_:fan_inlet_area"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "fan_outlet_area",
+            "ssno:unit": "http://qudt.org/vocab/unit/M",
+            "ssno:description": "The fan cross-sectional area at the location \"fan_outlet\" for fans with a casing. The position of the referred cross-sectional area is in the pipe downstream of the fan. The area is generally taken to compute the dynamic pressure at the outlet of the fan based on the volume flow rate.",
+            "@id": "_:fan_outlet_area"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "overlap",
+            "ssno:unit": "http://qudt.org/vocab/unit/PIXEL",
+            "ssno:description": "Overlap of interrogation windows.",
+            "@id": "_:overlap"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "estimated_particle_image_diameter",
+            "ssno:unit": "http://qudt.org/vocab/unit/PIXEL",
+            "ssno:description": "Estimated diameter of a particle image.",
+            "@id": "_:estimated_particle_image_diameter"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "sound_pressure",
+            "ssno:unit": "http://qudt.org/vocab/unit/PA",
+            "ssno:description": "Sound pressure is the pressure deflection from the ambient pressure induced by a sound. (978-0-7506-7291-7)",
+            "@id": "_:sound_pressure"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "static_pressure",
+            "ssno:unit": "http://qudt.org/vocab/unit/PA",
+            "ssno:description": "Static air pressure is the amount of pressure exerted by air that is not moving.",
+            "@id": "_:static_pressure"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "total_pressure",
+            "ssno:unit": "http://qudt.org/vocab/unit/PA",
+            "ssno:description": "The sum of dynamic and static air pressure.",
+            "@id": "_:total_pressure"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "wall_static_pressure",
+            "ssno:unit": "http://qudt.org/vocab/unit/PA",
+            "ssno:description": "Static air pressure is the amount of pressure exerted by air that is not moving. Wall static air pressure is the static air pressure at the wall.",
+            "@id": "_:wall_static_pressure"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "difference_of_total_pressure_and_static_pressure_between_across_fan",
+            "ssno:unit": "http://qudt.org/vocab/unit/PA",
+            "ssno:description": "The difference of static pressure at fan outlet w.r.t. the total pressure upstream of the fan. The total pressure generally is not known at the fan inlet pipe but further upstream, e.g. in a settling chamber. The dataset must provide detailed information, e.g. referencing to the respective pressure measurement device containing the exact location in the setup.",
+            "@id": "_:difference_of_total_pressure_and_static_pressure_between_across_fan"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "difference_of_wall_static_pressure_and_wall_static_pressure_across_fan",
+            "ssno:unit": "http://qudt.org/vocab/unit/PA",
+            "ssno:description": "Static air pressure is the amount of pressure exerted by air that is not moving. Difference of wall static air pressure across a fan is the difference between the static air pressure downstream (at fan_outlet) of the fan and the total air pressure upstream of the fan at the wall (at fan_inlet).",
+            "@id": "_:difference_of_wall_static_pressure_and_wall_static_pressure_across_fan"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "difference_of_wall_static_pressure_and_wall_static_pressure_across_orifice_plate",
+            "ssno:unit": "http://qudt.org/vocab/unit/PA",
+            "ssno:description": "Difference of static air pressure across orifice to compute volume flow rate according to DIN EN ISO 5167.",
+            "@id": "_:difference_of_wall_static_pressure_and_wall_static_pressure_across_orifice_plate"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "dynamic_pressure",
+            "ssno:unit": "http://qudt.org/vocab/unit/PA",
+            "ssno:description": "Dynamic air pressure is a measure for kinetic energy per unit volume of moving air.",
+            "@id": "_:dynamic_pressure"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "total_pressure_coefficient_of_fan",
+            "ssno:unit": "http://qudt.org/vocab/unit/PA",
+            "ssno:description": "Total pressure coefficient is a dimensionless number as defined in (CAROLUS, Thomas. Ventilatoren-Aerodynamischer Entwurf, Schallvorhersage. Konstruktion, 2013, 2. Jg., p.2, eq.1.4).  The addition \"of_fan\" indicates that this coefficient applies for the deployed fan.",
+            "@id": "_:total_pressure_coefficient_of_fan"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "air_absolute_pressure",
+            "ssno:unit": "http://qudt.org/vocab/unit/PA",
+            "ssno:description": "Pressure is force per unit area. Absolute air pressure is pressure deviation to a total vacuum for the medium air.",
+            "@id": "_:air_absolute_pressure"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "atmospheric_pressure",
+            "ssno:unit": "http://qudt.org/vocab/unit/PA",
+            "ssno:description": "Atmospheric pressure, also known as static ambient air pressure is the static air pressure of the surrounding air. Pressure is force per unit area (see also https://www.wikidata.org/wiki/Q81809).",
+            "@id": "_:atmospheric_pressure"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "dynamic_viscosity",
+            "ssno:unit": "http://qudt.org/vocab/unit/PA",
+            "ssno:description": "Dynamic viscosity indicates the resistance  of air towards deformation under shear stress. (https://doi.org/10.1016/B978-0-08-096949-7.00020-0)",
+            "@id": "_:dynamic_viscosity"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "kinematic_viscosity",
+            "ssno:unit": "http://qudt.org/vocab/unit/PA",
+            "ssno:description": "Dynamic viscosity indicates the resistance  of air towards deformation under shear stress. Kinematic viscosity. Dynamic air viscosity divided by air density equals kinematic air viscosity. (https://doi.org/10.1016/B978-0-12-410461-7.00007-9)",
+            "@id": "_:kinematic_viscosity"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "relative_humidity",
+            "ssno:unit": "http://qudt.org/vocab/unit/UNITLESS",
+            "ssno:description": "Relative humidity is a measure of the water vapor content of air.",
+            "@id": "_:relative_humidity"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "density",
+            "ssno:unit": "http://qudt.org/vocab/unit/KiloGM-PER-M3",
+            "ssno:description": "Density is defined as the mass of air divided by its volume.",
+            "@id": "_:density"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "inner_diameter_of_orifice_plate",
+            "ssno:unit": "http://qudt.org/vocab/unit/M",
+            "ssno:description": "Inner diameter of an orifice.",
+            "@id": "_:inner_diameter_of_orifice_plate"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "outer_diameter_of_orifice_plate",
+            "ssno:unit": "http://qudt.org/vocab/unit/M",
+            "ssno:description": "Outer diameter of an orifice.",
+            "@id": "_:outer_diameter_of_orifice_plate"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "time",
+            "ssno:unit": "http://qudt.org/vocab/unit/UNITLESS",
+            "ssno:description": "Recording time in ISO 8601 format.",
+            "@id": "_:time"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "relative_time",
+            "ssno:unit": "http://qudt.org/vocab/unit/SEC",
+            "ssno:description": "Recording time since start of recording.",
+            "@id": "_:relative_time"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "fan_rotational_speed",
+            "ssno:unit": "http://qudt.org/vocab/unit/PER-SEC",
+            "ssno:description": "Number of revolutions of a fan.",
+            "@id": "_:fan_rotational_speed"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "fan_torque",
+            "ssno:unit": "http://qudt.org/vocab/unit/N-M",
+            "ssno:description": "The torque acting on the impeller of the fan.",
+            "@id": "_:fan_torque"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "fan_volume_flow_rate",
+            "ssno:unit": "http://qudt.org/vocab/unit/M3-PER-SEC",
+            "ssno:description": "Air volume flow rate is the volume of air that passes a cross section per unit time. The volume flow rate of the fan is the volume flow entering and leaving the fan. Due to gaps between the impeller and the housing, the volume flow rate is lower than the volume flow rate through the impeller (see impeller_volume_flow_rate).",
+            "@id": "_:fan_volume_flow_rate"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "fan_flow_coefficient_of_fan",
+            "ssno:unit": "http://qudt.org/vocab/unit/UNITLESS",
+            "ssno:description": "Air flow coefficient is a dimensionless number as defined in (CAROLUS, Thomas. Ventilatoren-Aerodynamischer Entwurf, Schallvorhersage. Konstruktion, 2013, 2. Jg., p.2, eq.1.3). The addition \"of_fan\" indicates that this coefficient applies to the deployed fan.",
+            "@id": "_:fan_flow_coefficient_of_fan"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "impeller_volume_flow_rate",
+            "ssno:unit": "http://qudt.org/vocab/unit/M3-PER-SEC",
+            "ssno:description": "Air volume flow rate is the volume of air that passes a cross section per unit time. The volume flow rate of the impeller is the volume flow entering and leaving the impeller. Due to gaps between the impeller and the housing, this volume flow rate is higher than the volume flow rate through the fan (see fan_volume_flow_rate).",
+            "@id": "_:impeller_volume_flow_rate"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "mass_flow_rate",
+            "ssno:unit": "http://qudt.org/vocab/unit/KiloGM-PER-SEC",
+            "ssno:description": "Air mass flow rate is the mass of air that passes a certain cross section per unit time.",
+            "@id": "_:mass_flow_rate"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "power_of_driveshaft",
+            "ssno:unit": "http://qudt.org/vocab/unit/W",
+            "ssno:description": "Power of driveshaft.",
+            "@id": "_:power_of_driveshaft"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "torque_of_driveshaft",
+            "ssno:unit": "http://qudt.org/vocab/unit/N-M",
+            "ssno:description": "Torque is a force that causes something to rotate. Torque of driveshaft is the torque acting on the driveshaft.",
+            "@id": "_:torque_of_driveshaft"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "total_efficiency_of_fan",
+            "ssno:unit": "http://qudt.org/vocab/unit/UNITLESS",
+            "ssno:description": "Total fan efficiency as defined in (CAROLUS, Thomas. Ventilatoren-Aerodynamischer Entwurf, Schallvorhersage. Konstruktion, 2013, 2. Jg., p.5, eq.1.16).",
+            "@id": "_:total_efficiency_of_fan"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "auxiliary_fan_rotational_speed",
+            "ssno:unit": "http://qudt.org/vocab/unit/PER-SEC",
+            "ssno:description": "Number of revolutions of an auxiliary fan.",
+            "@id": "_:auxiliary_fan_rotational_speed"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "temperature",
+            "ssno:unit": "http://qudt.org/vocab/unit/K",
+            "ssno:description": "Temperature of the medium.",
+            "@id": "_:temperature"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "ambient_temperature",
+            "ssno:unit": "http://qudt.org/vocab/unit/K",
+            "ssno:description": "Bulk temperature of the ambient.",
+            "@id": "_:ambient_temperature"
+        },
+        {
+            "@type": "ssno:VectorStandardName",
+            "ssno:standardName": "coordinate",
+            "ssno:unit": "http://qudt.org/vocab/unit/M",
+            "ssno:description": "Spatial coordinate.",
+            "@id": "_:coordinate"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "fan_total_efficiency",
+            "ssno:unit": "http://qudt.org/vocab/unit/UNITLESS",
+            "ssno:description": "Total fan efficiency computed by means of the total pressure as defined in (CAROLUS, Thomas. Ventilatoren-Aerodynamischer Entwurf, Schallvorhersage. Konstruktion, 2013, 2. Jg., p.5, eq.1.16).",
+            "@id": "_:fan_total_efficiency"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "fan_volumetric_efficiency",
+            "ssno:unit": "http://qudt.org/vocab/unit/UNITLESS",
+            "ssno:description": "Volumetric fan efficiency.",
+            "@id": "_:fan_volumetric_efficiency"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "fan_flow_coefficient",
+            "ssno:unit": "http://qudt.org/vocab/unit/UNITLESS",
+            "ssno:description": "Air flow coefficient is a dimensionless number as defined in (CAROLUS, Thomas. Ventilatoren-Aerodynamischer Entwurf, Schallvorhersage. Konstruktion, 2013, 2. Jg., p.2, eq.1.3). The addition of_fan indicates that this coefficient applies to the deployed fan.",
+            "@id": "_:fan_flow_coefficient"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "fan_power_coefficient",
+            "ssno:unit": "http://qudt.org/vocab/unit/UNITLESS",
+            "ssno:description": "Power coefficient is a dimensionless number as defined in (CAROLUS, Thomas. Ventilatoren-Aerodynamischer Entwurf, Schallvorhersage. Konstruktion, 2013, 2. Jg., p.2, eq.1.5). The addition of_fan indicates that this coefficient applies for the deployed fan.",
+            "@id": "_:fan_power_coefficient"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "fan_pressure_coefficient",
+            "ssno:unit": "http://qudt.org/vocab/unit/UNITLESS",
+            "ssno:description": "Total pressure coefficient is a dimensionless number as defined in (CAROLUS, Thomas. Ventilatoren-Aerodynamischer Entwurf, Schallvorhersage. Konstruktion, 2013, 2. Jg., p.2, eq.1.4).  The addition of_fan indicates that this coefficient applies for the deployed fan.",
+            "@id": "_:fan_pressure_coefficient"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "fan_shaft_power",
+            "ssno:unit": "http://qudt.org/vocab/unit/W",
+            "ssno:description": "Power of fan drive shaft.",
+            "@id": "_:fan_shaft_power"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "fan_specific_speed",
+            "ssno:unit": "http://qudt.org/vocab/unit/UNITLESS",
+            "ssno:description": "Specific speed of the fan as defined in (CAROLUS, Thomas. Ventilatoren-Aerodynamischer Entwurf, Schallvorhersage. Konstruktion, 2013, 2. Jg., p.2, eq.1.6).",
+            "@id": "_:fan_specific_speed"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "blade_volume_flow_rate",
+            "ssno:unit": "http://qudt.org/vocab/unit/M3-PER-SEC",
+            "ssno:description": "Volume flow rate through a blade passage of a fan impeller.",
+            "@id": "_:blade_volume_flow_rate"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "velocity",
+            "ssno:unit": "http://qudt.org/vocab/unit/M-PER-SEC",
+            "ssno:description": "Velocity of a fluid, gas or an object.",
+            "@id": "_:velocity"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "courant_number",
+            "ssno:unit": "http://qudt.org/vocab/unit/UNITLESS",
+            "ssno:description": "Courant number or Courant-Friedrichs-Lewy or CFL number is a dimensionless number that describes the ratio of the fluid displacement (local velocity times time step) to the mesh size.",
+            "@id": "_:courant_number"
+        },
+        {
+            "@type": "ssno:StandardName",
+            "ssno:standardName": "reynolds_number",
+            "ssno:unit": "http://qudt.org/vocab/unit/UNITLESS",
+            "ssno:description": "Reynolds number is a dimensionless number that describes the ratio of inertial forces to viscous forces.",
+            "@id": "_:reynolds_number"
+        }
+    ],
+    "ssno:hasModifier": [
+        {
+            "@type": "ssno:Qualification",
+            "schema:name": "surface",
+            "dcterms:description": "A surface is defined as a function of horizontal position. Surfaces which are defined using a coordinate value (e.g. height of 1.5 m) are indicated by a single-valued coordinate variable, not by the standard name. In the standard name, some surfaces are named by single words which are placed at the start: toa (top of atmosphere), tropopause, surface. Other surfaces are named by multi-word phrases put after at: at_adiabatic_condensation_level, at_cloud_top, at_convective_cloud_top, at_cloud_base, at_convective_cloud_base, at_freezing_level, at_ground_level, at_maximum_wind_speed_level, at_sea_floor, at_sea_ice_base, at_sea_level, at_top_of_atmosphere_boundary_layer, at_top_of_atmosphere_model, at_top_of_dry_convection. The surface called \"surface\" means the lower boundary of the atmosphere. sea_level means mean sea level, which is close to the geoid in sea areas. ground_level means the land surface (beneath the snow and surface water, if any). cloud_base refers to the base of the lowest cloud. cloud_top refers to the top of the highest cloud. Fluxes at the top_of_atmosphere_model differ from TOA fluxes only if the model TOA fluxes make some allowance for the atmosphere above the top of the model; if not, it is usual to give standard names with toa to the fluxes at the top of the model atmosphere.",
+            "ssno:hasValidValues": [
+                {
+                    "@type": "m4i:TextVariable",
+                    "m4i:hasVariableDescription": "Wall of a component where the quantity is defined. The wall is the solid boundary of the component, typically made of a material such as metal or plastic. It separates the internal flow field from the external environment.",
+                    "m4i:hasStringValue": "wall",
+                    "@id": "_:Nb518bb08760745aea2f13307dfe0bd33"
+                }
+            ],
+            "ssno:before": "_:Nc4a0bbb929ec45b897aaa2956c4c908f",
+            "@id": "_:N40374b8b43e4403c94cc7e33d6795d56"
+        },
+        {
+            "@type": "ssno:VectorQualification",
+            "schema:name": "component",
+            "dcterms:description": "The direction of the spatial component of a vector.",
+            "ssno:hasValidValues": [
+                {
+                    "@type": "m4i:TextVariable",
+                    "m4i:hasVariableDescription": "x-component of the vector",
+                    "m4i:hasStringValue": "x",
+                    "@id": "_:Nd1c74c572e2743a0a34ca910e01b35e7"
+                },
+                {
+                    "@type": "m4i:TextVariable",
+                    "m4i:hasVariableDescription": "No description available.",
+                    "m4i:hasStringValue": "y",
+                    "@id": "_:Nad45700a42884b228d34a742c685e1d8"
+                },
+                {
+                    "@type": "m4i:TextVariable",
+                    "m4i:hasVariableDescription": "No description available.",
+                    "m4i:hasStringValue": "z",
+                    "@id": "_:N84e02c4f1c1849319421265bc29285bf"
+                }
+            ],
+            "ssno:before": "https://matthiasprobst.github.io/ssno#AnyStandardName",
+            "@id": "_:Nc4a0bbb929ec45b897aaa2956c4c908f"
+        },
+        {
+            "@type": "ssno:Qualification",
+            "schema:name": "location",
+            "dcterms:description": "Specific location in the problem domain.",
+            "ssno:hasValidValues": [
+                {
+                    "@type": "m4i:TextVariable",
+                    "m4i:hasVariableDescription": "A generic inlet location, typically defined as a surface through which air enters a fan component. The exact position of the inlet depends on the specific design concept it is associated with. For example, the inlet to the impeller is a curved surface area that aligns with the leading edges of the blades.",
+                    "m4i:hasStringValue": "inlet",
+                    "@id": "https://doi.org/10.5281/zenodo.15458450/qualification/location/hasValidValues/inlet"
+                },
+                {
+                    "@type": "m4i:TextVariable",
+                    "m4i:hasVariableDescription": "A generic outlet location, typically defined as a surface through which air exits a fan component. The exact position of the outlet depends on the specific design concept it is associated with. For example, the outlet of the impeller spans a curved surface area at the trailing edges of the blades, directing airflow toward the volute or downstream components.",
+                    "m4i:hasStringValue": "outlet",
+                    "@id": "https://doi.org/10.5281/zenodo.15458450/qualification/location/hasValidValues/outlet"
+                },
+                {
+                    "@type": "m4i:TextVariable",
+                    "m4i:hasVariableDescription": "The fan inlet is the entry location for airflow into the fan assembly, typically located at the entrance of the fan housing or volute. It serves as the initial interface where ambient or ducted air is drawn into the fan system. The fan inlet may connect directly to an intake duct or remain open to the surrounding environment, depending on the fan's application.",
+                    "m4i:hasStringValue": "fan_inlet",
+                    "@id": "https://doi.org/10.5281/zenodo.15458450/qualification/location/hasValidValues/fan_inlet"
+                },
+                {
+                    "@type": "m4i:TextVariable",
+                    "m4i:hasVariableDescription": "The fan outlet is the exit location for airflow leaving the fan assembly, typically located at the discharge end of the fan housing or volute. It serves as the primary interface for directing the processed air into downstream components or an exhaust system. The outlet may connect to a discharge duct or vent directly into the environment, depending on the specific fan application.",
+                    "m4i:hasStringValue": "fan_outlet",
+                    "@id": "https://doi.org/10.5281/zenodo.15458450/qualification/location/hasValidValues/fan_outlet"
+                },
+                {
+                    "@type": "m4i:TextVariable",
+                    "m4i:hasVariableDescription": "Settling chamber upstream of the fan.",
+                    "m4i:hasStringValue": "settling_chamber",
+                    "@id": "https://doi.org/10.5281/zenodo.15458450/qualification/location/hasValidValues/settling_chamber"
+                }
+            ],
+            "ssno:after": "https://matthiasprobst.github.io/ssno#AnyStandardName",
+            "ssno:hasPreposition": "at",
+            "@id": "https://doi.org/10.5281/zenodo.15458450/qualification/location"
+        },
+        {
+            "@type": "ssno:Qualification",
+            "schema:name": "medium",
+            "dcterms:description": "A medium indicates the local medium or layer within which an intensive quantity applies: in_air, ",
+            "ssno:hasValidValues": [
+                {
+                    "@type": "m4i:TextVariable",
+                    "m4i:hasVariableDescription": "No description available.",
+                    "m4i:hasStringValue": "air",
+                    "@id": "_:Nba26c8728b36414d91e9f1fce6b712fd"
+                }
+            ],
+            "ssno:after": "https://doi.org/10.5281/zenodo.15458450/qualification/location",
+            "ssno:hasPreposition": "in",
+            "@id": "_:Ne6b882eb30b84b2fa5ae9f703f5206c6"
+        },
+        {
+            "@type": "ssno:Qualification",
+            "schema:name": "reference_frame",
+            "dcterms:description": "TODO.",
+            "ssno:hasValidValues": [
+                {
+                    "@type": "m4i:TextVariable",
+                    "m4i:hasVariableDescription": "No description available.",
+                    "m4i:hasStringValue": "moving_reference_frame",
+                    "@id": "_:N4df8e3949c7246c1a999bb7d505773e2"
+                }
+            ],
+            "ssno:after": "_:Ne6b882eb30b84b2fa5ae9f703f5206c6",
+            "ssno:hasPreposition": "in",
+            "@id": "_:N73e84c64ac084d849ebea3707bce0a95"
+        },
+        {
+            "@type": "ssno:Qualification",
+            "schema:name": "condition",
+            "dcterms:description": "A phrase assuming_condition indicates that the named quantity is the value which would obtain if all aspects of the system were unaltered except for the assumption of the circumstances specified by the condition. Possibilities are assuming_clear_sky, assuming_deep_snow, assuming_no_snow.",
+            "ssno:hasValidValues": [
+                {
+                    "@type": "m4i:TextVariable",
+                    "m4i:hasVariableDescription": "No description available.",
+                    "m4i:hasStringValue": "incompressibility",
+                    "@id": "_:Neca5fc99d3f44d3e8f742813b820501e"
+                }
+            ],
+            "ssno:after": "_:N73e84c64ac084d849ebea3707bce0a95",
+            "ssno:hasPreposition": "assuming",
+            "@id": "_:N309742a94f914be5a8d8a688ce2c468c"
+        },
+        {
+            "@type": "ssno:Transformation",
+            "schema:name": "difference_of_X_and_Y_between_A_and_B",
+            "dcterms:description": "Difference of quantities of two equal or different standard names between two locations.",
+            "ssno:altersUnit": "[X]",
+            "ssno:hasCharacter": [
+                {
+                    "@type": "ssno:Character",
+                    "ssno:character": "X",
+                    "ssno:associatedWith": "https://matthiasprobst.github.io/ssno#AnyStandardName",
+                    "@id": "_:Na200a0202624449fab88d910c59ef793"
+                },
+                {
+                    "@type": "ssno:Character",
+                    "ssno:character": "Y",
+                    "ssno:associatedWith": "https://matthiasprobst.github.io/ssno#AnyStandardName",
+                    "@id": "_:N379ba33a10ad408f9743abed9f48e60e"
+                },
+                {
+                    "@type": "ssno:Character",
+                    "ssno:character": "A",
+                    "ssno:associatedWith": "https://doi.org/10.5281/zenodo.15458450/qualification/location",
+                    "@id": "_:Nb4a256d3c8724e60bde12e608dbaa513"
+                },
+                {
+                    "@type": "ssno:Character",
+                    "ssno:character": "B",
+                    "ssno:associatedWith": "https://doi.org/10.5281/zenodo.15458450/qualification/location",
+                    "@id": "_:N1cdde174544d4edcafe2a4fa4567d4c5"
+                }
+            ],
+            "@id": "https://doi.org/10.5281/zenodo.15458450/transformation/difference_of_X_and_Y_between_A_and_B"
+        },
+        {
+            "@type": "ssno:Transformation",
+            "schema:name": "standard_deviation_of_X",
+            "dcterms:description": "Standard deviation of the difference of a standard name.",
+            "ssno:altersUnit": "[X]",
+            "ssno:hasCharacter": [
+                {
+                    "@type": "ssno:Character",
+                    "ssno:character": "X",
+                    "ssno:associatedWith": "https://matthiasprobst.github.io/ssno#AnyStandardName",
+                    "@id": "_:Ne8bdfaf3b3994b2083ccb2a0a0215c58"
+                }
+            ],
+            "@id": "https://doi.org/10.5281/zenodo.15458450/transformation/standard_deviation_of_X"
+        },
+        {
+            "@type": "ssno:Transformation",
+            "schema:name": "arithmetic_mean_of_X",
+            "dcterms:description": "Arithmetic mean of the standard name.",
+            "ssno:altersUnit": "[X]",
+            "ssno:hasCharacter": [
+                {
+                    "@type": "ssno:Character",
+                    "ssno:character": "X",
+                    "ssno:associatedWith": "https://matthiasprobst.github.io/ssno#AnyStandardName",
+                    "@id": "_:N50539cbb7a914e8296f211d843395a19"
+                }
+            ],
+            "@id": "https://doi.org/10.5281/zenodo.15458450/transformation/arithmetic_mean_of_X"
+        },
+        {
+            "@type": "ssno:Transformation",
+            "schema:name": "volumetric_average_of_X",
+            "dcterms:description": "The volumetric average of the standard name.",
+            "ssno:altersUnit": "[X]",
+            "ssno:hasCharacter": [
+                {
+                    "@type": "ssno:Character",
+                    "ssno:character": "X",
+                    "ssno:associatedWith": "https://matthiasprobst.github.io/ssno#AnyStandardName",
+                    "@id": "_:N849c4d875ba94ff49e11a862e1350f88"
+                }
+            ],
+            "@id": "https://doi.org/10.5281/zenodo.15458450/transformation/volumetric_average_of_X"
+        },
+        {
+            "@type": "ssno:Transformation",
+            "schema:name": "difference_of_X_and_Y_between_A_and_B",
+            "dcterms:description": "Difference of quantities of two equal or different standard names between two locations.",
+            "ssno:altersUnit": "[X]",
+            "ssno:hasCharacter": [
+                {
+                    "@type": "ssno:Character",
+                    "ssno:character": "X",
+                    "ssno:associatedWith": "https://matthiasprobst.github.io/ssno#AnyStandardName",
+                    "@id": "_:Na200a0202624449fab88d910c59ef793"
+                },
+                {
+                    "@type": "ssno:Character",
+                    "ssno:character": "Y",
+                    "ssno:associatedWith": "https://matthiasprobst.github.io/ssno#AnyStandardName",
+                    "@id": "_:N379ba33a10ad408f9743abed9f48e60e"
+                },
+                {
+                    "@type": "ssno:Character",
+                    "ssno:character": "A",
+                    "ssno:associatedWith": "https://doi.org/10.5281/zenodo.15458450/qualification/location",
+                    "@id": "_:Nb4a256d3c8724e60bde12e608dbaa513"
+                },
+                {
+                    "@type": "ssno:Character",
+                    "ssno:character": "B",
+                    "ssno:associatedWith": "https://doi.org/10.5281/zenodo.15458450/qualification/location",
+                    "@id": "_:N1cdde174544d4edcafe2a4fa4567d4c5"
+                }
+            ],
+            "@id": "https://doi.org/10.5281/zenodo.15458450/transformation/difference_of_X_and_Y_between_A_and_B"
+        },
+        {
+            "@type": "ssno:Transformation",
+            "schema:name": "difference_of_X_between_A_and_B",
+            "dcterms:description": "Difference of a quantities of the same standard name between two locations.",
+            "ssno:altersUnit": "[X]",
+            "ssno:hasCharacter": [
+                {
+                    "@type": "ssno:Character",
+                    "ssno:character": "X",
+                    "ssno:associatedWith": "https://matthiasprobst.github.io/ssno#AnyStandardName",
+                    "@id": "_:Nfb9af95f7b284dad92fadffe8039f98c"
+                },
+                {
+                    "@type": "ssno:Character",
+                    "ssno:character": "A",
+                    "ssno:associatedWith": "https://doi.org/10.5281/zenodo.15458450/qualification/location",
+                    "@id": "_:Nba4b58e944274bee9eed7a26a47cc2b5"
+                },
+                {
+                    "@type": "ssno:Character",
+                    "ssno:character": "B",
+                    "ssno:associatedWith": "https://doi.org/10.5281/zenodo.15458450/qualification/location",
+                    "@id": "_:N6aa5fd0d6a664ffba54088ea7f5cf1a9"
+                }
+            ],
+            "@id": "https://doi.org/10.5281/zenodo.15458450/transformation/difference_of_X_between_A_and_B"
+        },
+        {
+            "@type": "ssno:Transformation",
+            "schema:name": "ratio_of_X_to_Y",
+            "dcterms:description": "Ratio of two quantities and two standard names respectively.",
+            "ssno:altersUnit": "[X]/[Y]",
+            "ssno:hasCharacter": [
+                {
+                    "@type": "ssno:Character",
+                    "ssno:character": "X",
+                    "ssno:associatedWith": "https://matthiasprobst.github.io/ssno#AnyStandardName",
+                    "@id": "_:Nd50fb012148243108ababd7143cc01e6"
+                },
+                {
+                    "@type": "ssno:Character",
+                    "ssno:character": "Y",
+                    "ssno:associatedWith": "https://matthiasprobst.github.io/ssno#AnyStandardName",
+                    "@id": "_:N11d742d9acef47129511d34f9997f0ee"
+                }
+            ],
+            "@id": "https://doi.org/10.5281/zenodo.15458450/transformation/ratio_of_X_to_Y"
+        },
+        {
+            "@type": "ssno:Transformation",
+            "schema:name": "derivative_of_X_wrt_to_Y",
+            "dcterms:description": "Derivative of a quantity with respect to another quantity.",
+            "ssno:altersUnit": "[X]/[Y]",
+            "ssno:hasCharacter": [
+                {
+                    "@type": "ssno:Character",
+                    "ssno:character": "X",
+                    "ssno:associatedWith": "https://matthiasprobst.github.io/ssno#AnyStandardName",
+                    "@id": "_:N5feb94952b474ef3900ddef90dde9c10"
+                },
+                {
+                    "@type": "ssno:Character",
+                    "ssno:character": "Y",
+                    "ssno:associatedWith": "https://matthiasprobst.github.io/ssno#AnyStandardName",
+                    "@id": "_:N2dc36098bcc2425dadfd794d2d37c2f5"
+                }
+            ],
+            "@id": "https://doi.org/10.5281/zenodo.15458450/transformation/derivative_of_X_wrt_to_Y"
+        },
+        {
+            "@type": "ssno:Transformation",
+            "schema:name": "difference_of_X_across_DEVICE",
+            "dcterms:description": "Difference of a quantity across a device.",
+            "ssno:altersUnit": "[X]",
+            "ssno:hasCharacter": [
+                {
+                    "@type": "ssno:Character",
+                    "ssno:character": "X",
+                    "ssno:associatedWith": "https://matthiasprobst.github.io/ssno#AnyStandardName",
+                    "@id": "_:Nedaf01cfc8064a14ac4629105fb7f760"
+                },
+                {
+                    "@type": "ssno:Character",
+                    "ssno:character": "DEVICE",
+                    "ssno:associatedWith": "https://doi.org/10.5281/zenodo.15458450/domainConceptSet/device123",
+                    "@id": "_:Nda27645089cb4e7c91c6931e56a06673"
+                }
+            ],
+            "@id": "https://doi.org/10.5281/zenodo.15458450/transformation/difference_of_X_across_device"
+        }
+    ],
+    "ssno:hasDomainConceptSet": [
+        {
+            "@type": "ssno:DomainConceptSet",
+            "schema:name": "device",
+            "dcterms:description": "A device is a physical object or system that performs a specific function or task. In the context of centrifugal fans, devices include the fan assembly, impeller, volute, and other components that make up the fan system.",
+            "ssno:hasValidValues": [
+                {
+                    "@type": "m4i:TextVariable",
+                    "m4i:hasVariableDescription": "A fan is a mechanical device that generates airflow by rotating blades or vanes to create a pressure difference. Fans are used in a wide range of applications, including ventilation, cooling, heating, and air circulation. The fan's design and operation depend on the specific application and environmental conditions it is intended to address.",
+                    "m4i:hasStringValue": "fan",
+                    "@id": "https://doi.org/10.5281/zenodo.15458450/qualification/device/fan"
+                },
+                {
+                    "@type": "m4i:TextVariable",
+                    "dcterms:relation": "https://www.wikidata.org/wiki/Q1240867",
+                    "m4i:hasVariableDescription": "Restriction used to measure flow or to control pressure or flow, sometimes given specialised names",
+                    "m4i:hasStringValue": "orifice_plate",
+                    "@id": "https://doi.org/10.5281/zenodo.15458450/qualification/device/orifice"
+                }
+            ],
+            "@id": "https://doi.org/10.5281/zenodo.15458450/domainConceptSet/device"
+        }
+    ],
+    "ssno:dataset": {
+        "@type": "dcat:Dataset",
+        "dcterms:title": "Dataset of 'Standard Name Table for the openCeFaDB'",
+        "dcterms:creator": "https://orcid.org/0000-0001-8729-0482",
+        "@id": "https://doi.org/10.5281/zenodo.15458450"
+    },
+    "@id": "https://doi.org/10.5281/zenodo.15458450/opencefadb_standard_name_table.jsonld"
+}

@@ -2,10 +2,14 @@
 
 Log of changes in the versions
 
+## v1.5.1.3
+
+- bugfix `hasDomainConceptSet`
+
 ## v1.5.1.2
 
 - correctly testing vector qualifications
-- improve on description generation when constructing a standard name from qualifications
+- improve on description generation when constructing a standard name from qualifications and transformations
 
 ## v1.5.1.1
 

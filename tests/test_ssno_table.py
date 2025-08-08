@@ -40,7 +40,8 @@ SNT_JSONLD = """{
     "dct": "http://purl.org/dc/terms/",
     "prov": "http://www.w3.org/ns/prov#",
     "ssno": "https://matthiasprobst.github.io/ssno#",
-    "schema": "https://schema.org/"
+    "schema": "https://schema.org/",
+    "local": "https://local.org/"
   },
   "@type": "ssno:StandardNameTable",
   "dct:title": "OpenCeFaDB Fan Standard Name Table",
@@ -154,7 +155,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         snt.hasModifier = [qloc, comp]
 
         pathlib.Path("minimal_snt.jsonld").unlink(missing_ok=True)
-        snt.to_jsonld("minimal_snt.jsonld")
+        snt.to_jsonld("minimal_snt.jsonld", base_uri="https://example.org#")
         new_snt = parse_table("minimal_snt.jsonld", fmt='jsonld')
 
         self.assertEqual(new_snt.hasModifier[0].name, "location")
@@ -215,7 +216,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         snt.hasModifier = [qloc, difference_of_X_and_Y_between_A_and_B, component, C_derivative_of_X]
 
         pathlib.Path("minimal_snt.jsonld").unlink(missing_ok=True)
-        snt.to_jsonld("minimal_snt.jsonld")
+        snt.to_jsonld("minimal_snt.jsonld", base_uri="https://doi.org/10.5281/zenodo.1234567")
         new_snt = parse_table("minimal_snt.jsonld", fmt='jsonld')
 
         self.assertEqual(new_snt.hasModifier[0].name, "location")
@@ -253,8 +254,8 @@ class TestSSNOStandardNameTable(unittest.TestCase):
     def test_to_jsonld(self):
         snt = StandardNameTable(title="minimal snt")
         with self.assertRaises(ValueError):
-            snt.to_jsonld("minimal_snt.json")
-        filename = snt.to_jsonld("minimal_snt.jsonld")
+            snt.to_jsonld("minimal_snt.json", base_uri="https://doi.org/10.5281/zenodo.1234567")
+        filename = snt.to_jsonld("minimal_snt.jsonld", base_uri="https://doi.org/10.5281/zenodo.1234567")
         self.assertEqual(filename.name, "minimal_snt.jsonld")
         self.assertTrue(filename.exists())
         filename.unlink(missing_ok=True)
@@ -382,12 +383,13 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         self.assertEqual(frz_dc.y_velocity.standardName, "y_velocity")
 
     def test_standard_name_from_jsonld(self):
-        sn_jsonld = """{"@id": "local:39257b94-d31c-480e-a43c-8ae7f57fae6d",
+        sn_jsonld = """{"@id": "https://example.org/39257b94-d31c-480e-a43c-8ae7f57fae6d",
    "@type": "https://matthiasprobst.github.io/ssno#StandardName",
    "https://matthiasprobst.github.io/ssno#standardName": "absolute_pressure",
    "https://matthiasprobst.github.io/ssno#unit": "Pa",
    "https://matthiasprobst.github.io/ssno#description": "Pressure is force per unit area. Absolute air pressure is pressure deviation to a total vacuum."}"""
         sn = StandardName.from_jsonld(data=json.loads(sn_jsonld))
+        self.assertEqual(sn[0].id, "https://example.org/39257b94-d31c-480e-a43c-8ae7f57fae6d")
 
     def test_standard_name_table_from_large_jsonld(self):
         snt = ssnolib.parse_table(__this_dir__ / "data/cf.jsonld", fmt='jsonld')
@@ -415,6 +417,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         with open(snt_jsonld_filename, 'w') as f:
             json.dump(json.loads(SNT_JSONLD), f)
         snt = StandardNameTable.parse(snt_jsonld_filename, fmt='jsonld')
+        self.assertTrue(snt.id.startswith("_:"))
 
         snt_jsonld_filename.unlink(missing_ok=True)
         self.assertEqual(snt.title, 'OpenCeFaDB Fan Standard Name Table')
@@ -542,7 +545,9 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         new_snt = StandardNameTable.parse('snt_with_mod.yaml', fmt='yaml')
         self.assertEqual(new_snt.title, 'SNT with modifications')
         self.assertEqual("[component] standard_name [in medium]", new_snt.get_qualification_rule_as_string())
-
+        self.assertEqual(
+            new_snt.hasModifier[1].hasValidValues, []
+        )
         # circular reference:
         medium.before = comp
         comp.after = medium
@@ -932,7 +937,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
                 )]
         )
         difference_of_X_across_device = Transformation(
-            id=f"https://example.org/transformation/difference_of_X_across_device",
+            id="https://example.org/transformation/difference_of_X_across_device",
             name="difference_of_X_across_DEVICE",
             altersUnit="[X]",
             hasCharacter=[
@@ -958,7 +963,8 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         self.assertEqual("http://qudt.org/vocab/unit/M-PER-SEC", vel_across_fan.unit)
 
         # test parsing domain concept set
-        test_snt.to_jsonld('snt_with_domain_concept.jsonld', overwrite=True)
+        test_snt.to_jsonld('snt_with_domain_concept.jsonld', overwrite=True,
+                           base_uri="https://doi.org/10.5281/zenodo.1234567")
 
         parsed_snt = parse_table("snt_with_domain_concept.jsonld", fmt='jsonld')
         self.assertEqual(parsed_snt.title, "Test SNT")
@@ -1054,3 +1060,12 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         ds = Dataset(label="my-snt-dataset")
         snt = StandardNameTable(title="my-snt", dataset=ds)
         self.assertEqual(snt.dataset.label, "my-snt-dataset")
+
+    def test_reading_opencefadb_table(self):
+        snt = StandardNameTable.from_jsonld(
+            __this_dir__ / "data/opencefadb_snt.jsonld",
+        )[0]
+        self.assertEqual(
+            len(snt.hasDomainConceptSet),
+            1
+        )
