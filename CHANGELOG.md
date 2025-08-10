@@ -8,6 +8,7 @@ Log of changes in the versions
 - it is enforced to use base-uri (a doi) when calling `to_jsonld()` from `StandardNameTable` to ensure that the standard
   names
   are unique
+- add `skos.Note`
 - bugfix `hasDomainConceptSet`
 
 ## v1.5.1.2
