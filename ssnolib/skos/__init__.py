@@ -1,3 +1,3 @@
-from .concept import Concept
+from .concept import Concept, Note
 
-__all__ = ['Concept']
+__all__ = ['Concept', 'Note']

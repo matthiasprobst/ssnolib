@@ -9,6 +9,8 @@ from pydantic import ValidationError
 
 import ssnolib
 from ssnolib import StandardName, StandardNameTable
+from ssnolib.prov import Person
+from ssnolib.skos import Note
 
 __this_dir__ = pathlib.Path(__file__).parent
 
@@ -209,5 +211,14 @@ class TestSSNOStandardName(unittest.TestCase):
         sn = StandardName(standardName="velocity", description="velocity", unit="m2/s2")
         self.assertEqual(str(sn.unit), 'http://qudt.org/vocab/unit/M2-PER-SEC2')
 
-    def test_standard_name_table_parsing(self):
+    def test_standard_name_table_with_note(self):
         snt_loaded = StandardNameTable.parse(__this_dir__ / f"data/snt_from_scratch.jsonld")
+        snt_loaded.editorialNote = "This is an editorial note."
+        self.assertEqual(snt_loaded.editorialNote, ["This is an editorial note."])
+        snt_loaded.editorialNote = Note(
+            creator=Person(id="https://example.org/creator"),
+            value="This is an editorial note with a creator."
+        )
+        self.assertIsInstance(snt_loaded.editorialNote[0], Note)
+        self.assertEqual(snt_loaded.editorialNote[0].value, "This is an editorial note with a creator.")
+        self.assertEqual(snt_loaded.editorialNote[0].creator.id, "https://example.org/creator")
