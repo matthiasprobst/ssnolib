@@ -17,9 +17,11 @@ class TestReadme(unittest.TestCase):
             downloadURL='https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
             mediaType='application/xml'
         )
-        snt = ssnolib.StandardNameTable(title='CF Standard Name Table (latest version)',
-                                        distribution=distribution)
-
+        snt = ssnolib.StandardNameTable(
+            id="_:standard_name_table_v79",
+            title='CF Standard Name Table (latest version)',
+            distribution=distribution)
+        print(snt.model_dump_jsonld(base_uri="https://local.org#"))
 
     def test_code2(self):
         import ssnolib
@@ -36,7 +38,7 @@ class TestReadme(unittest.TestCase):
 
         # To describe this standard name table, we can export the JSON-LD file:
         with open('cf79.jsonld', 'w', encoding='utf-8') as f:
-            f.write(snt.model_dump_jsonld())
+            f.write(snt.model_dump_jsonld(base_uri="https://local.org#"))
 
     def test_code3(self):
         import ssnolib

@@ -136,13 +136,13 @@ class TestClasses(unittest.TestCase):
 
         snt_from_xml.title = f'CF Standard Name Table {snt_from_xml.version}'
         with open(CACHE_DIR / 'cfsnt.json', 'w', encoding='utf-8') as f:
-            f.write(snt_from_xml.model_dump_jsonld(context=None))
+            f.write(snt_from_xml.model_dump_jsonld(context=None, base_uri="https://local.org#"))
 
         g = rdflib.Graph().parse(CACHE_DIR / 'cfsnt.json', format='json-ld')
         for s, p, o in g.triples((None, None, None)):
             self.assertIsInstance(p, rdflib.URIRef)
 
-        snt.model_dump_jsonld()
+        snt.model_dump_jsonld(base_uri="https://local.org#")
 
     def test_standard_name(self):
         """describe "air_temperature" from
@@ -187,7 +187,7 @@ class TestClasses(unittest.TestCase):
                          'Air temperature is the bulk temperature of the air, not the surface (skin) temperature.')
 
         # to json-ld:
-        jsonld_string = atemp.model_dump_jsonld()
+        jsonld_string = atemp.model_dump_jsonld(base_uri="https://local.org#")
 
         with open(CACHE_DIR / 'cf_table.json', 'w') as f:
             f.write(jsonld_string)
@@ -196,7 +196,7 @@ class TestClasses(unittest.TestCase):
         g.parse(data=jsonld_string, format='json-ld')
         self.assertEqual(len(g), 4)
         for s, p, o in g:
-            self.assertIsInstance(s, rdflib.BNode)
+            self.assertIsInstance(s, rdflib.URIRef)
             self.assertIsInstance(p, rdflib.URIRef)
             self.assertIsInstance(o, str)
 

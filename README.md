@@ -69,7 +69,7 @@ distribution = Distribution(
 )
 snt = ssnolib.StandardNameTable(title='CF Standard Name Table (latest version)',
                                 distribution=distribution)
-print(snt.model_dump_jsonld())
+print(snt.model_dump_jsonld(base_uri="https://local.org#"))
 ```
 
 The last line dumps the object to a JSON-LD string:
@@ -85,12 +85,12 @@ The last line dumps the object to a JSON-LD string:
         "ssno": "https://matthiasprobst.github.io/ssno#"
     },
     "@type": "ssno:StandardNameTable",
-    "@id": "_:Ncbf5f941ea5447aa9ce212a2bb8d0be2",
+    "@id": "https://local.org#Ncbf5f941ea5447aa9ce212a2bb8d0be2",
     "dcterms:title": "CF Standard Name Table (latest version)",
     "dcat:distribution": [
         {
             "@type": "dcat:Distribution",
-            "@id": "_:Nce83c15ff61640e68ba4468ebf016787",
+            "@id": "https://local.org#Nce83c15ff61640e68ba4468ebf016787",
             "dcterms:title": "XML Table",
             "dcat:downloadURL": "https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml",
             "dcat:mediaType": "https://www.iana.org/assignments/media-types/application/xml"
@@ -146,12 +146,14 @@ distribution = Distribution(title='XML Table',
                             mediaType='application/xml')
 
 # Create a standard name table object
-snt = ssnolib.StandardNameTable(title='CF Standard Name Table v79',
-                                distribution=[distribution, ])
+snt = ssnolib.StandardNameTable(
+    id="_:standard_name_table_v79",  # blank node ID for now, prefix will be added later (base_uri)
+    title='CF Standard Name Table v79',
+    distribution=[distribution, ])
 
 # To describe this standard name table, we can export the JSON-LD file:
 with open('cf79.jsonld', 'w', encoding='utf-8') as f:
-    f.write(snt.model_dump_jsonld())
+    f.write(snt.model_dump_jsonld(base_uri="https://local.org#"))
 ```
 
 The corresponding JSON-LD file looks like this (showing only 2 standard names for shortness):
@@ -167,12 +169,12 @@ The corresponding JSON-LD file looks like this (showing only 2 standard names fo
         "ssno": "https://matthiasprobst.github.io/ssno#"
     },
     "@type": "ssno:StandardNameTable",
-    "@id": "_:N82e22ada2da9427fba343d0f978e98e9",
+    "@id": "https://local.org#N82e22ada2da9427fba343d0f978e98e9",
     "dcterms:title": "CF Standard Name Table v79",
     "dcat:distribution": [
         {
             "@type": "dcat:Distribution",
-            "@id": "_:N8588e715cf1e4216ba142eea6f1b297d",
+            "@id": "https://local.org#N8588e715cf1e4216ba142eea6f1b297d",
             "dcterms:title": "XML Table",
             "dcat:downloadURL": "https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml",
             "dcat:mediaType": "https://www.iana.org/assignments/media-types/application/xml"
