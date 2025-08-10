@@ -27,3 +27,6 @@ docs/cf-standard-name-table.md
 
 tmp/
 tests/snt.json
+
+docs/generated/*.rst
+docs/jupyter_execute/

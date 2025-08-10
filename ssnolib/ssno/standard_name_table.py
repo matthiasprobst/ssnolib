@@ -10,9 +10,8 @@ from typing import List, Union, Dict, Optional, Tuple
 import rdflib
 from ontolutils import namespaces, urirefs, Thing, as_id
 from ontolutils.namespacelib.m4i import M4I
-from pydantic import field_validator, Field, HttpUrl, ValidationError, model_validator
+from pydantic import field_validator, Field, HttpUrl, ValidationError, model_validator, AnyUrl
 from rdflib import URIRef
-
 from ssnolib import config
 from ssnolib.dcat import Distribution, Dataset
 from ssnolib.m4i import TextVariable
@@ -22,6 +21,7 @@ from ssnolib.qudt.utils import iri2str
 from ssnolib.skos import Concept
 from ssnolib.sparql_utils import build_simple_sparql_query, WHERE
 from ssnolib.utils import parse_and_exclude_none, download_file
+
 from . import plugins
 from .standard_name import StandardName, VectorStandardName, ScalarStandardName
 from .unit_utils import _parse_unit, reverse_qudt_lookup, _format_unit
@@ -75,7 +75,8 @@ class AgentRole(enum.Enum):
     Work_Package_Leader = str(M4I.WorkPackageLeader)
 
 
-def _generate_ordered_list_of_qualifications(qres):
+def _generate_ordered_list_of_qualifications(qres, context=None):
+    context = context or {}
     sorted_list = [str(SSNO.AnyStandardName), ]
     i = 0
     while len(qres) > 0:
@@ -86,9 +87,10 @@ def _generate_ordered_list_of_qualifications(qres):
                                "on github: https://github.com/matthiasprobst/ssnolib/issues/new.")
         for k, v in qres.copy().items():
             if v["before"]:
-                if v["before"] in sorted_list:
+                _before_uri = _expand_short_uri(v["before"], context)
+                if _before_uri in sorted_list:
                     # find the element corresponding to v["before"]:
-                    _idx = sorted_list.index(v["before"])
+                    _idx = sorted_list.index(_before_uri)
                     sorted_list.insert(_idx, k)
                     qres.pop(k)
                 # elif str(v["before"]) in (str(SSNO.AnyStandardName), str(SSNO.AnyScalarStandardName)):
@@ -97,8 +99,9 @@ def _generate_ordered_list_of_qualifications(qres):
                 #     qres.pop(k)
 
             elif v["after"]:
-                if v["after"] in sorted_list:
-                    _idx = sorted_list.index(v["after"])
+                _v_after_uri = _expand_short_uri(v["after"], context)
+                if _v_after_uri in sorted_list:
+                    _idx = sorted_list.index(_v_after_uri)
                     sorted_list.insert(_idx + 1, k)
                     qres.pop(k)
                 # elif str(v["after"]) in (str(SSNO.AnyStandardName), str(SSNO.AnyScalarStandardName)):
@@ -135,7 +138,8 @@ class DomainConceptSet(Concept):
     """Implementation of ssno:Collection"""
     name: str  # schema:name
     description: str  # dcterms:description
-    hasValidValues: Optional[List[Union[str, Dict, TextVariable]]] = None  # ssno:hasValidValues
+    hasValidValues: List[Union[str, Dict, TextVariable]] = Field(default_factory=list,
+                                                                 alias="has_valid_values")  # ssno:hasValidValues
 
     @field_validator('hasValidValues', mode='before')
     @classmethod
@@ -311,7 +315,7 @@ class StandardNameTable(Concept):
     hasModifier: Optional[
         List[Union[Qualification, VectorQualification, Transformation]]
     ] = Field(default=None, alias="has_modifier")  # ssno:hasModifier
-    hasDomainConceptSet: Optional[List[DomainConceptSet]] = Field(default=None, alias="has_domain_concept_set")
+    hasDomainConceptSet: List[DomainConceptSet] = Field(default=None, alias="has_domain_concept_set")
     subject: Optional[Union[str, HttpUrl]] = Field(default=None)
     keywords: Optional[Union[str, List[str]]] = Field(default=None)
     relation: Optional[Union[Thing, List[Thing]]] = Field(default=None)
@@ -411,6 +415,13 @@ class StandardNameTable(Concept):
             return stdname
 
         return [_parseStandardNameType(sn) for sn in _standardNames]
+
+    @field_validator('hasDomainConceptSet', mode='before')
+    @classmethod
+    def _check(cls, hasDomainConceptSet: List[DomainConceptSet]) -> List[DomainConceptSet]:
+        if isinstance(hasDomainConceptSet, dict):
+            hasDomainConceptSet = [hasDomainConceptSet]
+        return hasDomainConceptSet
 
     @field_validator('subject', mode='before')
     @classmethod
@@ -677,14 +688,37 @@ class StandardNameTable(Concept):
                     return constructed_sn
         return
 
-    def to_jsonld(self, filename, overwrite: bool = False, context: Optional[Dict] = None) -> pathlib.Path:
+    def to_jsonld(
+            self,
+            filename: Union[str, pathlib.Path],
+            base_uri: Union[AnyUrl, str],
+            overwrite: bool = False,
+            context: Optional[Dict] = None
+    ) -> pathlib.Path:
+        """
+        Dump the Standard Name Table to a JSON-LD file.
+        Note, that a base_uri must be provided. Preferably, it is the DOI of the published Standard Name Table,
+        e.g. taken form the Zenodo record.
+
+        Parameters
+        ----------
+        filename: Union[str, pathlib.Path]
+            The filename to write the Standard Name Table to.
+        base_uri: Union[AnyUrl, str]
+            The base URI to use for the JSON-LD context. This is typically the DOI of the Standard Name Table.
+        overwrite: bool=False
+            Overwrite the file if it exists.
+        context: Optional[Dict] = None
+            JSON-LD context to use for the serialization. You may provide a custom context.
+        """
+        base_uri = AnyUrl(base_uri)
         filename = pathlib.Path(filename)
         if filename.exists() and not overwrite:
             raise ValueError(f'File {filename} exists and overwrite is False.')
         if filename.suffix != ".jsonld":
             raise ValueError(f'Expected a JSON-LD filename, got {filename.suffix}')
         with open(filename, 'w', encoding='utf-8') as f:
-            f.write(self.model_dump_jsonld(context=context))
+            f.write(self.model_dump_jsonld(context=context, base_uri=base_uri))
         return pathlib.Path(filename)
 
     def to_ttl(self, filename, overwrite=False, context: Optional[Dict] = None):
@@ -855,7 +889,11 @@ class StandardNameTable(Concept):
                 }
 
         qres_orig = qres.copy()
-        sorted_list = _generate_ordered_list_of_qualifications(qres)
+        sorted_list = _generate_ordered_list_of_qualifications(
+            qres,
+            context={k: str(v) for k, v in
+                     dict(g.namespaces()).items()}
+        )
 
         qualifications_output = []
         for e in sorted_list:
@@ -922,7 +960,11 @@ class StandardNameTable(Concept):
                 }
 
         qres_orig = qres.copy()
-        sorted_list = _generate_ordered_list_of_qualifications(qres)
+        sorted_list = _generate_ordered_list_of_qualifications(
+            qres,
+            context={k: str(v) for k, v in
+                     dict(g.namespaces()).items()}
+        )
 
         qualifications_output = []
         for e in sorted_list:
@@ -971,14 +1013,37 @@ class StandardNameTable(Concept):
 
         return new_standard_name
 
+
+
     def add_author(self, author, role: Optional[AgentRole] = None):
         assert isinstance(author, Person), f"Expected a Person object, got {type(author)}"
         if self.qualifiedAttribution is None:
-            self.qualifiedAttribution = [Attribution(agent=author, hadRole=role.value), ]
+            self.qualifiedAttribution = [
+                Attribution(
+                    id=rdflib.BNode("qualifiedAttribution/author/1"),
+                    agent=author,
+                    hadRole=role.value),
+            ]
         elif not isinstance(self.qualifiedAttribution, list):
-            self.qualifiedAttribution = [self.qualifiedAttribution, Attribution(agent=author, hadRole=role.value)]
+            self.qualifiedAttribution = [
+                self.qualifiedAttribution,
+                Attribution(
+                    id=rdflib.BNode(f"qualifiedAttribution/author/2"),
+                    agent=author,
+                    hadRole=role.value)
+            ]
+        elif isinstance(self.qualifiedAttribution, list):
+            n_qualified_attribution = len(self.qualifiedAttribution)
+            self.qualifiedAttribution.append(
+                Attribution(
+                    id=rdflib.BNode(f"qualifiedAttribution/author/{n_qualified_attribution + 1}"),
+                    agent=author,
+                    hadRole=role.value)
+            )
         else:
-            self.qualifiedAttribution.append(Attribution(agent=author, hadRole=role.value))
+            raise ValueError(
+                f"Expected qualifiedAttribution to be a Person or a list of Attribution objects, got {type(self.qualifiedAttribution)}"
+            )
 
     def fetch(self):
         """Download the Standard Name Table and parse it"""
@@ -1191,6 +1256,31 @@ class StandardNameTable(Concept):
         raise KeyError(f"Standard Name '{standard_name}' not found in the Standard Name Table.")
 
 
+def _expand_short_uri(possibly_short_uri, context):
+    if possibly_short_uri.startswith("http://") or possibly_short_uri.startswith("https://"):
+        return possibly_short_uri
+    split_short_uri = possibly_short_uri.split(':', 1)
+    if len(split_short_uri) == 2 and split_short_uri[0] in context:
+        return context[split_short_uri[0]] + split_short_uri[1]
+    return possibly_short_uri
+
+
+def _expand_short_uri_from_dict(data: dict, context: dict) -> dict:
+    """Erweitert kurze URIs im Dictionary mithilfe des Kontextes."""
+    if not isinstance(data, dict):
+        return data
+    for key, value in data.items():
+        if isinstance(value, str):
+            data[key] = _expand_short_uri(value, context)
+        elif isinstance(value, list):
+            data[key] = [
+                _expand_short_uri(v, context) if isinstance(v, str) else _expand_short_uri_from_dict(v, context) for v
+                in value]
+        elif isinstance(value, dict):
+            data[key] = _expand_short_uri_from_dict(value, context)
+    return data
+
+
 def parse_table(source=None, data=None, fmt: Optional[str] = None):
     """Instantiates a table from a file."""
     if source is None and data is None:
@@ -1287,7 +1377,7 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
             orga_dict = dict(name=res['name'], mbox=res['mbox'], hasRorId=res['hasRorId'])
             attribution = Attribution(
                 id=_parse_id(res['agentID']),
-                agent=Organization(**{k: v.value for k, v in orga_dict.items() if v})
+                agent=Organization(**{k: _expand_short_uri(v.value, prefixes) for k, v in orga_dict.items() if v})
             )
             if res['hadRole']:
                 attribution.hadRole = res['hadRole']
@@ -1326,7 +1416,9 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
                     validvalues_dict = dict(hasStringValue=valid_values['hasStringValue'],
                                             hasVariableDescription=valid_values['hasVariableDescription'])
                     hasValidValues.append(
-                        TextVariable(**{k: v.value.strip() for k, v in validvalues_dict.items() if v}))
+                        TextVariable(
+                            **{k: _expand_short_uri(v.value.strip(), prefixes) for k, v in validvalues_dict.items() if v})
+                    )
 
                 has_modifier_dict = dict(name=res['name'].value, description=res['description'].value)
                 if res['before']:
@@ -1347,7 +1439,7 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
                         VectorQualification(
                             id=modifierID,
                             hasValidValues=hasValidValues,
-                            **{k: v for k, v in has_modifier_dict.items() if v}
+                            **{k: _expand_short_uri(v, prefixes) for k, v in has_modifier_dict.items() if v}
                         )
                     )
                 else:
@@ -1355,7 +1447,7 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
                         Qualification(
                             id=modifierID,
                             hasValidValues=hasValidValues,
-                            **{k: v for k, v in has_modifier_dict.items() if v}
+                            **{k: _expand_short_uri(v, prefixes) for k, v in has_modifier_dict.items() if v}
                         )
                     )
 
@@ -1385,8 +1477,12 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
             )
             for character in sparql_hasCharacter.query(g):
                 hasCharacter.append(
-                    Character(id=character["hasCharacterID"], character=character["character"].value,
-                              associatedWith=character["associatedWith"].value))
+                    Character(
+                        id=character["hasCharacterID"],
+                        character=character["character"].value,
+                        associatedWith=_expand_short_uri(character["associatedWith"].value, prefixes)
+                    )
+                )
             has_modifier.append(
                 Transformation(name=res['name'].value, description=res['description'], altersUnit=res['altersUnit'],
                                hasCharacter=hasCharacter)
@@ -1424,14 +1520,14 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
                 validvalues_dict = dict(hasStringValue=valid_values['hasStringValue'],
                                         hasVariableDescription=valid_values['hasVariableDescription'])
                 hasValidValues.append(
-                    TextVariable(**{k: v.value.strip() for k, v in validvalues_dict.items() if v}))
+                    TextVariable(**{k: _expand_short_uri(v.value.strip(), prefixes) for k, v in validvalues_dict.items() if v}))
 
             has_domain_concept_set_dict = dict(name=res['name'].value, description=res['description'].value)
             domain_concept_sets.append(
                 DomainConceptSet(
                     id=domain_concept_set_id,
                     hasValidValues=hasValidValues,
-                    **{k: v for k, v in has_domain_concept_set_dict.items() if v}
+                    **{k: _expand_short_uri(v, prefixes) for k, v in has_domain_concept_set_dict.items() if v}
                 )
             )
 
