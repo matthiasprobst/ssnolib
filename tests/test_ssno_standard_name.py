@@ -216,9 +216,9 @@ class TestSSNOStandardName(unittest.TestCase):
         snt_loaded.editorialNote = "This is an editorial note."
         self.assertEqual(snt_loaded.editorialNote, ["This is an editorial note."])
         snt_loaded.editorialNote = Note(
-            creator=Person(id="https://example.org/creator"),
+            creator=Person(id="https://example.org/#creator"),
             value="This is an editorial note with a creator."
         )
         self.assertIsInstance(snt_loaded.editorialNote[0], Note)
         self.assertEqual(snt_loaded.editorialNote[0].value, "This is an editorial note with a creator.")
-        self.assertEqual(snt_loaded.editorialNote[0].creator.id, "https://example.org/creator")
+        self.assertEqual(snt_loaded.editorialNote[0].creator.id, "https://example.org/#creator")

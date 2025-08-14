@@ -12,6 +12,7 @@ from ontolutils import namespaces, urirefs, Thing, as_id
 from ontolutils.namespacelib.m4i import M4I
 from pydantic import field_validator, Field, HttpUrl, ValidationError, model_validator, AnyUrl
 from rdflib import URIRef
+
 from ssnolib import config
 from ssnolib.dcat import Distribution, Dataset
 from ssnolib.m4i import TextVariable
@@ -21,7 +22,6 @@ from ssnolib.qudt.utils import iri2str
 from ssnolib.skos import Concept
 from ssnolib.sparql_utils import build_simple_sparql_query, WHERE
 from ssnolib.utils import parse_and_exclude_none, download_file
-
 from . import plugins
 from .standard_name import StandardName, VectorStandardName, ScalarStandardName
 from .unit_utils import _parse_unit, reverse_qudt_lookup, _format_unit
@@ -688,6 +688,64 @@ class StandardNameTable(Concept):
                     return constructed_sn
         return
 
+    def model_dump_jsonld(
+            self,
+            context: Optional[Dict] = None,
+            exclude_none: bool = True,
+            rdflib_serialize: bool = False,
+            resolve_keys: bool = True,
+            indent: int = 4,
+            base_uri: Optional[Union[str, AnyUrl]] = None
+    ):
+        """Dump the Standard Name Table to a JSON-LD string and enforce the use of base URI."""
+        if base_uri is None:
+            raise ValueError("A base URI must be provided for the JSON-LD serialization. "
+                             "This is typically the DOI of the Standard Name Table.")
+        return super().model_dump_jsonld(
+            base_uri=base_uri,
+            context=context,
+            exclude_none=exclude_none,
+            rdflib_serialize=rdflib_serialize,
+            resolve_keys=resolve_keys,
+            indent=indent
+        )
+
+    def model_dump_ttl(self,
+                       context: Optional[Dict] = None,
+                       exclude_none: bool = True,
+                       resolve_keys: bool = True,
+                       base_uri: Optional[Union[str, AnyUrl]] = None):
+        """Dump the Standard Name Table to a Turtle string and enforce the use of base URI."""
+        if base_uri is None:
+            raise ValueError("A base URI must be provided for the TTL serialization. "
+                             "This is typically the DOI of the Standard Name Table.")
+        super().model_dump_ttl(
+            base_uri=base_uri,
+            context=context,
+            exclude_none=exclude_none,
+            resolve_keys=resolve_keys
+        )
+
+    def serialize(self,
+                  format: str,
+                  context: Optional[Dict] = None,
+                  exclude_none: bool = True,
+                  resolve_keys: bool = True,
+                  base_uri: Optional[Union[str, AnyUrl]] = None,
+                  **kwargs) -> str:
+        """Serialize the Standard Name Table to a string in the given format."""
+        if base_uri is None:
+            raise ValueError("A base URI must be provided for the serialization. "
+                             "This is typically the DOI of the Standard Name Table.")
+        super().serialize(
+            format=format,
+            base_uri=base_uri,
+            context=context,
+            exclude_none=exclude_none,
+            resolve_keys=resolve_keys,
+            **kwargs
+        )
+
     def to_jsonld(
             self,
             filename: Union[str, pathlib.Path],
@@ -721,13 +779,24 @@ class StandardNameTable(Concept):
             f.write(self.model_dump_jsonld(context=context, base_uri=base_uri))
         return pathlib.Path(filename)
 
-    def to_ttl(self, filename, overwrite=False, context: Optional[Dict] = None):
+    def to_ttl(
+            self,
+            filename,
+            base_uri: Union[AnyUrl, str],
+            overwrite=False,
+            context: Optional[Dict] = None):
         filename = pathlib.Path(filename)
         if filename.exists() and not overwrite:
             raise ValueError(f'File {filename} exists and overwrite is False.')
         if filename.suffix != ".ttl":
             raise ValueError(f'Expected a Turtle filename (.ttl), got {filename.suffix}')
-        g = rdflib.Graph().parse(data=self.model_dump_jsonld(context=context), format="json-ld")
+        g = rdflib.Graph().parse(
+            data=self.model_dump_jsonld(
+                context=context,
+                base_uri=base_uri
+            ),
+            format="json-ld"
+        )
         g.serialize(destination=filename, format="turtle")
         return filename
 
@@ -851,8 +920,10 @@ class StandardNameTable(Concept):
         hasModifier = self.hasModifier or []
         qualifications = {m.id: m for m in hasModifier if isinstance(m, Qualification)}
         g = rdflib.Graph()
-        g.parse(data=self.model_dump_jsonld(),
-                format='json-ld')
+        g.parse(
+            data=self.model_dump_jsonld(base_uri="https://tmp#"),
+            format='json-ld'
+        )
 
         query = """
                 PREFIX ssno: <https://matthiasprobst.github.io/ssno#>
@@ -923,8 +994,9 @@ class StandardNameTable(Concept):
         (https://cfconventions.org/Data/cf-standard-names/docs/guidelines.html#process)."""
         # get all qualifications:
         g = rdflib.Graph()
-        g.parse(data=self.model_dump_jsonld(),
-                format='json-ld')
+        g.parse(
+            data=self.model_dump_jsonld(base_uri="https://tmp#"),
+            format='json-ld')
 
         query = """
                 PREFIX ssno: <https://matthiasprobst.github.io/ssno#>
@@ -1012,8 +1084,6 @@ class StandardNameTable(Concept):
             raise ValueError(f"Standard Name '{name}' is invalid. Could not verified by the qualification rules")
 
         return new_standard_name
-
-
 
     def add_author(self, author, role: Optional[AgentRole] = None):
         assert isinstance(author, Person), f"Expected a Person object, got {type(author)}"
@@ -1330,7 +1400,7 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
         snt_id = snt.id
         qualifiedAttribution = []
 
-        sparql = build_simple_sparql_query(
+        sparql_person = build_simple_sparql_query(
             prefixes=prefixes,
             wheres=[
                 WHERE(snt_id, "a", "ssno:StandardNameTable"),
@@ -1346,19 +1416,19 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
             ]
         )
 
-        for res in sparql.query(g):
+        for res in sparql_person.query(g):
             person_dict = dict(id=res['agentID'],
                                firstName=res['firstName'],
                                lastName=res['lastName'],
                                mbox=res['mbox'],
                                orcidId=res['orcidId'])
-            attribution = Attribution(agent=Person(**parse_and_exclude_none(person_dict)))
+            attribution = Attribution(id=_parse_id(res["qaid"]), agent=Person(**parse_and_exclude_none(person_dict)))
             if res['hadRole']:
                 attribution.hadRole = res['hadRole'].value
             qualifiedAttribution.append(attribution)
             # TODO: get affiliation!
 
-        sparql = build_simple_sparql_query(
+        sparql_organisation = build_simple_sparql_query(
             prefixes=prefixes,
             wheres=[
                 WHERE(snt_id, "a", "ssno:StandardNameTable"),
@@ -1373,7 +1443,7 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
             ]
         )
 
-        for res in sparql.query(g):
+        for res in sparql_organisation.query(g):
             orga_dict = dict(name=res['name'], mbox=res['mbox'], hasRorId=res['hasRorId'])
             attribution = Attribution(
                 id=_parse_id(res['agentID']),
@@ -1413,11 +1483,13 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
                 )
                 hasValidValues = []
                 for valid_values in sparql_valid_values.query(g):
-                    validvalues_dict = dict(hasStringValue=valid_values['hasStringValue'],
-                                            hasVariableDescription=valid_values['hasVariableDescription'])
+                    validvalues_dict = dict(id=_parse_id(valid_values["hasValidValuesID"]),
+                                            hasStringValue=valid_values['hasStringValue'].value.strip(),
+                                            hasVariableDescription=valid_values['hasVariableDescription'].value.strip())
                     hasValidValues.append(
                         TextVariable(
-                            **{k: _expand_short_uri(v.value.strip(), prefixes) for k, v in validvalues_dict.items() if v})
+                            **{k: _expand_short_uri(v, prefixes) for k, v in validvalues_dict.items() if
+                               v})
                     )
 
                 has_modifier_dict = dict(name=res['name'].value, description=res['description'].value)
@@ -1478,13 +1550,14 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
             for character in sparql_hasCharacter.query(g):
                 hasCharacter.append(
                     Character(
-                        id=character["hasCharacterID"],
+                        id=_parse_id(character["hasCharacterID"]),
                         character=character["character"].value,
                         associatedWith=_expand_short_uri(character["associatedWith"].value, prefixes)
                     )
                 )
             has_modifier.append(
-                Transformation(name=res['name'].value, description=res['description'], altersUnit=res['altersUnit'],
+                Transformation(id=modifierID,
+                               name=res['name'].value, description=res['description'], altersUnit=res['altersUnit'],
                                hasCharacter=hasCharacter)
             )
         if has_modifier:
@@ -1517,10 +1590,12 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
             )
             hasValidValues = []
             for valid_values in sparql_valid_values.query(g):
-                validvalues_dict = dict(hasStringValue=valid_values['hasStringValue'],
-                                        hasVariableDescription=valid_values['hasVariableDescription'])
+                validvalues_dict = dict(id=valid_values['hasValidValuesID'],
+                                        hasStringValue=valid_values['hasStringValue'].value.strip(),
+                                        hasVariableDescription=valid_values['hasVariableDescription'].value.strip())
                 hasValidValues.append(
-                    TextVariable(**{k: _expand_short_uri(v.value.strip(), prefixes) for k, v in validvalues_dict.items() if v}))
+                    TextVariable(
+                        **{k: _expand_short_uri(v, prefixes) for k, v in validvalues_dict.items() if v}))
 
             has_domain_concept_set_dict = dict(name=res['name'].value, description=res['description'].value)
             domain_concept_sets.append(
