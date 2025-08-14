@@ -443,10 +443,10 @@ class TestSSNOStandardNameTable(unittest.TestCase):
     def test_standard_name_table_from_yaml(self):
         pathlib.Path('snt.yaml').unlink(missing_ok=True)
 
-        dist = Distribution(downloadURL='https://example.org/#snt.yaml',
+        dist = Distribution(downloadURL='https://local.example.org/#snt.yaml',
                             mediaType='application/yaml')
         snt = StandardNameTable()
-        with self.assertRaises(requests.exceptions.HTTPError):
+        with self.assertRaises(requests.exceptions.ConnectionError):
             snt.parse(dist)
 
         snt_yaml_data = {'name': 'SNT',

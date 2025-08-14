@@ -158,13 +158,19 @@ class Distribution(Resource):
                 return _parse_file_url(self.downloadURL.path)
             else:
                 return shutil.copy(_parse_file_url(self.downloadURL.path), dest_filename)
-        dest_filename = pathlib.Path(dest_filename or self.downloadURL.path.split('/')[-1])
+        if "#" in str(self.downloadURL):
+            dest_filename = pathlib.Path(dest_filename or self.downloadURL.fragment)
+        else:
+            dest_filename = pathlib.Path(dest_filename or self.downloadURL.path.split('/')[-1])
+        if len(dest_filename.name) <= 1:
+            raise ValueError(f"Destination filename {dest_filename} is not valid")
         if dest_filename.exists():
             return dest_filename
-        return download_file(self.downloadURL,
-                             dest_filename,
-                             exist_ok=exist_ok,
-                             **kwargs)
+        return download_file(
+            self.downloadURL,
+            dest_filename,
+            exist_ok=exist_ok,
+            **kwargs)
 
     @field_validator('mediaType', mode='before')
     @classmethod
