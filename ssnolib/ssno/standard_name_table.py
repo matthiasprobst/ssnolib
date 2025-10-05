@@ -301,7 +301,7 @@ class StandardNameTable(Concept):
     """
     title: Optional[str] = None
     hasVersion: Optional[str] = Field(default=None, alias="version")
-    description: Optional[Union[str, LangString, List[LangString]]] = None
+    description: Optional[Union[LangString, List[LangString]]] = None
     identifier: Optional[str] = Field(default=None)
     created: Optional[str] = None
     modified: Optional[str] = None
@@ -720,7 +720,7 @@ class StandardNameTable(Concept):
         if base_uri is None:
             raise ValueError("A base URI must be provided for the TTL serialization. "
                              "This is typically the DOI of the Standard Name Table.")
-        super().model_dump_ttl(
+        return super().model_dump_ttl(
             base_uri=base_uri,
             context=context,
             exclude_none=exclude_none,
@@ -738,7 +738,7 @@ class StandardNameTable(Concept):
         if base_uri is None:
             raise ValueError("A base URI must be provided for the serialization. "
                              "This is typically the DOI of the Standard Name Table.")
-        super().serialize(
+        return super().serialize(
             format=format,
             base_uri=base_uri,
             context=context,
@@ -1339,6 +1339,10 @@ class StandardNameTable(Concept):
 
 
 def _expand_short_uri(possibly_short_uri, context):
+    if isinstance(possibly_short_uri, rdflib.URIRef):
+        return str(possibly_short_uri)
+    if isinstance(possibly_short_uri, rdflib.Literal):
+        possibly_short_uri = possibly_short_uri.value
     if possibly_short_uri.startswith("http://") or possibly_short_uri.startswith("https://"):
         return possibly_short_uri
     split_short_uri = possibly_short_uri.split(':', 1)
@@ -1564,7 +1568,7 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
                     Character(
                         id=_parse_id(character["hasCharacterID"]),
                         character=character["character"].value,
-                        associatedWith=_expand_short_uri(character["associatedWith"].value, prefixes)
+                        associatedWith=_expand_short_uri(character["associatedWith"], prefixes)
                     )
                 )
             has_modifier.append(

@@ -12,6 +12,7 @@ import requests.exceptions
 import yaml
 from ontolutils import Thing, QUDT_UNIT
 from ontolutils import set_config
+from ontolutils.classes import LangString
 from ontolutils.namespacelib.m4i import M4I
 from ontolutils.utils.qudt_units import parse_unit
 
@@ -450,7 +451,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
             snt.parse(dist)
 
         snt_yaml_data = {'name': 'SNT',
-                         'description': 'A testing SNT',
+                         'description': 'A testing SNT@de',
                          'version': 'abc123invalid',  # v1.0.0
                          'identifier': 'https://example.org/#sntIdentifier',
                          'standardNames': {'x_velocity': {'description': 'x component of velocity',
@@ -460,6 +461,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         with open('snt.yaml', 'w') as f:
             yaml.dump(snt_yaml_data, f)
         snt = StandardNameTable.parse('snt.yaml', fmt='yaml')
+        self.assertEqual(snt.description, LangString(value="A testing SNT", lang="de"))
         self.assertEqual(snt.title, 'SNT')
 
         snt = StandardNameTable.parse('snt.yaml', fmt=None)
@@ -1079,6 +1081,33 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         ds = Dataset(label="my-snt-dataset")
         snt = StandardNameTable(title="my-snt", dataset=ds)
         self.assertEqual(snt.dataset.label, "my-snt-dataset")
+
+    def test_snt_with_english_description(self):
+        snt = StandardNameTable(
+            id="https://doi.org/10.5281/zenodo.1234567#Nbf746565999b4531a3547a862fa070c7",
+            description="hallo@de"
+        )
+        ttl = snt.model_dump_ttl(base_uri="https://doi.org/10.5281/zenodo.1234567#")
+        self.assertEqual(ttl, """@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix ssno: <https://matthiasprobst.github.io/ssno#> .
+
+<https://doi.org/10.5281/zenodo.1234567#Nbf746565999b4531a3547a862fa070c7> a ssno:StandardNameTable ;
+    dcterms:description "hallo"@de .
+
+""")
+        snt = StandardNameTable(
+            id="https://doi.org/10.5281/zenodo.1234567#Nbf746565999b4531a3547a862fa070c7",
+            description=["hallo@de", "hello@en"]
+        )
+        ttl = snt.model_dump_ttl(base_uri="https://doi.org/10.5281/zenodo.1234567#")
+        self.assertEqual(ttl, """@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix ssno: <https://matthiasprobst.github.io/ssno#> .
+
+<https://doi.org/10.5281/zenodo.1234567#Nbf746565999b4531a3547a862fa070c7> a ssno:StandardNameTable ;
+    dcterms:description "hallo"@de,
+        "hello"@en .
+
+""")
 
     def test_reading_opencefadb_table(self):
         snt = StandardNameTable.from_jsonld(
