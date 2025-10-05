@@ -31,6 +31,7 @@ class TestPIMSII(unittest.TestCase):
         )
 
     def testProperty(self):
+        self.maxDiff = None
         prop = Property(
             id="_:b1",
             label="my property",
@@ -58,7 +59,7 @@ class TestPIMSII(unittest.TestCase):
                 "ssno:hasStandardName": {
                     "@type": "ssno:StandardName",
                     "ssno:standardName": "x_velocity",
-                    "ssno:unit": "http://qudt.org/vocab/unit/M-PER-SEC",
+                    "ssno:unit": {"@id": "http://qudt.org/vocab/unit/M-PER-SEC"},
                     "@id": "_:b2"
                 },
                 "@id": "_:b1"
