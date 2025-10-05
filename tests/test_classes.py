@@ -208,7 +208,7 @@ class TestClasses(unittest.TestCase):
         self.assertEqual(jsonld_dict['ssno:standardName'], 'air_temperature')
         self.assertEqual(jsonld_dict['ssno:description'],
                          'Air temperature is the bulk temperature of the air, not the surface (skin) temperature.')
-        self.assertEqual(jsonld_dict['ssno:unit'], 'http://qudt.org/vocab/unit/K')
+        self.assertEqual(jsonld_dict['ssno:unit'], {"@id": "http://qudt.org/vocab/unit/K"})
 
         # http://qudt.org/vocab/unit/K
 

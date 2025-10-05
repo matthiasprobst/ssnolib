@@ -5,6 +5,7 @@ Log of changes in the versions
 ## v1.5.1.4
 
 - update `to_xml`
+- dcat:Distribution allows foaf-Agents as creators
 
 ## v1.5.1.3
 

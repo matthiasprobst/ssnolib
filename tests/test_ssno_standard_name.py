@@ -19,6 +19,11 @@ CACHE_DIR = ssnolib.utils.get_cache_dir()
 
 class TestSSNOStandardName(unittest.TestCase):
 
+    def test_date_literal_for_note(self):
+        note = Note(value="note", created="2025-01-04")
+        print(note)
+        print(note.model_dump_ttl())
+
     def test_standard_name_and_table(self):
         snt = StandardNameTable(title="my snt")
         sn = StandardName(

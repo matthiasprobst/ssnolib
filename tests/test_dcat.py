@@ -4,7 +4,7 @@ import requests.exceptions
 
 import ssnolib
 import utils
-from ssnolib import dcat, prov
+from ssnolib import dcat, prov, foaf
 
 __this_dir__ = pathlib.Path(__file__).parent
 CACHE_DIR = ssnolib.utils.get_cache_dir()
@@ -97,18 +97,17 @@ class TestDcat(utils.ClassTest):
         filename.unlink(missing_ok=True)
 
     def test_Dataset(self):
+        person = prov.Person(first_name='John', lastName='Doe')
         dataset1 = dcat.Dataset(
             title='Dataset title',
             description='Dataset description',
-            creator=prov.Person(first_name='John', lastName='Doe'),
+            creator=person,
             version='1.0',
             identifier='https://example.com/dataset',
             distribution=[
                 dcat.Distribution(
                     title='Distribution title',
                     description='Distribution description',
-                    creator=prov.Person(first_name='John', lastName='Doe'),
-                    version='1.0',
                     identifier='https://example.com/distribution',
                     accessURL='https://example.com/distribution',
                     downloadURL='https://example.com/distribution/download'
@@ -127,11 +126,63 @@ class TestDcat(utils.ClassTest):
         self.assertIsInstance(dataset1.distribution[0], dcat.Distribution)
         self.assertEqual(dataset1.distribution[0].title, 'Distribution title')
         self.assertEqual(dataset1.distribution[0].description, 'Distribution description')
-        self.assertIsInstance(dataset1.distribution[0].creator, prov.Person)
-        self.assertEqual(dataset1.distribution[0].creator.firstName, 'John')
-        self.assertEqual(dataset1.distribution[0].creator.lastName, 'Doe')
-        self.assertEqual(dataset1.distribution[0].version, '1.0')
         self.assertEqual(str(dataset1.distribution[0].id), 'https://example.com/distribution')
         self.assertEqual(str(dataset1.distribution[0].identifier), 'https://example.com/distribution')
         self.assertEqual(str(dataset1.distribution[0].accessURL), 'https://example.com/distribution')
         self.assertEqual(str(dataset1.distribution[0].downloadURL), 'https://example.com/distribution/download')
+
+    def test_Dataset_with_foaf(self):
+        person = foaf.Person(openid="http://example.com/people/johndoe",
+
+                             first_name='John', family_name='Doe')
+        self.assertEqual(person.id, 'http://example.com/people/johndoe')
+        dataset1 = dcat.Dataset(
+            title='Dataset title',
+            description='Dataset description',
+            creator=person,
+            version='1.0',
+            identifier='https://example.com/dataset',
+            distribution=[
+                dcat.Distribution(
+                    title='Distribution title',
+                    description='Distribution description',
+                    identifier='https://example.com/distribution',
+                    accessURL='https://example.com/distribution',
+                    downloadURL='https://example.com/distribution/download'
+                )
+            ]
+        )
+        self.assertEqual(dataset1.id, 'https://example.com/dataset')
+        self.assertEqual(dataset1.identifier, 'https://example.com/dataset')
+        self.assertEqual(dataset1.title, 'Dataset title')
+        self.assertEqual(dataset1.description, 'Dataset description')
+        self.assertIsInstance(dataset1.creator, foaf.Person)
+        self.assertEqual(dataset1.creator.firstName, 'John')
+        self.assertEqual(dataset1.creator.familyName, 'Doe')
+        self.assertEqual(dataset1.version, '1.0')
+        self.assertEqual(str(dataset1.identifier), 'https://example.com/dataset')
+        self.assertIsInstance(dataset1.distribution[0], dcat.Distribution)
+        self.assertEqual(dataset1.distribution[0].title, 'Distribution title')
+        self.assertEqual(dataset1.distribution[0].description, 'Distribution description')
+        self.assertEqual(str(dataset1.distribution[0].id), 'https://example.com/distribution')
+        self.assertEqual(str(dataset1.distribution[0].identifier), 'https://example.com/distribution')
+        self.assertEqual(str(dataset1.distribution[0].accessURL), 'https://example.com/distribution')
+        self.assertEqual(str(dataset1.distribution[0].downloadURL), 'https://example.com/distribution/download')
+
+        dataset2 = dcat.Dataset(
+            title='Dataset title',
+            description='Dataset description',
+            creator=person.id,
+            version='1.0',
+            identifier='https://example.com/dataset',
+            distribution=[
+                dcat.Distribution(
+                    title='Distribution title',
+                    description='Distribution description',
+                    identifier='https://example.com/distribution',
+                    accessURL='https://example.com/distribution',
+                    downloadURL='https://example.com/distribution/download'
+                )
+            ]
+        )
+        self.assertEqual(str(dataset2.creator), str(person.id))

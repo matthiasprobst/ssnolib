@@ -1,6 +1,6 @@
 from typing import Optional, List, Union
 
-from ontolutils import Thing, namespaces, urirefs
+from ontolutils import Thing, LangString, namespaces, urirefs
 from pydantic import field_validator, Field
 
 
@@ -13,7 +13,7 @@ from pydantic import field_validator, Field
          wasRevisionOf='prov:wasRevisionOf',
          creator='dcterms:creator')
 class Note(Thing):
-    value: str = Field(alias="rdf_value")
+    value: LangString = Field(...)
     created: Optional[str] = Field(default=None)
     wasRevisionOf: Optional[Thing] = Field(default=None, alias="wasRevisionOf")
     creator: Optional[Thing] = Field(default=None)

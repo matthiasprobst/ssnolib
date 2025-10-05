@@ -25,6 +25,7 @@ from ssnolib.utils import parse_and_exclude_none, download_file
 from . import plugins
 from .standard_name import StandardName, VectorStandardName, ScalarStandardName
 from .unit_utils import _parse_unit, reverse_qudt_lookup, _format_unit
+from ontolutils import LangString
 
 MAX_ITER = 1000
 __this_dir__ = pathlib.Path(__file__).parent
@@ -300,7 +301,7 @@ class StandardNameTable(Concept):
     """
     title: Optional[str] = None
     hasVersion: Optional[str] = Field(default=None, alias="version")
-    description: Optional[str] = None
+    description: Optional[Union[str, LangString, List[LangString]]] = None
     identifier: Optional[str] = Field(default=None)
     created: Optional[str] = None
     modified: Optional[str] = None
@@ -317,7 +318,7 @@ class StandardNameTable(Concept):
     ] = Field(default=None, alias="has_modifier")  # ssno:hasModifier
     hasDomainConceptSet: List[DomainConceptSet] = Field(default=None, alias="has_domain_concept_set")
     subject: Optional[Union[str, HttpUrl]] = Field(default=None)
-    keywords: Optional[Union[str, List[str]]] = Field(default=None)
+    keywords: Optional[Union[str, List[str], LangString, List[LangString]]] = Field(default=None)
     relation: Optional[Union[Thing, List[Thing]]] = Field(default=None)
     dataset: Optional[Union[Thing, Dataset]] = Field(default=None)
 
