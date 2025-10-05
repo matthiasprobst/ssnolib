@@ -800,13 +800,24 @@ class StandardNameTable(Concept):
         g.serialize(destination=filename, format="turtle")
         return filename
 
-    def to_xml(self, filename, overwrite=False, context: Optional[Dict] = None):
+    def to_xml(
+            self,
+            filename,
+            base_uri: Union[AnyUrl, str],
+            overwrite=False,
+            context: Optional[Dict] = None
+    ):
         filename = pathlib.Path(filename)
         if filename.exists() and not overwrite:
             raise ValueError(f'File {filename} exists and overwrite is False.')
         if filename.suffix != ".xml":
             raise ValueError(f'Expected a XML filename (.xml), got {filename.suffix}')
-        g = rdflib.Graph().parse(data=self.model_dump_jsonld(context=context), format="json-ld")
+        g = rdflib.Graph().parse(
+            data=self.model_dump_jsonld(
+                context=context,
+                base_uri=base_uri
+            ), format="json-ld"
+        )
         g.serialize(destination=filename, format="xml")
         return filename
 

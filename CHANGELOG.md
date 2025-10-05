@@ -2,10 +2,15 @@
 
 Log of changes in the versions
 
+## v1.5.1.4
+
+- update `to_xml`
+
 ## v1.5.1.3
 
 - upgrade to ontolutils v0.19.2
-- it is enforced to use base-uri (e.g. a DOI URL) when calling `to_jsonld()` from `StandardNameTable` to ensure that the standard
+- it is enforced to use base-uri (e.g. a DOI URL) when calling `to_jsonld()` from `StandardNameTable` to ensure that the
+  standard
   names
   are unique
 - add `skos.Note`
