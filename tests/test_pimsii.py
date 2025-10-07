@@ -21,6 +21,7 @@ class TestPIMSII(unittest.TestCase):
                     "pims": "http://www.molmod.info/semantics/pims-ii.ttl#",
                     "m4i": "http://w3id.org/nfdi4ing/metadata4ing#",
                     "skos": "http://www.w3.org/2004/02/skos/core#",
+                    "schema": "https://schema.org/",
                     "dcterms": "http://purl.org/dc/terms/",
                 },
                 "@type": "pims:Variable",
@@ -51,6 +52,7 @@ class TestPIMSII(unittest.TestCase):
                     "ssno": "https://matthiasprobst.github.io/ssno#",
                     "skos": "http://www.w3.org/2004/02/skos/core#",
                     "dcterms": "http://purl.org/dc/terms/",
+                    "schema": "https://schema.org/",
                     "dcat": "http://www.w3.org/ns/dcat#"
                 },
                 "@type": "pims:Property",

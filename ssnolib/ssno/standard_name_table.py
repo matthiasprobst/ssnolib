@@ -8,6 +8,8 @@ from datetime import datetime
 from typing import List, Union, Dict, Optional, Tuple
 
 import rdflib
+from dateutil.parser import parse
+from ontolutils import LangString
 from ontolutils import namespaces, urirefs, Thing, as_id
 from ontolutils.namespacelib.m4i import M4I
 from pydantic import field_validator, Field, HttpUrl, ValidationError, model_validator, AnyUrl
@@ -25,7 +27,6 @@ from ssnolib.utils import parse_and_exclude_none, download_file
 from . import plugins
 from .standard_name import StandardName, VectorStandardName, ScalarStandardName
 from .unit_utils import _parse_unit, reverse_qudt_lookup, _format_unit
-from ontolutils import LangString
 
 MAX_ITER = 1000
 __this_dir__ = pathlib.Path(__file__).parent
@@ -303,8 +304,8 @@ class StandardNameTable(Concept):
     hasVersion: Optional[str] = Field(default=None, alias="version")
     description: Optional[Union[LangString, List[LangString]]] = None
     identifier: Optional[str] = Field(default=None)
-    created: Optional[str] = None
-    modified: Optional[str] = None
+    created: Optional[datetime] = None
+    modified: Optional[datetime] = None
     # creator: Optional[Union[Person, List[Person], Organization, List[Organization]]] = None  # depr!
     qualifiedAttribution: Optional[Union[Attribution, List[Attribution]]] = Field(
         default=None,
@@ -332,6 +333,21 @@ class StandardNameTable(Concept):
     @model_validator(mode="before")
     def change_id(self):
         return as_id(self, "identifier")
+
+    @field_validator('created', mode='before')
+    @classmethod
+    def _created(cls, created):
+        if isinstance(created, str):
+            # parse date:
+            return parse(created)
+        return created
+    @field_validator('modified', mode='before')
+    @classmethod
+    def _modified(cls, modified):
+        if isinstance(modified, str):
+            # parse date:
+            return parse(modified)
+        return modified
 
     @field_validator('qualifiedAttribution', mode='before')
     @classmethod
