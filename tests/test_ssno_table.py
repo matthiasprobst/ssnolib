@@ -333,6 +333,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         self.assertEqual(snt.subject, "https://www.wikidata.org/wiki/Q172145")
         print(snt.serialize("ttl", base_uri="https://example.org/#"))
 
+
     def test_standard_name_table(self):
         sn1 = StandardName(standard_name='x_velocity',
                            description='x component of velocity',

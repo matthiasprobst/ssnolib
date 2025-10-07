@@ -97,7 +97,7 @@ class TestDcat(utils.ClassTest):
         filename.unlink(missing_ok=True)
 
     def test_Dataset(self):
-        person = prov.Person(first_name='John', lastName='Doe')
+        person = prov.Person(id="https://example.of/123", first_name='John', lastName='Doe')
         dataset1 = dcat.Dataset(
             title='Dataset title',
             description='Dataset description',
@@ -130,6 +130,43 @@ class TestDcat(utils.ClassTest):
         self.assertEqual(str(dataset1.distribution[0].identifier), 'https://example.com/distribution')
         self.assertEqual(str(dataset1.distribution[0].accessURL), 'https://example.com/distribution')
         self.assertEqual(str(dataset1.distribution[0].downloadURL), 'https://example.com/distribution/download')
+
+        ds = dcat.Dataset(
+            title='Dataset title',
+            description='Dataset description',
+            creator=person.id,
+            version='1.0',
+            identifier='https://example.com/dataset',
+            distribution=[
+                dcat.Distribution(
+                    title='Distribution title',
+                    description='Distribution description',
+                    identifier='https://example.com/distribution',
+                    accessURL='https://example.com/distribution',
+                    downloadURL='https://example.com/distribution/download'
+                )
+            ]
+        )
+        ttl = ds.serialize("ttl")
+        self.assertEqual(ttl, """@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://example.com/dataset> a dcat:Dataset ;
+    dcterms:creator <https://example.of/123> ;
+    dcterms:description "Dataset description" ;
+    dcterms:identifier <https://example.com/dataset> ;
+    dcterms:title "Dataset title" ;
+    dcat:distribution <https://example.com/distribution> ;
+    dcat:version "1.0" .
+
+<https://example.com/distribution> a dcat:Distribution ;
+    dcterms:description "Distribution description" ;
+    dcterms:identifier <https://example.com/distribution> ;
+    dcterms:title "Distribution title" ;
+    dcat:accessURL <https://example.com/distribution> ;
+    dcat:downloadURL <https://example.com/distribution/download> .
+
+""")
 
     def test_Dataset_with_foaf(self):
         person = foaf.Person(openid="http://example.com/people/johndoe",

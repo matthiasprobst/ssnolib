@@ -10,8 +10,8 @@ from datetime import datetime
 from typing import Union, List, Optional
 
 from dateutil import parser
-from ontolutils import Thing, as_id
-from ontolutils import urirefs, namespaces
+from ontolutils import Thing, as_id, urirefs, namespaces
+from ontolutils.classes.typing import BlankNodeType
 from pydantic import HttpUrl, FileUrl, field_validator, Field, model_validator
 
 from ssnolib.utils import download_file
@@ -55,8 +55,9 @@ class Resource(Thing):
     title: str = None  # dcterms:title
     description: str = None  # dcterms:description
     creator: Union[
-        foaf.Agent, foaf.Organization, foaf.Person, prov.Person, prov.Agent, prov.Organization, HttpUrl,
-        List[Union[foaf.Agent, foaf.Organization, foaf.Person, prov.Person, prov.Agent, prov.Organization, HttpUrl]]
+        foaf.Agent, foaf.Organization, foaf.Person, prov.Person, prov.Agent, prov.Organization, HttpUrl, BlankNodeType,
+        List[Union[
+            foaf.Agent, foaf.Organization, foaf.Person, prov.Person, prov.Agent, prov.Organization, HttpUrl, BlankNodeType]]
     ] = None  # dcterms:creator
     version: str = None  # dcat:version
     identifier: Union[str, HttpUrl] = None  # dcterms:identifier

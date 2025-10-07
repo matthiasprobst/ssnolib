@@ -341,6 +341,7 @@ class StandardNameTable(Concept):
             # parse date:
             return parse(created)
         return created
+
     @field_validator('modified', mode='before')
     @classmethod
     def _modified(cls, modified):
