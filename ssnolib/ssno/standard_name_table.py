@@ -176,9 +176,9 @@ class Qualification(StandardNameModification, DomainConceptSet):
         if isinstance(before, str):
             if not before.startswith("_:") and not before.startswith("http"):
                 raise ValueError(f'Expected a URIRef or Qualification, got {before}')
-            return before
+            return HttpUrl(str(before))
         if isinstance(before, rdflib.URIRef):
-            return str(before)
+            return HttpUrl(str(before))
         if not isinstance(before, Qualification) and before != SSNO.AnyStandardName and before != str(
                 SSNO.AnyStandardName):
             raise TypeError(f'Expected a AnyStandardName or Qualification, got {type(before)}')

@@ -333,7 +333,6 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         self.assertEqual(snt.subject, "https://www.wikidata.org/wiki/Q172145")
         print(snt.serialize("ttl", base_uri="https://example.org/#"))
 
-
     def test_standard_name_table(self):
         sn1 = StandardName(standard_name='x_velocity',
                            description='x component of velocity',
@@ -573,6 +572,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         # except RecursionError as recerr:
         #     recursion_error_raised = True
         # self.assertTrue(value_error_raised or recursion_error_raised)
+        print(new_snt.serialize("ttl", base_uri="https://example.org/#"))
 
     def test_cf_qualifications(self):
         # Taken from https://cfconventions.org/Data/cf-standard-names/docs/guidelines.html#id2797725
@@ -1041,7 +1041,6 @@ class TestSSNOStandardNameTable(unittest.TestCase):
                 )
             ]
         )
-        print(qloc.serialize("ttl"))
         AnySNX = Character(character="X", associatedWith=SSNO.AnyStandardName)
         AnySNY = Character(character="Y", associatedWith=SSNO.AnyStandardName)
         AnyLocA = Character(character="A", associatedWith=qloc)
@@ -1060,6 +1059,26 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         #     "difference_of_([a-zA-Z_]+)_and_([a-zA-Z_]+)_between_([a-zA-Z_]+)_and_([a-zA-Z_]+)",
         #     pattern
         # )
+
+        ttl = qloc.serialize("ttl")
+        self.assertEqual(ttl, """@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix m4i: <http://w3id.org/nfdi4ing/metadata4ing#> .
+@prefix schema: <https://schema.org/> .
+@prefix ssno: <https://matthiasprobst.github.io/ssno#> .
+
+[] a ssno:Qualification ;
+    dcterms:description "Specific location in the problem domain." ;
+    ssno:after ssno:AnyStandardName ;
+    ssno:hasPreposition "at" ;
+    ssno:hasValidValues [ a m4i:TextVariable ;
+            m4i:hasStringValue "inlet" ;
+            m4i:hasVariableDescription "inlet" ],
+        [ a m4i:TextVariable ;
+            m4i:hasStringValue "outlet" ;
+            m4i:hasVariableDescription "outlet" ] ;
+    schema:name "location" .
+
+""")
 
     def test_hdf5_accessor(self):
         # noinspection PyUnresolvedReferences
