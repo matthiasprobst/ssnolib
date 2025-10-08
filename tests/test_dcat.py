@@ -7,6 +7,7 @@ import utils
 from ssnolib import dcat, prov, foaf
 
 __this_dir__ = pathlib.Path(__file__).parent
+
 CACHE_DIR = ssnolib.utils.get_cache_dir()
 
 

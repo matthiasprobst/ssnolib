@@ -1041,6 +1041,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
                 )
             ]
         )
+        print(qloc.serialize("ttl"))
         AnySNX = Character(character="X", associatedWith=SSNO.AnyStandardName)
         AnySNY = Character(character="Y", associatedWith=SSNO.AnyStandardName)
         AnyLocA = Character(character="A", associatedWith=qloc)
