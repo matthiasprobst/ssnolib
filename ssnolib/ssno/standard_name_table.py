@@ -179,8 +179,7 @@ class Qualification(StandardNameModification, DomainConceptSet):
             return HttpUrl(str(before))
         if isinstance(before, rdflib.URIRef):
             return HttpUrl(str(before))
-        if not isinstance(before, Qualification) and before != SSNO.AnyStandardName and before != str(
-                SSNO.AnyStandardName):
+        if not isinstance(before, Qualification) and str(before) != str(SSNO.AnyStandardName):
             raise TypeError(f'Expected a AnyStandardName or Qualification, got {type(before)}')
         return before
 
@@ -1529,14 +1528,18 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
                 if res['before']:
                     if isinstance(res['before'], rdflib.BNode):
                         has_modifier_dict['before'] = _parse_id(res['before'])
-                    else:
+                    elif isinstance(res['before'], rdflib.Literal):
                         has_modifier_dict['before'] = res['before'].value
+                    else:
+                        has_modifier_dict['before'] = res['before']
                 else:
                     assert res['after'], "Missing ssno:after"
                     if isinstance(res['after'], rdflib.BNode):
                         has_modifier_dict['after'] = _parse_id(res['after'])
-                    else:
+                    elif isinstance(res['after'], rdflib.Literal):
                         has_modifier_dict['after'] = res['after'].value
+                    else:
+                        has_modifier_dict['after'] = res['after']
                 if res['hasPreposition']:
                     has_modifier_dict['hasPreposition'] = res['hasPreposition'].value
                 if _type == "ssno:VectorQualification":
