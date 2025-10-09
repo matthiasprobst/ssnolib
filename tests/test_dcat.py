@@ -1,15 +1,19 @@
 import pathlib
+import unittest
 
 import requests.exceptions
 
 import ssnolib
 import utils
 from ssnolib import dcat, prov, foaf
-
+import sys
 __this_dir__ = pathlib.Path(__file__).parent
 
 CACHE_DIR = ssnolib.utils.get_cache_dir()
 
+def get_python_version():
+    """Get the current Python version as a tuple."""
+    return sys.version_info.major, sys.version_info.minor, sys.version_info.micro
 
 class TestDcat(utils.ClassTest):
 
@@ -30,6 +34,8 @@ class TestDcat(utils.ClassTest):
         self.assertEqual(resource1.version, '1.0')
         self.assertEqual(str(resource1.identifier), 'https://example.com/resource')
 
+    @unittest.skipIf(condition=10 < get_python_version()[1] < 12,
+                         reason="Only testing on min and max python version")
     def test_Distribution(self):
         distribution_none_downloadURL = dcat.Distribution(
             id='_:b2',

@@ -1061,8 +1061,19 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         #     pattern
         # )
 
+        qloc = Qualification(
+            name="location",
+            description="Specific location in the problem domain.@en",
+            hasPreposition="at",
+            after=SSNO.AnyStandardName,
+            hasValidValues=[
+                TextVariable(
+                    has_string_value="inlet",
+                    has_variable_description="inlet")
+            ]
+        )
         ttl = qloc.serialize("ttl")
-        print(ttl)
+
         self.assertEqual(ttl, """@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix m4i: <http://w3id.org/nfdi4ing/metadata4ing#> .
 @prefix schema: <https://schema.org/> .
@@ -1073,9 +1084,6 @@ class TestSSNOStandardNameTable(unittest.TestCase):
     ssno:after ssno:AnyStandardName ;
     ssno:hasPreposition "at" ;
     ssno:hasValidValues [ a m4i:TextVariable ;
-            m4i:hasStringValue "outlet" ;
-            m4i:hasVariableDescription "outlet" ],
-        [ a m4i:TextVariable ;
             m4i:hasStringValue "inlet" ;
             m4i:hasVariableDescription "inlet" ] ;
     schema:name "location" .
