@@ -9,8 +9,7 @@ from typing import List, Union, Dict, Optional, Tuple
 
 import rdflib
 from dateutil.parser import parse
-from ontolutils import LangString
-from ontolutils import namespaces, urirefs, Thing, as_id
+from ontolutils import LangString, set_config, namespaces, urirefs, Thing, as_id
 from ontolutils.namespacelib.m4i import M4I
 from pydantic import field_validator, Field, HttpUrl, ValidationError, model_validator, AnyUrl
 from rdflib import URIRef
@@ -123,7 +122,7 @@ class StandardNameModification(Concept):
     """Implementation of ssno:StandardNameModification"""
 
     name: str  # schema:name
-    description: str  # dcterms:description
+    description: Union[LangString, List[LangString]]  # dcterms:description
 
     def __str__(self) -> str:
         return f'{self.__class__.__name__}("{self.name}")'
@@ -139,7 +138,7 @@ class StandardNameModification(Concept):
 class DomainConceptSet(Concept):
     """Implementation of ssno:Collection"""
     name: str  # schema:name
-    description: str  # dcterms:description
+    description: LangString  # dcterms:description
     hasValidValues: List[Union[str, Dict, TextVariable]] = Field(default_factory=list,
                                                                  alias="has_valid_values")  # ssno:hasValidValues
 
@@ -152,10 +151,16 @@ class DomainConceptSet(Concept):
         if hasValidValues:
             for k, v in enumerate(hasValidValues.copy()):
                 if isinstance(v, str):
-                    hasValidValues[k] = TextVariable(hasStringValue=v.strip(),
-                                                     hasVariableDescription="No description available.")
+                    hasValidValues[k] = TextVariable(
+                        hasStringValue=v.strip(),
+                        hasVariableDescription="No description available.")
                 elif isinstance(v, dict):
                     hasValidValues[k] = TextVariable(**v)
+                elif isinstance(v, TextVariable):
+                    hasValidValues[k] = v
+                else:
+                    warnings.warn(f"Unable to parse hasValidValues entry: '{v}'.", UserWarning)
+                    hasValidValues[k] = v
         return hasValidValues
 
 
@@ -299,7 +304,7 @@ class StandardNameTable(Concept):
     subject: Optional[str, HttpUrl]
     relation: Relation to another Resource
     """
-    title: Optional[str] = None
+    title: Optional[Union[LangString, List[LangString]]] = None
     hasVersion: Optional[str] = Field(default=None, alias="version")
     description: Optional[Union[LangString, List[LangString]]] = None
     identifier: Optional[str] = Field(default=None)
@@ -318,7 +323,7 @@ class StandardNameTable(Concept):
     ] = Field(default=None, alias="has_modifier")  # ssno:hasModifier
     hasDomainConceptSet: List[DomainConceptSet] = Field(default=None, alias="has_domain_concept_set")
     subject: Optional[Union[str, HttpUrl]] = Field(default=None)
-    keywords: Optional[Union[str, List[str], LangString, List[LangString]]] = Field(default=None)
+    keywords: Optional[Union[LangString, List[LangString]]] = Field(default=None)
     relation: Optional[Union[Thing, List[Thing]]] = Field(default=None)
     dataset: Optional[Union[Thing, Dataset]] = Field(default=None)
 
@@ -326,7 +331,7 @@ class StandardNameTable(Concept):
         if self.identifier:
             return self.identifier
         if self.title:
-            return self.title
+            return str(self.title)
         return ''
 
     @model_validator(mode="before")
@@ -606,9 +611,11 @@ class StandardNameTable(Concept):
             descriptions = []
             for m in matches:
                 if isinstance(m, StandardName):
-                    descriptions.append(f"{m.standardName}: {m.description.strip('.')}.")
+                    _description_str = str(m.description)
+                    descriptions.append(f"{m.standardName}: {_description_str.strip('.')}.")
                 else:
-                    descriptions.append(f"{m.hasStringValue}: {m.hasVariableDescription.strip('.')}.")
+                    _description_str = str(m.hasVariableDescription)
+                    descriptions.append(f"{m.hasStringValue}: {_description_str.strip('.')}.")
             match_descriptions = " ".join(descriptions)
             matches_standard_names = [m for m in matches if isinstance(m, StandardName)]
             combined_description = " and ".join([f"'{m.standardName}'" for m in matches_standard_names])
@@ -651,59 +658,60 @@ class StandardNameTable(Concept):
         Union[StandardName, None]
             The standard name object if found or constructed, otherwise None
         """
-        for sn in self.standardNames:
-            if sn.standardName == standard_name:
-                return sn
+        with set_config(show_lang_in_str=False):
+            for sn in self.standardNames:
+                if sn.standardName == standard_name:
+                    return sn
 
-        # let's try to construct the standard name:
-        if not re.match(config.standard_name_core_pattern, standard_name):
-            warnings.warn("General pattern not matched. Must be lowercase and parts may be separated by '_'.")
-            return None
+            # let's try to construct the standard name:
+            if not re.match(config.standard_name_core_pattern, standard_name):
+                warnings.warn("General pattern not matched. Must be lowercase and parts may be separated by '_'.")
+                return None
 
-        hasModifier = self.hasModifier or []
-        qdict = {q.id: q for q in hasModifier if isinstance(q, Qualification)}
-        regex_pattern, qualifications = self.get_qualification_regex()
-        for existing_standard_name in self.standardNames:
-            if existing_standard_name.standardName == standard_name:
-                return existing_standard_name  # identical match
+            hasModifier = self.hasModifier or []
+            qdict = {q.id: q for q in hasModifier if isinstance(q, Qualification)}
+            regex_pattern, qualifications = self.get_qualification_regex()
+            for existing_standard_name in self.standardNames:
+                if existing_standard_name.standardName == standard_name:
+                    return existing_standard_name  # identical match
 
-            if existing_standard_name.standardName in standard_name:
-                # found a corresponding core standard name. replace it in regex pattern:
-                core_standard_name: StandardName = existing_standard_name
-                pattern = rf'{regex_pattern.replace("standard_name", existing_standard_name.standardName)}'
+                if existing_standard_name.standardName in standard_name:
+                    # found a corresponding core standard name. replace it in regex pattern:
+                    core_standard_name: StandardName = existing_standard_name
+                    pattern = rf'{regex_pattern.replace("standard_name", existing_standard_name.standardName)}'
 
-                qualification_descriptions = {}
+                    qualification_descriptions = {}
 
-                if re.match(pattern, standard_name):
-                    groups = re.match(pattern, standard_name).groups()
-                    qs = [qdict[qid] for qid in qualifications]
-                    for g, q in zip(groups, qs):
-                        if g:
-                            for s in self.standardNames:
-                                if s.standardName == existing_standard_name.standardName:
-                                    for tv in q.hasValidValues:
-                                        if tv.hasStringValue == g:
-                                            q_description = tv.hasVariableDescription
-                                            qualification_descriptions[g] = q_description
-                                            break
-                    if self.id.endswith("/"):
-                        new_sn_id = self.id + "derived_standard_name/" + standard_name
-                    else:
-                        new_sn_id = self.id + "/derived_standard_name/" + standard_name
-                    if core_standard_name.description == "" or core_standard_name.description is None:
-                        core_standard_name_description = "No description available."
-                    else:
-                        core_standard_name_description = core_standard_name.description
+                    if re.match(pattern, standard_name):
+                        groups = re.match(pattern, standard_name).groups()
+                        qs = [qdict[qid] for qid in qualifications]
+                        for g, q in zip(groups, qs):
+                            if g:
+                                for s in self.standardNames:
+                                    if s.standardName == existing_standard_name.standardName:
+                                        for tv in q.hasValidValues:
+                                            if tv.hasStringValue == g:
+                                                qualification_descriptions[g] = str(tv.hasVariableDescription)
+                                                break
+                        if self.id.endswith("/"):
+                            new_sn_id = self.id + "derived_standard_name/" + standard_name
+                        else:
+                            new_sn_id = self.id + "/derived_standard_name/" + standard_name
+                        if core_standard_name.description == "" or core_standard_name.description is None:
+                            core_standard_name_description = "No description available."
+                        else:
+                            core_standard_name_description = core_standard_name.description
 
-                    qualification_description_string = " ".join(
-                        f"{k}: {v}" for k, v in qualification_descriptions.items())
-                    constructed_sn = StandardName(
-                        id=new_sn_id,
-                        standardName=standard_name, unit=core_standard_name.unit,
-                        description=f"{core_standard_name.standardName}: {core_standard_name_description} {qualification_description_string}")
-                    _cache_valid_standard_name(self, constructed_sn)
-                    return constructed_sn
-        return
+                        qualification_description_string = " ".join(
+                            f"{k}: {v}" for k, v in qualification_descriptions.items())
+                        constructed_sn = StandardName(
+                            id=new_sn_id,
+                            standardName=standard_name,
+                            unit=core_standard_name.unit,
+                            description=f"{core_standard_name.standardName}: {core_standard_name_description} {qualification_description_string}")
+                        _cache_valid_standard_name(self, constructed_sn)
+                        return constructed_sn
+            return
 
     def model_dump_jsonld(
             self,
@@ -1004,7 +1012,7 @@ class StandardNameTable(Concept):
         for q in qualifications_output:
             qualification = qualifications.get(q, None)
             if qualification:
-                valid_values = [v.hasStringValue for v in qualification.hasValidValues]
+                valid_values = [str(v.hasStringValue) for v in qualification.hasValidValues]
                 if qualification.hasPreposition:
                     _valid_values = [qualification.hasPreposition + "_" + v for v in valid_values]
                     out += f'(?:({"|".join(_valid_values)}))?_?'
@@ -1249,7 +1257,7 @@ class StandardNameTable(Concept):
                 f.write(f"{qualification_expl_string}\n")
                 for q in qualifications:
                     f.write(f"\n\n#### {q.name.capitalize()}\n")
-                    f.write(f"Valid values: {', '.join([v.hasStringValue for v in q.hasValidValues])}\n")
+                    f.write(f"Valid values: {', '.join([str(v.hasStringValue) for v in q.hasValidValues])}\n")
                     if q.description:
                         f.write(f"\n{q.description}\n")
                     else:

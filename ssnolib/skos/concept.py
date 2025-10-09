@@ -33,40 +33,12 @@ class Note(Thing):
 class Concept(Thing):
     """Implementation of skos:Concept"""
 
-    prefLabel: Optional[str] = Field(default=None, alias="pref_label")
-    altLabel: Optional[str] = Field(default=None, alias="alt_label")
-    hiddenLabel: Optional[str] = Field(default=None, alias="hidden_label")
-    definition: Optional[str] = Field(default=None)
-    note: Optional[List[Union[str, Note]]] = Field(default=None)
-    scopeNote: Optional[List[Union[str, Note]]] = Field(default=None, alias="scope_note")
-    editorialNote: Optional[List[Union[str, Note]]] = Field(default=None, alias="editorial_note")
-    changeNote: Optional[List[Union[str, Note]]] = Field(default=None, alias="change_note")
-    example: Optional[str] = Field(default=None)
-
-    @field_validator('note', mode='before')
-    @classmethod
-    def _note(cls, note):
-        if not isinstance(note, list):
-            return [note, ]
-        return note
-
-    @field_validator('scopeNote', mode='before')
-    @classmethod
-    def _scopeNote(cls, note):
-        if not isinstance(note, list):
-            return [note, ]
-        return note
-
-    @field_validator('editorialNote', mode='before')
-    @classmethod
-    def _editorialNote(cls, note):
-        if not isinstance(note, list):
-            return [note, ]
-        return note
-
-    @field_validator('changeNote', mode='before')
-    @classmethod
-    def _changeNote(cls, note):
-        if not isinstance(note, list):
-            return [note, ]
-        return note
+    prefLabel: Optional[Union[LangString, List[LangString]]] = Field(default=None, alias="pref_label")
+    altLabel: Optional[Union[LangString, List[LangString]]] = Field(default=None, alias="alt_label")
+    hiddenLabel: Optional[Union[LangString, List[LangString]]] = Field(default=None, alias="hidden_label")
+    definition: Optional[Union[LangString, List[LangString]]] = Field(default=None)
+    note: Optional[Union[LangString, Note, List[Union[LangString, Note]]]] = Field(default=None)
+    scopeNote: Optional[Union[LangString, Note, List[Union[LangString, Note]]]] = Field(default=None, alias="scope_note")
+    editorialNote: Optional[Union[LangString, Note, List[Union[LangString, Note]]]] = Field(default=None, alias="editorial_note")
+    changeNote: Optional[Union[LangString, Note, List[Union[LangString, Note]]]] = Field(default=None, alias="change_note")
+    example: Optional[Union[LangString, List[LangString]]] = Field(default=None)

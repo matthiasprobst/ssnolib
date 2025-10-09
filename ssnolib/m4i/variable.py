@@ -1,8 +1,7 @@
 import warnings
 from typing import Optional, Union, List
 
-from ontolutils import namespaces, urirefs
-from ontolutils import parse_unit
+from ontolutils import namespaces, urirefs, parse_unit, LangString
 from pydantic import Field, field_validator
 
 from ssnolib.pimsii import Variable
@@ -25,7 +24,7 @@ class TextVariable(Variable):
     hasStringValue: str
         String value
     """
-    hasStringValue: Optional[str] = Field(alias="has_string_value", default=None)
+    hasStringValue: Optional[LangString] = Field(alias="has_string_value", default=None)
 
 
 @namespaces(m4i="http://w3id.org/nfdi4ing/metadata4ing#",

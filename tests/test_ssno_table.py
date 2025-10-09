@@ -149,7 +149,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         self.assertEqual("location", qloc.name)
         self.assertEqual("at", qloc.hasPreposition)
         self.assertEqual(sorted(["inlet", "outlet"]),
-                         sorted([p.hasStringValue for p in qloc.hasValidValues]))
+                         sorted([str(p.hasStringValue) for p in qloc.hasValidValues]))
 
         comp = ssnolib.Qualification(name="component",
                                      description="component of the vector",
@@ -584,11 +584,12 @@ class TestSSNOStandardNameTable(unittest.TestCase):
             )
             component = ssnolib.VectorQualification(
                 name="component",
-                description='The direction of the spatial component of a vector is indicated by one of the words upward, downward, northward, southward, eastward, westward, x, y. The last two indicate directions along the horizontal grid being used when they are not true longitude and latitude (if there is a rotated pole, for instance). If the standard name indicates a tensor quantity, two of these direction words may be included, applying to two of the spatial dimensions Z Y X, in that order. If only one component is indicated for a tensor, it means the flux in the indicated direction of the magnitude of the vector quantity in the plane of the other two spatial dimensions. The names of vertical components of radiative fluxes are prefixed with net_, thus: net_downward and net_upward. This treatment is not applied for any kinds of flux other than radiative. Radiative fluxes from above and below are often measured and calculated separately, the "net" being the difference. Within the atmosphere, radiation from below (not net) is indicated by a prefix of upwelling, and from above with downwelling. For the top of the atmosphere, the prefixes incoming and outgoing are used instead.,',
-                hasValidValues=["upward", "downward", "northward", "southward", "eastward", "westward",
-                                TextVariable(hasStringValue="x",
-                                             hasVariableDescription="The x-component of the vector."),
-                                "y"]
+                description='The direction of the spatial component of a vector is indicated by one of the words upward, downward, northward, southward, eastward, westward, x, y. The last two indicate directions along the horizontal grid being used when they are not true longitude and latitude (if there is a rotated pole, for instance). If the standard name indicates a tensor quantity, two of these direction words may be included, applying to two of the spatial dimensions Z Y X, in that order. If only one component is indicated for a tensor, it means the flux in the indicated direction of the magnitude of the vector quantity in the plane of the other two spatial dimensions. The names of vertical components of radiative fluxes are prefixed with net_, thus: net_downward and net_upward. This treatment is not applied for any kinds of flux other than radiative. Radiative fluxes from above and below are often measured and calculated separately, the "net" being the difference. Within the atmosphere, radiation from below (not net) is indicated by a prefix of upwelling, and from above with downwelling. For the top of the atmosphere, the prefixes incoming and outgoing are used instead.@en',
+                hasValidValues=[
+                    "upward", "downward", "northward", "southward", "eastward", "westward",
+                    TextVariable(hasStringValue="x",
+                                 hasVariableDescription="The x-component of the vector.@en"),
+                    "y"]
             )
             at_surface = ssnolib.Qualification(
                 name="surface",
@@ -684,7 +685,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
             #     "velocity: Velocity vector. x: The x-component of the vector."
             # )
             self.assertEqual(
-                snt.get_standard_name("surface_x_velocity").description,
+                str(snt.get_standard_name("surface_x_velocity").description),
                 "velocity: Velocity vector. surface: No description available. x: The x-component of the vector."
             )
             self.assertTrue(snt.verify_name("air_density"))  # equals "air_density"
@@ -1028,7 +1029,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
     def test_complicated_transformation(self):
         qloc = Qualification(
             name="location",
-            description="Specific location in the problem domain.",
+            description="Specific location in the problem domain.@en",
             hasPreposition="at",
             after=SSNO.AnyStandardName,
             hasValidValues=[
@@ -1050,7 +1051,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
             name="difference_of_X_and_Y_between_A_and_B",
             altersUnit="[X]",
             hasCharacter=[AnySNX, AnySNY, AnyLocA, AnyLocB],
-            description="Difference of two standard names between two locations."
+            description="Difference of two standard names between two locations.@en"
         )
         pattern = get_regex_from_transformation(difference_of_X_and_Y_between_A_and_B)
         # print(pattern)
@@ -1061,21 +1062,22 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         # )
 
         ttl = qloc.serialize("ttl")
+        print(ttl)
         self.assertEqual(ttl, """@prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix m4i: <http://w3id.org/nfdi4ing/metadata4ing#> .
 @prefix schema: <https://schema.org/> .
 @prefix ssno: <https://matthiasprobst.github.io/ssno#> .
 
 [] a ssno:Qualification ;
-    dcterms:description "Specific location in the problem domain." ;
+    dcterms:description "Specific location in the problem domain."@en ;
     ssno:after ssno:AnyStandardName ;
     ssno:hasPreposition "at" ;
     ssno:hasValidValues [ a m4i:TextVariable ;
-            m4i:hasStringValue "inlet" ;
-            m4i:hasVariableDescription "inlet" ],
-        [ a m4i:TextVariable ;
             m4i:hasStringValue "outlet" ;
-            m4i:hasVariableDescription "outlet" ] ;
+            m4i:hasVariableDescription "outlet" ],
+        [ a m4i:TextVariable ;
+            m4i:hasStringValue "inlet" ;
+            m4i:hasVariableDescription "inlet" ] ;
     schema:name "location" .
 
 """)
