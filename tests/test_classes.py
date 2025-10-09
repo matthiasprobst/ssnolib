@@ -1,5 +1,6 @@
 import json
 import pathlib
+import sys
 import unittest
 import warnings
 
@@ -21,6 +22,11 @@ def _delete_test_data():
                                 CACHE_DIR / 'test_snt.yaml',
                                 CACHE_DIR / 'cf-standard-name-table.xml',):
         _filename_to_delete.unlink(missing_ok=True)
+
+
+def get_python_version():
+    """Get the current Python version as a tuple."""
+    return sys.version_info.major, sys.version_info.minor, sys.version_info.micro
 
 
 class TestClasses(unittest.TestCase):
@@ -56,6 +62,8 @@ class TestClasses(unittest.TestCase):
         self.assertEqual(contact_alias.lastName, 'Doe')
         self.assertEqual(contact_alias.last_name, 'Doe')
 
+    @unittest.skipIf(condition=10 < get_python_version()[1] < 12,
+                     reason="Only testing on min and max python version")
     def test_ssnolib_Distribution(self):
         distribution = ssnolib.dcat.Distribution(
             title='XML Table',
@@ -82,6 +90,8 @@ class TestClasses(unittest.TestCase):
         self.assertTrue(download_filename.is_file())
         download_filename.unlink(missing_ok=True)
 
+    @unittest.skipIf(condition=10 < get_python_version()[1] < 12,
+                     reason="Only testing on min and max python version")
     def test_standard_name_table(self):
         snt = ssnolib.StandardNameTable(title='CF Standard Name Table v79')
         self.assertEqual(snt.title, 'CF Standard Name Table v79')
@@ -214,6 +224,8 @@ class TestClasses(unittest.TestCase):
 
         # http://qudt.org/vocab/unit/K
 
+    @unittest.skipIf(condition=10 < get_python_version()[1] < 12,
+                     reason="Only testing on min and max python version")
     def test_snt_from_yaml(self):
         snt_yml_filename = __this_dir__ / 'data/test_snt.yaml'
         distribution = dcat.Distribution(title='XML Table',
