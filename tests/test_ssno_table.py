@@ -764,7 +764,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
             # self.assertTrue(snt.verify_name("x_toa_pressure"))
             # self.assertFalse(snt.verify_name("toa_x_velocity"))
 
-    @unittest.skipIf(platform.system() == "Darwin" and 10 < get_python_version()[1] < 12,
+    @unittest.skipIf(platform.system() != "Darwin" and 10 < get_python_version()[1] < 12,
                      reason="Only testing on min and max python version and skipping macOS")
     def test_to_html(self):
         with set_config(blank_id_generator=base_uri_generator):
