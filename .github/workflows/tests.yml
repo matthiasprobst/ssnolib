@@ -40,6 +40,10 @@ jobs:
           pip install setuptools
           pip install -r requirements-dev.txt
 
+      - name: Install h5rdmtoolbox for Python 3.9-3.12
+        if: ${{ matrix.python-version >= '3.9' && matrix.python-version < '3.13' }}
+        run: pip install "h5rdmtoolbox @ git+https://github.com/matthiasprobst/h5rdmtoolbox@fix-zenodo-record"
+
       - name: Run pytest coverage
         run: pytest --cov --cov-report=xml
 

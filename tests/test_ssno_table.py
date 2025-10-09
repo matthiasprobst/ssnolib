@@ -5,7 +5,7 @@ import shutil
 import unittest
 from datetime import datetime
 
-import h5rdmtoolbox as h5tbx
+
 import pydantic
 import rdflib
 import requests.exceptions
@@ -1084,6 +1084,10 @@ class TestSSNOStandardNameTable(unittest.TestCase):
 
     def test_hdf5_accessor(self):
         # noinspection PyUnresolvedReferences
+        try:
+            import h5rdmtoolbox as h5tbx
+        except ImportError:
+            self.skipTest("h5rdmtoolbox not installed")
         from ssnolib import h5accessor
         with h5tbx.File() as h5:
             h5.create_dataset('u', data=4.3, attrs={'standard_name': 'x_velocity'})
