@@ -9,14 +9,14 @@ import shutil
 from datetime import datetime
 from typing import Union, List, Optional
 
-import pydantic
 from dateutil import parser
-from ontolutils import Thing, as_id
-from ontolutils import urirefs, namespaces
+from ontolutils import Thing, as_id, urirefs, namespaces
+from ontolutils.classes.typing import BlankNodeType
 from pydantic import HttpUrl, FileUrl, field_validator, Field, model_validator
 
 from ssnolib.utils import download_file
-from ..prov import Person, Organization, Agent
+from .. import foaf
+from .. import prov
 from ..skos import Concept
 
 
@@ -43,7 +43,10 @@ class Resource(Thing):
         Title of the resource (dcterms:title)
     description: str = None
         Description of the resource (dcterms:description)
-    creator: Union[Person, Organization] = None
+    creator: Union[
+        foaf.Agent, foaf.Organization, foaf.Person, prov.Person, prov.Agent, prov.Organization, HttpUrl,
+        List[Union[foaf.Agent, foaf.Organization, foaf.Person, prov.Person, prov.Agent, prov.Organization, HttpUrl]]
+    ] = None
         Creator of the resource (dcterms:creator)
     version: str = None
         Version of the resource (dcat:version),
@@ -51,7 +54,11 @@ class Resource(Thing):
     """
     title: str = None  # dcterms:title
     description: str = None  # dcterms:description
-    creator: Union[Person, Organization] = None  # dcterms:creator
+    creator: Union[
+        foaf.Agent, foaf.Organization, foaf.Person, prov.Person, prov.Agent, prov.Organization, HttpUrl, BlankNodeType,
+        List[Union[
+            foaf.Agent, foaf.Organization, foaf.Person, prov.Person, prov.Agent, prov.Organization, HttpUrl, BlankNodeType]]
+    ] = None  # dcterms:creator
     version: str = None  # dcat:version
     identifier: Union[str, HttpUrl] = None  # dcterms:identifier
 
@@ -60,31 +67,31 @@ class Resource(Thing):
         """Change the id to the downloadURL"""
         return as_id(self, "identifier")
 
-    @field_validator('creator', mode='before')
-    @classmethod
-    def _parse_creator(cls, creator):
-        # check if creator is a valid person or oragnisation. if both fail, just pass creator data, it will fail later
-        is_person = False
-        is_organisation = False
-        try:
-            person = Person.model_validate(creator, strict=True)
-            is_person = True
-        except pydantic.ValidationError:
-            pass
-            # not a person
-        try:
-            organisation = Organization.model_validate(creator, strict=True)
-            is_organisation = True
-        except pydantic.ValidationError:
-            # not an organisation
-            pass
-        if is_person and is_organisation:
-            return creator  # cannot distinguish between person and organisation
-        if is_person:
-            return person
-        if is_organisation:
-            return organisation
-        return creator
+    # @field_validator('creator', mode='before')
+    # @classmethod
+    # def _parse_creator(cls, creator):
+    #     # check if creator is a valid person or organization. if both fail, just pass creator data, it will fail later
+    #     is_person = False
+    #     is_organisation = False
+    #     try:
+    #         person = foaf.Person.model_validate(creator, strict=True)
+    #         is_person = True
+    #     except pydantic.ValidationError:
+    #         pass
+    #         # not a person
+    #     try:
+    #         organisation = foaf.Organization.model_validate(creator, strict=True)
+    #         is_organisation = True
+    #     except pydantic.ValidationError:
+    #         # not an organisation
+    #         pass
+    #     if is_person and is_organisation:
+    #         return creator  # cannot distinguish between person and organisation
+    #     if is_person:
+    #         return person
+    #     if is_organisation:
+    #         return organisation
+    #     return creator
 
     @field_validator('identifier', mode='before')
     @classmethod
@@ -207,7 +214,6 @@ class DatasetSeries(Resource):
             prov="http://www.w3.org/ns/prov#",
             dcterms="http://purl.org/dc/terms/")
 @urirefs(Dataset='dcat:Dataset',
-         creator='dcterms:creator',
          distribution='dcat:distribution',
          modified='dcterms:modified',
          landingPage='dcat:landingPage',
@@ -226,8 +232,6 @@ class Dataset(Resource):
         Title of the resource (dcterms:title)
     description: str = None
         Description of the resource (dcterms:description)
-    creator: Agent = None
-        Creator of the resource (dcterms:creator)
     version: str = None
         Version of the resource (dcat:version)
     distribution: List[Distribution] = None
@@ -242,7 +246,6 @@ class Dataset(Resource):
         A main category of the resource. A resource can have multiple themes.
     """
     # http://www.w3.org/ns/prov#Person, see https://www.w3.org/TR/vocab-dcat-3/#ex-adms-identifier
-    creator: Union[Agent, HttpUrl, Person] = Field(default=None)
     distribution: Union[Distribution, List[Distribution]] = None  # dcat:Distribution
     modified: datetime = None  # dcterms:modified
     landingPage: HttpUrl = Field(default=None, alias='landing_page')  # dcat:landingPage

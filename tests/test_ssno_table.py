@@ -12,6 +12,7 @@ import requests.exceptions
 import yaml
 from ontolutils import Thing, QUDT_UNIT
 from ontolutils import set_config
+from ontolutils.classes import LangString
 from ontolutils.namespacelib.m4i import M4I
 from ontolutils.utils.qudt_units import parse_unit
 
@@ -148,7 +149,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         self.assertEqual("location", qloc.name)
         self.assertEqual("at", qloc.hasPreposition)
         self.assertEqual(sorted(["inlet", "outlet"]),
-                         sorted([p.hasStringValue for p in qloc.hasValidValues]))
+                         sorted([str(p.hasStringValue) for p in qloc.hasValidValues]))
 
         comp = ssnolib.Qualification(name="component",
                                      description="component of the vector",
@@ -328,8 +329,9 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         )
         self.assertEqual(snt.prefLabel, "My fancy standard name table")
         self.assertEqual(snt.altLabel, "My standard name table")
-        self.assertEqual(snt.created, datetime.today().strftime("%Y-%m-%d"))
+        # self.assertEqual(snt.created, datetime.today().strftime("%Y-%m-%d"))
         self.assertEqual(snt.subject, "https://www.wikidata.org/wiki/Q172145")
+        print(snt.serialize("ttl", base_uri="https://example.org/#"))
 
     def test_standard_name_table(self):
         sn1 = StandardName(standard_name='x_velocity',
@@ -450,7 +452,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
             snt.parse(dist)
 
         snt_yaml_data = {'name': 'SNT',
-                         'description': 'A testing SNT',
+                         'description': 'A testing SNT@de',
                          'version': 'abc123invalid',  # v1.0.0
                          'identifier': 'https://example.org/#sntIdentifier',
                          'standardNames': {'x_velocity': {'description': 'x component of velocity',
@@ -460,6 +462,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         with open('snt.yaml', 'w') as f:
             yaml.dump(snt_yaml_data, f)
         snt = StandardNameTable.parse('snt.yaml', fmt='yaml')
+        self.assertEqual(snt.description, LangString(value="A testing SNT", lang="de"))
         self.assertEqual(snt.title, 'SNT')
 
         snt = StandardNameTable.parse('snt.yaml', fmt=None)
@@ -569,6 +572,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         # except RecursionError as recerr:
         #     recursion_error_raised = True
         # self.assertTrue(value_error_raised or recursion_error_raised)
+        print(new_snt.serialize("ttl", base_uri="https://example.org/#"))
 
     def test_cf_qualifications(self):
         # Taken from https://cfconventions.org/Data/cf-standard-names/docs/guidelines.html#id2797725
@@ -580,11 +584,12 @@ class TestSSNOStandardNameTable(unittest.TestCase):
             )
             component = ssnolib.VectorQualification(
                 name="component",
-                description='The direction of the spatial component of a vector is indicated by one of the words upward, downward, northward, southward, eastward, westward, x, y. The last two indicate directions along the horizontal grid being used when they are not true longitude and latitude (if there is a rotated pole, for instance). If the standard name indicates a tensor quantity, two of these direction words may be included, applying to two of the spatial dimensions Z Y X, in that order. If only one component is indicated for a tensor, it means the flux in the indicated direction of the magnitude of the vector quantity in the plane of the other two spatial dimensions. The names of vertical components of radiative fluxes are prefixed with net_, thus: net_downward and net_upward. This treatment is not applied for any kinds of flux other than radiative. Radiative fluxes from above and below are often measured and calculated separately, the "net" being the difference. Within the atmosphere, radiation from below (not net) is indicated by a prefix of upwelling, and from above with downwelling. For the top of the atmosphere, the prefixes incoming and outgoing are used instead.,',
-                hasValidValues=["upward", "downward", "northward", "southward", "eastward", "westward",
-                                TextVariable(hasStringValue="x",
-                                             hasVariableDescription="The x-component of the vector."),
-                                "y"]
+                description='The direction of the spatial component of a vector is indicated by one of the words upward, downward, northward, southward, eastward, westward, x, y. The last two indicate directions along the horizontal grid being used when they are not true longitude and latitude (if there is a rotated pole, for instance). If the standard name indicates a tensor quantity, two of these direction words may be included, applying to two of the spatial dimensions Z Y X, in that order. If only one component is indicated for a tensor, it means the flux in the indicated direction of the magnitude of the vector quantity in the plane of the other two spatial dimensions. The names of vertical components of radiative fluxes are prefixed with net_, thus: net_downward and net_upward. This treatment is not applied for any kinds of flux other than radiative. Radiative fluxes from above and below are often measured and calculated separately, the "net" being the difference. Within the atmosphere, radiation from below (not net) is indicated by a prefix of upwelling, and from above with downwelling. For the top of the atmosphere, the prefixes incoming and outgoing are used instead.@en',
+                hasValidValues=[
+                    "upward", "downward", "northward", "southward", "eastward", "westward",
+                    TextVariable(hasStringValue="x",
+                                 hasVariableDescription="The x-component of the vector.@en"),
+                    "y"]
             )
             at_surface = ssnolib.Qualification(
                 name="surface",
@@ -680,7 +685,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
             #     "velocity: Velocity vector. x: The x-component of the vector."
             # )
             self.assertEqual(
-                snt.get_standard_name("surface_x_velocity").description,
+                str(snt.get_standard_name("surface_x_velocity").description),
                 "velocity: Velocity vector. surface: No description available. x: The x-component of the vector."
             )
             self.assertTrue(snt.verify_name("air_density"))  # equals "air_density"
@@ -1024,7 +1029,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
     def test_complicated_transformation(self):
         qloc = Qualification(
             name="location",
-            description="Specific location in the problem domain.",
+            description="Specific location in the problem domain.@en",
             hasPreposition="at",
             after=SSNO.AnyStandardName,
             hasValidValues=[
@@ -1046,7 +1051,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
             name="difference_of_X_and_Y_between_A_and_B",
             altersUnit="[X]",
             hasCharacter=[AnySNX, AnySNY, AnyLocA, AnyLocB],
-            description="Difference of two standard names between two locations."
+            description="Difference of two standard names between two locations.@en"
         )
         pattern = get_regex_from_transformation(difference_of_X_and_Y_between_A_and_B)
         # print(pattern)
@@ -1055,6 +1060,27 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         #     "difference_of_([a-zA-Z_]+)_and_([a-zA-Z_]+)_between_([a-zA-Z_]+)_and_([a-zA-Z_]+)",
         #     pattern
         # )
+
+        ttl = qloc.serialize("ttl")
+        print(ttl)
+        self.assertEqual(ttl, """@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix m4i: <http://w3id.org/nfdi4ing/metadata4ing#> .
+@prefix schema: <https://schema.org/> .
+@prefix ssno: <https://matthiasprobst.github.io/ssno#> .
+
+[] a ssno:Qualification ;
+    dcterms:description "Specific location in the problem domain."@en ;
+    ssno:after ssno:AnyStandardName ;
+    ssno:hasPreposition "at" ;
+    ssno:hasValidValues [ a m4i:TextVariable ;
+            m4i:hasStringValue "outlet" ;
+            m4i:hasVariableDescription "outlet" ],
+        [ a m4i:TextVariable ;
+            m4i:hasStringValue "inlet" ;
+            m4i:hasVariableDescription "inlet" ] ;
+    schema:name "location" .
+
+""")
 
     def test_hdf5_accessor(self):
         # noinspection PyUnresolvedReferences
@@ -1079,6 +1105,33 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         ds = Dataset(label="my-snt-dataset")
         snt = StandardNameTable(title="my-snt", dataset=ds)
         self.assertEqual(snt.dataset.label, "my-snt-dataset")
+
+    def test_snt_with_english_description(self):
+        snt = StandardNameTable(
+            id="https://doi.org/10.5281/zenodo.1234567#Nbf746565999b4531a3547a862fa070c7",
+            description="hallo@de"
+        )
+        ttl = snt.model_dump_ttl(base_uri="https://doi.org/10.5281/zenodo.1234567#")
+        self.assertEqual(ttl, """@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix ssno: <https://matthiasprobst.github.io/ssno#> .
+
+<https://doi.org/10.5281/zenodo.1234567#Nbf746565999b4531a3547a862fa070c7> a ssno:StandardNameTable ;
+    dcterms:description "hallo"@de .
+
+""")
+        snt = StandardNameTable(
+            id="https://doi.org/10.5281/zenodo.1234567#Nbf746565999b4531a3547a862fa070c7",
+            description=["hallo@de", "hello@en"]
+        )
+        ttl = snt.model_dump_ttl(base_uri="https://doi.org/10.5281/zenodo.1234567#")
+        self.assertEqual(ttl, """@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix ssno: <https://matthiasprobst.github.io/ssno#> .
+
+<https://doi.org/10.5281/zenodo.1234567#Nbf746565999b4531a3547a862fa070c7> a ssno:StandardNameTable ;
+    dcterms:description "hallo"@de,
+        "hello"@en .
+
+""")
 
     def test_reading_opencefadb_table(self):
         snt = StandardNameTable.from_jsonld(

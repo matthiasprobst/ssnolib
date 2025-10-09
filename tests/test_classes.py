@@ -86,8 +86,10 @@ class TestClasses(unittest.TestCase):
         snt = ssnolib.StandardNameTable(title='CF Standard Name Table v79')
         self.assertEqual(snt.title, 'CF Standard Name Table v79')
         self.assertEqual(str(snt), 'CF Standard Name Table v79')
-        self.assertEqual(repr(snt),
-                         f'StandardNameTable(id={snt.id}, title=CF Standard Name Table v79, standardNames=[])')
+        self.assertEqual(
+            repr(snt),
+            f'StandardNameTable(id={snt.id}, title=CF Standard Name Table v79, standardNames=[])'
+        )
 
         distribution = ssnolib.dcat.Distribution(title='XML Table',
                                                  downloadURL='https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
@@ -208,7 +210,7 @@ class TestClasses(unittest.TestCase):
         self.assertEqual(jsonld_dict['ssno:standardName'], 'air_temperature')
         self.assertEqual(jsonld_dict['ssno:description'],
                          'Air temperature is the bulk temperature of the air, not the surface (skin) temperature.')
-        self.assertEqual(jsonld_dict['ssno:unit'], 'http://qudt.org/vocab/unit/K')
+        self.assertEqual(jsonld_dict['ssno:unit'], {"@id": "http://qudt.org/vocab/unit/K"})
 
         # http://qudt.org/vocab/unit/K
 

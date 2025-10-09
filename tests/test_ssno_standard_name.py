@@ -19,6 +19,11 @@ CACHE_DIR = ssnolib.utils.get_cache_dir()
 
 class TestSSNOStandardName(unittest.TestCase):
 
+    def test_date_literal_for_note(self):
+        note = Note(value="note", created="2025-01-04")
+        print(note)
+        print(note.model_dump_ttl())
+
     def test_standard_name_and_table(self):
         snt = StandardNameTable(title="my snt")
         sn = StandardName(
@@ -214,11 +219,11 @@ class TestSSNOStandardName(unittest.TestCase):
     def test_standard_name_table_with_note(self):
         snt_loaded = StandardNameTable.parse(__this_dir__ / f"data/snt_from_scratch.jsonld")
         snt_loaded.editorialNote = "This is an editorial note."
-        self.assertEqual(snt_loaded.editorialNote, ["This is an editorial note."])
+        self.assertEqual(snt_loaded.editorialNote, "This is an editorial note.")
         snt_loaded.editorialNote = Note(
             creator=Person(id="https://example.org/#creator"),
-            value="This is an editorial note with a creator."
+            value="This is an editorial note with a creator.@en"
         )
-        self.assertIsInstance(snt_loaded.editorialNote[0], Note)
-        self.assertEqual(snt_loaded.editorialNote[0].value, "This is an editorial note with a creator.")
-        self.assertEqual(snt_loaded.editorialNote[0].creator.id, "https://example.org/#creator")
+        self.assertIsInstance(snt_loaded.editorialNote, Note)
+        self.assertEqual(snt_loaded.editorialNote.value, "This is an editorial note with a creator.")
+        self.assertEqual(snt_loaded.editorialNote.creator.id, "https://example.org/#creator")
