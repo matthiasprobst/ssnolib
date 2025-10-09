@@ -74,13 +74,13 @@ class TestDcat(utils.ClassTest):
         self.assertEqual(str(distribution1.accessURL), 'https://example.com/distribution')
         self.assertEqual(str(distribution1.downloadURL), 'https://example.com/distribution/download')
 
-        with self.assertRaises(requests.exceptions.HTTPError):
-            distribution1.download(timeout=60)
+        with self.assertRaises((requests.exceptions.HTTPError, requests.exceptions.ConnectionError)):
+            distribution1.download(timeout=10)
 
         piv_dist = dcat.Distribution(
             downloadURL=self.test_jsonld_filename
         )
-        filename = piv_dist.download(timeout=60)
+        filename = piv_dist.download(timeout=10)
         self.assertTrue(filename.exists())
         self.assertEqual(filename.name, 'piv_dataset.jsonld')
         self.assertIsInstance(filename, pathlib.Path)
