@@ -4,7 +4,7 @@ from ontolutils import Thing, as_id
 from ontolutils import urirefs, namespaces
 from ontolutils.typing import ResourceType
 from pydantic import EmailStr, HttpUrl, Field, field_validator, model_validator
-
+from ontolutils import LangString
 from ..skos import Concept
 
 
@@ -59,7 +59,7 @@ class Organization(Agent):
     hasRorId: HttpUrl
         A Research Organization Registry identifier, that points to a research organization
     """
-    name: str  # foaf:name
+    name: Union[LangString, List[LangString]]  # foaf:name
     url: Union[str, HttpUrl] = None
     hasRorId: Union[str, HttpUrl] = Field(alias="ror_id", default=None)
 
@@ -69,7 +69,7 @@ class Organization(Agent):
 
     def to_text(self) -> str:
         """Return the text representation of the class"""
-        parts = [self.name]
+        parts = [str(self.name)]
         if self.mbox:
             parts.append(f"{self.mbox}")
         if self.url:
