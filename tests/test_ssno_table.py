@@ -1129,6 +1129,11 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         self.assertEqual(new_unit, "1/s")
 
     def test_snt_relate_with_dataset(self):
+        air_temp = ssnolib.StandardName(
+            standardName='air_temperature',
+            unit='K',
+            description='Air temperature is the bulk temperature of the air, not the surface (skin) temperature.@en')
+        
         distribution = Distribution(
             title='TTL Table@en',
             downloadURL='https://example.org/cf-standard-name-table.ttl',
@@ -1144,6 +1149,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
             title='CF Standard Name Table (latest version)@en',
             dataset=snt_dataset,
             created="2023-10-10",
+            standardNames=[air_temp,]
         )
         self.assertEqual(snt.dataset.title, "CF Standard Name Table Dataset")
         self.assertEqual(snt.dataset.description,

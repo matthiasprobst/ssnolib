@@ -26,27 +26,37 @@ Install the core library:
 pip install ssnolib
 ```
 
-### Optional Extras
-To use the local web app (Flask and/or HDF5):
-```bash
-pip install ssnolib[app,hdf]
-```
-To read Standard Name Tables in XML format:
-```bash
-pip install ssnolib[xml]
-```
-To read Standard Name Tables from YAML files:
-```bash
-pip install ssnolib[yaml]
-```
 
 ## Quickstart
 
-### Programmatic Usage
-A Standard Name Table (SNT) defines Standard Names and exists as a RDF file 
-(usually in TTL, XML, or JSON-LD format). The SNT itself is modeled by `ssnolib.StandardNameTable`. To 
-reference it to the file (Distribution within a Dataset as per [DCAT](https://www.w3.org/TR/vocab-dcat-2/))
-, you can use the following code:
+### Describe a Standard Name and dump it to Turtl
+```python
+import ssnolib
+
+air_temp = ssnolib.StandardName(
+    standardName='air_temperature',
+    unit='K',
+    description='Air temperature is the bulk temperature of the air, not the surface (skin) temperature.@en')
+with open('air_temperature.jsonld', 'w') as f:
+    f.write(air_temp.model_dump_ttl())
+```
+
+The serialized TTL file looks like this:
+```turtle
+@prefix ssno: <https://matthiasprobst.github.io/ssno#> .
+
+[] a ssno:StandardName ;
+    ssno:description "Air temperature is the bulk temperature of the air, not the surface (skin) temperature."@en ;
+    ssno:standardName "air_temperature" ;
+    ssno:unit <http://qudt.org/vocab/unit/K> .
+```
+
+
+### Describe Standard Name Tables
+A Standard Name Table (SNT) defines Standard Names and exists as an RDF file 
+(usually in TTL, XML, or JSON-LD format). The SNT itself is modeled by `ssnolib.StandardNameTable`. In the 
+following example, we define a SNT with one Standard Name (`air_temperature`) which is stored in a `dcat:Dataset` with one `dcat:Distribution`.
+The distribution points to a TTL file containing the SNT, which can be downloaded. 
 ```python
 import ssnolib
 from ssnolib.dcat import Dataset, Distribution
@@ -66,6 +76,7 @@ snt = ssnolib.StandardNameTable(
     title='CF Standard Name Table (latest version)@en',
     dataset=snt_dataset,
     created="2023-10-10",
+    standardNames=[air_temp,]
 )
 ```
 
@@ -84,23 +95,38 @@ which results in:
 <https://doi.org/10.5281/zenodo.12345678> a ssno:StandardNameTable ;
     dcterms:created "2023-10-10"^^xsd:date ;
     dcterms:title "CF Standard Name Table (latest version)"@en ;
-    ssno:dataset <https://example.org/#N00bb20ac7339453ebfe8d06d9c1b6f02> .
+    ssno:dataset <https://example.org/#N2f15bceee1cf431688c375b242d2c61b> ;
+    ssno:standardNames <https://example.org/#N5542e225237745dfa57de897543fa5c8> .
 
-<https://example.org/#N00bb20ac7339453ebfe8d06d9c1b6f02> a dcat:Dataset ;
+<https://example.org/#N2f15bceee1cf431688c375b242d2c61b> a dcat:Dataset ;
     dcterms:description "The CF Standard Name Table is a controlled vocabulary for climate and forecast metadata."@en ;
     dcterms:title "CF Standard Name Table Dataset"@en ;
-    dcat:distribution <https://example.org/#N7f2b8ed9c2fb4e34bdd26250db3a6da6> .
+    dcat:distribution <https://example.org/#Ncd83fad310144161b45f7c466d6fd7cc> .
 
-<https://example.org/#N7f2b8ed9c2fb4e34bdd26250db3a6da6> a dcat:Distribution ;
+<https://example.org/#N5542e225237745dfa57de897543fa5c8> a ssno:StandardName ;
+    ssno:description "Air temperature is the bulk temperature of the air, not the surface (skin) temperature."@en ;
+    ssno:standardName "air_temperature" ;
+    ssno:unit <http://qudt.org/vocab/unit/K> .
+
+<https://example.org/#Ncd83fad310144161b45f7c466d6fd7cc> a dcat:Distribution ;
     dcterms:title "TTL Table"@en ;
     dcat:downloadURL <https://example.org/cf-standard-name-table.ttl> ;
     dcat:mediaType <https://www.iana.org/assignments/media-types/text/turtle> .
-   ```
+```
 
 ### Web App Usage
-There are two apps:
+
+Two simple web-apps exist to manage Standard Name Tables and to semantically enrich HDF5 files with Standard Names.
+
 1. A Streamlit app to semantically enrich HDF5 files (requires `hdf` extra)
 2. A Flask app to create and manage Standard Name Tables (requires `app` extra)
+
+
+Install the library with the required extras:
+```bash
+pip install ssnolib[app,hdf]
+```
+
 
 To start the GUI:
 ```bash
@@ -116,57 +142,9 @@ This will start a local development server at `https://127.0.0.1:5000/`.
 
 <img src="./docs/Screenshot_webapp.png" width="300" />
 
-## Examples
 
-### Standard Name Table to JSON-LD
-```python
-import ssnolib
-from ssnolib.dcat import Distribution
 
-distribution = Distribution(title='XML Table',
-                            downloadURL='https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
-                            mediaType='application/xml')
-snt = ssnolib.StandardNameTable(
-    id="_:standard_name_table_v79",
-    title='CF Standard Name Table v79',
-    distribution=[distribution]
-)
-with open('cf79.jsonld', 'w', encoding='utf-8') as f:
-    f.write(snt.model_dump_jsonld(base_uri="https://local.org#"))
-```
 
-### Standard Name to JSON-LD
-```python
-import ssnolib
-
-air_temp = ssnolib.StandardName(standardName='air_temperature',
-                                canonicalUnits='K',
-                                description='Air temperature is the bulk temperature of the air, not the surface (skin) temperature.')
-with open('air_temperature.jsonld', 'w') as f:
-    f.write(air_temp.model_dump_jsonld())
-```
-
-## Documentation
-Find the online documentation [here](https://ssnolib.readthedocs.io/en/latest/), including rendered Jupyter Notebooks under `/docs/tutorials/` and API reference. Docstrings are available for all classes and methods.
-
-## Project Structure
-```
-ssnolib/
-    __init__.py
-    cli.py
-    dcat/
-    hdf5/
-    ssno/
-    ...
-docs/
-    tutorials/
-    ...
-tests/
-    ...
-README.md
-setup.py
-requirements.txt
-```
 
 ## Testing
 To run tests:
@@ -176,7 +154,6 @@ pytest tests
 
 ## Contribution
 Contributions are welcome! Please open an issue or pull request. Guidelines:
-- Follow the [Code of Conduct](CODE_OF_CONDUCT.md) if available
 - Write clear commit messages
 - Add tests for new features
 - Document changes in CHANGELOG.md
@@ -189,4 +166,4 @@ This project is licensed under the [MIT License](./LICENSE).
 
 ## Support & Contact
 - Report issues: [GitHub Issues](https://github.com/matthiasprobst/SSNOlib/issues)
-- Questions & feedback: [matthias.probst@protonmail.com](mailto:matthias.probst@protonmail.com)
+- Questions & feedback: [matth.probst@gmail.com](mailto:matth.probst@gmail.com)
