@@ -6,8 +6,9 @@ Log of changes in the versions
 
 - update `to_xml`
 - dcat:Distribution allows foaf-Agents as creators
-- fix StandardNameTable version property. hasVersion was used wrongly as a string, now it is a resource and
-  `schema:version` is added for the actual version.
+- fix StandardNameTable version property. `hasVersion` was used wrongly as a string, now it is a resource and
+  `schema:version` is added for the current version.
+- using `LangString` in multiple objects to allow language-sensitive strings
 
 ## v1.5.1.3
 
