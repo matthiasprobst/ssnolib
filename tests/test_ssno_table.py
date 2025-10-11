@@ -482,7 +482,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         snt = StandardNameTable.parse('snt.yaml', fmt=None)
         self.assertEqual(snt.title, 'SNT')
 
-    @unittest.skipIf(condition=10 < get_python_version()[1] < 12,
+    @unittest.skipIf(condition=9 < get_python_version()[1] < 13,
                      reason="Only testing on min and max python version")
     def test_standard_name_table_from_xml(self):
         cf_contention = 'https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml'

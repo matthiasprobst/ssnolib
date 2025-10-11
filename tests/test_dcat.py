@@ -34,7 +34,7 @@ class TestDcat(utils.ClassTest):
         self.assertEqual(resource1.version, '1.0')
         self.assertEqual(str(resource1.identifier), 'https://example.com/resource')
 
-    @unittest.skipIf(condition=10 < get_python_version()[1] < 12,
+    @unittest.skipIf(condition=9 < get_python_version()[1] < 13,
                          reason="Only testing on min and max python version")
     def test_Distribution(self):
         distribution_none_downloadURL = dcat.Distribution(
