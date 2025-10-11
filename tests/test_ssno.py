@@ -6,6 +6,7 @@ import unittest
 
 from ontolutils import get_urirefs
 
+import ssnolib
 from ssnolib import SSNO
 
 __this_dir__ = pathlib.Path(__file__).parent
@@ -34,3 +35,19 @@ class TestSSNO(unittest.TestCase):
                             if "ssno:" in iri:
                                 self.assertIn(iri.split(":", 1)[-1], namespace_names)
                         self.assertTrue(cls_name in namespace_names, f"Class {cls_name} in {filename} not in namespace")
+
+    def test_readme_example(self):
+
+        air_temp = ssnolib.StandardName(
+            standardName='air_temperature',
+            unit='K',
+            description='Air temperature is the bulk temperature of the air, not the surface (skin) temperature.@en')
+        ttl = air_temp.model_dump_ttl()
+        self.assertEqual(ttl, """@prefix ssno: <https://matthiasprobst.github.io/ssno#> .
+
+[] a ssno:StandardName ;
+    ssno:description "Air temperature is the bulk temperature of the air, not the surface (skin) temperature."@en ;
+    ssno:standardName "air_temperature" ;
+    ssno:unit <http://qudt.org/vocab/unit/K> .
+
+""")

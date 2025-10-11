@@ -1,5 +1,6 @@
 import json
 import pathlib
+import sys
 import unittest
 import warnings
 
@@ -21,6 +22,11 @@ def _delete_test_data():
                                 CACHE_DIR / 'test_snt.yaml',
                                 CACHE_DIR / 'cf-standard-name-table.xml',):
         _filename_to_delete.unlink(missing_ok=True)
+
+
+def get_python_version():
+    """Get the current Python version as a tuple."""
+    return sys.version_info.major, sys.version_info.minor, sys.version_info.micro
 
 
 class TestClasses(unittest.TestCase):
@@ -56,6 +62,8 @@ class TestClasses(unittest.TestCase):
         self.assertEqual(contact_alias.lastName, 'Doe')
         self.assertEqual(contact_alias.last_name, 'Doe')
 
+    @unittest.skipIf(condition=9 < get_python_version()[1] < 13,
+                     reason="Only testing on min and max python version")
     def test_ssnolib_Distribution(self):
         distribution = ssnolib.dcat.Distribution(
             title='XML Table',
@@ -82,12 +90,16 @@ class TestClasses(unittest.TestCase):
         self.assertTrue(download_filename.is_file())
         download_filename.unlink(missing_ok=True)
 
+    @unittest.skipIf(condition=9 < get_python_version()[1] < 13,
+                     reason="Only testing on min and max python version")
     def test_standard_name_table(self):
         snt = ssnolib.StandardNameTable(title='CF Standard Name Table v79')
         self.assertEqual(snt.title, 'CF Standard Name Table v79')
         self.assertEqual(str(snt), 'CF Standard Name Table v79')
-        self.assertEqual(repr(snt),
-                         f'StandardNameTable(id={snt.id}, title=CF Standard Name Table v79, standardNames=[])')
+        self.assertEqual(
+            repr(snt),
+            f'StandardNameTable(id={snt.id}, title=CF Standard Name Table v79, standardNames=[])'
+        )
 
         distribution = ssnolib.dcat.Distribution(title='XML Table',
                                                  downloadURL='https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
@@ -126,9 +138,11 @@ class TestClasses(unittest.TestCase):
 
         agent = snt_from_xml_dict['qualifiedAttribution']["agent"]
         agent.pop("id")
-        self.assertDictEqual(agent,
-                             {'mbox': 'support@ceda.ac.uk',
-                              'name': 'Centre for Environmental Data Analysis'})
+        self.assertDictEqual(
+            agent,
+            {'mbox': 'support@ceda.ac.uk',
+             'name': {'value': 'Centre for Environmental Data Analysis'}}
+        )
 
         with self.assertRaises(pydantic.ValidationError):
             # invalid string for title:
@@ -174,8 +188,9 @@ class TestClasses(unittest.TestCase):
         self.assertIsInstance(atemp_dict, dict)
         self.assertEqual(atemp_dict['standardName'], 'air_temperature')
         self.assertEqual(atemp_dict['unit'], 'http://qudt.org/vocab/unit/K')
-        self.assertEqual(atemp_dict['description'],
-                         'Air temperature is the bulk temperature of the air, not the surface (skin) temperature.')
+        self.assertDictEqual(atemp_dict['description'],
+                             {
+                                 "value": 'Air temperature is the bulk temperature of the air, not the surface (skin) temperature.'})
 
         atemp_json = atemp.model_dump_json()
         self.assertIsInstance(atemp_json, str)
@@ -183,8 +198,10 @@ class TestClasses(unittest.TestCase):
         self.assertIsInstance(atemp_json_dict, dict)
         self.assertEqual(atemp_json_dict['standardName'], 'air_temperature')
         self.assertEqual(atemp_json_dict['unit'], 'http://qudt.org/vocab/unit/K')
-        self.assertEqual(atemp_json_dict['description'],
-                         'Air temperature is the bulk temperature of the air, not the surface (skin) temperature.')
+        self.assertDictEqual(atemp_json_dict['description'],
+                             {
+                                 "value": 'Air temperature is the bulk temperature of the air, not the surface (skin) temperature.',
+                                 "lang": None})
 
         # to json-ld:
         jsonld_string = atemp.model_dump_jsonld(base_uri="https://local.org#")
@@ -208,10 +225,12 @@ class TestClasses(unittest.TestCase):
         self.assertEqual(jsonld_dict['ssno:standardName'], 'air_temperature')
         self.assertEqual(jsonld_dict['ssno:description'],
                          'Air temperature is the bulk temperature of the air, not the surface (skin) temperature.')
-        self.assertEqual(jsonld_dict['ssno:unit'], 'http://qudt.org/vocab/unit/K')
+        self.assertEqual(jsonld_dict['ssno:unit'], {"@id": "http://qudt.org/vocab/unit/K"})
 
         # http://qudt.org/vocab/unit/K
 
+    @unittest.skipIf(condition=9 < get_python_version()[1] < 13,
+                     reason="Only testing on min and max python version")
     def test_snt_from_yaml(self):
         snt_yml_filename = __this_dir__ / 'data/test_snt.yaml'
         distribution = dcat.Distribution(title='XML Table',

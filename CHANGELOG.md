@@ -2,10 +2,18 @@
 
 Log of changes in the versions
 
+## v1.5.1.4
+
+- update `to_xml`
+- dcat:Distribution allows foaf-Agents as creators
+- fix StandardNameTable version property. hasVersion was used wrongly as a string, now it is a resource and
+  `schema:version` is added for the actual version.
+
 ## v1.5.1.3
 
 - upgrade to ontolutils v0.19.2
-- it is enforced to use base-uri (e.g. a DOI URL) when calling `to_jsonld()` from `StandardNameTable` to ensure that the standard
+- it is enforced to use base-uri (e.g. a DOI URL) when calling `to_jsonld()` from `StandardNameTable` to ensure that the
+  standard
   names
   are unique
 - add `skos.Note`

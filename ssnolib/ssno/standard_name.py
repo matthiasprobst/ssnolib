@@ -3,7 +3,7 @@ import warnings
 from typing import Union, List, Optional
 
 import pint.errors
-from ontolutils import namespaces, urirefs
+from ontolutils import namespaces, urirefs, LangString
 from ontolutils.utils.qudt_units import qudt_lookup
 from pydantic import HttpUrl, field_validator, Field, ConfigDict
 from pydantic import ValidationError
@@ -32,7 +32,7 @@ class StandardName(Concept):
 
     standardName: str = Field(alias="standard_name")
     unit: Union[str, HttpUrl]  # required!
-    description: Union[str, List[str]] = None  # ssno:description
+    description: Union[LangString, List[LangString]] = None  # ssno:description
     standardNameTable: Union[str, Dataset, "StandardNameTable"] = Field(default=None, alias="standard_name_table")
     alias: Optional[Union["StandardName", HttpUrl, str]] = Field(default=None)
 

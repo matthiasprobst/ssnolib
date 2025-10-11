@@ -1,6 +1,6 @@
-from typing import Optional, Union
+from typing import Optional, Union, List
 
-from ontolutils import Thing, namespaces, urirefs
+from ontolutils import Thing, namespaces, urirefs, LangString
 from pydantic import Field
 
 
@@ -12,6 +12,6 @@ from pydantic import Field
          hasValue='m4i:hasValue',
          )
 class Variable(Thing):
-    hasVariableDescription: Optional[str] = Field(default=None, alias="has_variable_description")
+    hasVariableDescription: Optional[Union[LangString, List[LangString]]] = Field(default=None, alias="has_variable_description")
     hasSymbol: Optional[str] = Field(default=None, alias="has_symbol")
     hasValue: Optional[Union[int, float]] = Field(default=None, alias="has_value")

@@ -1,6 +1,6 @@
-from typing import Union, Optional
+from typing import Union, Optional, List
 
-from ontolutils import Thing, namespaces, urirefs, as_id
+from ontolutils import Thing, namespaces, urirefs, as_id, LangString
 from pydantic import HttpUrl, field_validator, Field
 from pydantic import model_validator
 
@@ -18,7 +18,7 @@ from ssnolib.dcat import Dataset
          )
 class Project(Thing):
     """Implementation of schema:Project"""
-    name: Optional[str] = Field(default=None)
+    name: Optional[Union[LangString, List[LangString]]] = Field(default=None)
     identifier: Optional[Union[str, HttpUrl]] = Field(default=None)
     funder: Optional[Union[Person, Organization]] = Field(default=None)
     usesStandardnameTable: Optional[Union[Dataset, StandardNameTable]] = Field(default=None)

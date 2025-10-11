@@ -1,11 +1,18 @@
 from typing import Union, List
 
-from ontolutils import Thing, namespaces, urirefs, as_id
+from ontolutils import Thing, as_id
+from ontolutils import urirefs, namespaces
+from ontolutils.typing import ResourceType
 from pydantic import EmailStr, HttpUrl, Field, field_validator, model_validator
-from typing import Optional, TYPE_CHECKING
+from ontolutils import LangString
+from ..skos import Concept
 
-if TYPE_CHECKING:
-    from ..dcat.role import Role  # Only imported for type checking and forward reference
+
+@namespaces(dcat="http://www.w3.org/ns/dcat#")
+@urirefs(Role='dcat:Role')
+class Role(Concept):
+    """Pydantic implementation of dcat:Role"""
+
 
 @namespaces(prov="http://www.w3.org/ns/prov#",
             foaf="http://xmlns.com/foaf/0.1/")
@@ -52,7 +59,7 @@ class Organization(Agent):
     hasRorId: HttpUrl
         A Research Organization Registry identifier, that points to a research organization
     """
-    name: str  # foaf:name
+    name: Union[LangString, List[LangString]]  # foaf:name
     url: Union[str, HttpUrl] = None
     hasRorId: Union[str, HttpUrl] = Field(alias="ror_id", default=None)
 
@@ -62,7 +69,7 @@ class Organization(Agent):
 
     def to_text(self) -> str:
         """Return the text representation of the class"""
-        parts = [self.name]
+        parts = [str(self.name)]
         if self.mbox:
             parts.append(f"{self.mbox}")
         if self.url:
@@ -145,17 +152,18 @@ class Attribution(Thing):
     hadRole: Role
         Role of the agent
     """
-    agent: Union[Person, List[Person], Organization, List[Organization], List[Union[Person, Organization]]]
-    hadRole: Union[str, HttpUrl] = Field(alias="had_role", default=None)
+    agent: Union[ResourceType, Person, List[Person], ResourceType, Organization, List[Organization], List[
+        Union[Person, Organization]]]
+    hadRole: Union[str, HttpUrl, Role, List[Union[str, HttpUrl, Role]]] = Field(alias="had_role", default=None)
 
-    @field_validator('hadRole', mode='before')
-    @classmethod
-    def _hadRole(cls, hadRole: HttpUrl):
-        from ..dcat.role import Role
-        if isinstance(hadRole, Role):
-            return hadRole
-        HttpUrl(hadRole)
-        return str(hadRole)
+    # @field_validator('hadRole', mode='before')
+    # @classmethod
+    # def _hadRole(cls, hadRole: HttpUrl):
+    #     from ..dcat.role import Role
+    #     if isinstance(hadRole, Role):
+    #         return hadRole
+    #     HttpUrl(hadRole)
+    #     return str(hadRole)
 
     @field_validator('agent', mode='before')
     @classmethod

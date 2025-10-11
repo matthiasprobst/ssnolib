@@ -9,14 +9,15 @@ import shutil
 from datetime import datetime
 from typing import Union, List, Optional
 
-import pydantic
 from dateutil import parser
-from ontolutils import Thing, as_id
-from ontolutils import urirefs, namespaces
+from ontolutils import Thing, as_id, urirefs, namespaces, LangString
+from ontolutils.typing import BlankNodeType
+from ontolutils.typing import ResourceType
 from pydantic import HttpUrl, FileUrl, field_validator, Field, model_validator
 
 from ssnolib.utils import download_file
-from ..prov import Person, Organization, Agent
+from .. import foaf
+from .. import prov
 from ..skos import Concept
 
 
@@ -43,48 +44,46 @@ class Resource(Thing):
         Title of the resource (dcterms:title)
     description: str = None
         Description of the resource (dcterms:description)
-    creator: Union[Person, Organization] = None
+    creator: Union[
+        foaf.Agent, foaf.Organization, foaf.Person, prov.Person, prov.Agent, prov.Organization, HttpUrl,
+        List[Union[foaf.Agent, foaf.Organization, foaf.Person, prov.Person, prov.Agent, prov.Organization, HttpUrl]]
+    ] = None
         Creator of the resource (dcterms:creator)
     version: str = None
         Version of the resource (dcat:version),
         best following semantic versioning (https://semver.org/lang/de/)
     """
-    title: str = None  # dcterms:title
-    description: str = None  # dcterms:description
-    creator: Union[Person, Organization] = None  # dcterms:creator
+    title: Optional[Union[LangString, List[LangString]]] = None  # dcterms:title
+    description: Optional[Union[LangString, List[LangString]]] = None  # dcterms:description
+    creator: Union[
+        foaf.Agent,
+        foaf.Organization,
+        foaf.Person,
+        prov.Person,
+        prov.Agent,
+        prov.Organization,
+        HttpUrl,
+        BlankNodeType,
+        List[
+            Union[
+                foaf.Agent,
+                foaf.Organization,
+                foaf.Person,
+                prov.Person,
+                prov.Agent,
+                prov.Organization,
+                HttpUrl,
+                BlankNodeType
+            ]
+        ]
+    ] = None  # dcterms:creator
     version: str = None  # dcat:version
-    identifier: Union[str, HttpUrl] = None  # dcterms:identifier
+    identifier: str = None  # dcterms:identifier
 
     @model_validator(mode="before")
     def change_id(self):
         """Change the id to the downloadURL"""
         return as_id(self, "identifier")
-
-    @field_validator('creator', mode='before')
-    @classmethod
-    def _parse_creator(cls, creator):
-        # check if creator is a valid person or oragnisation. if both fail, just pass creator data, it will fail later
-        is_person = False
-        is_organisation = False
-        try:
-            person = Person.model_validate(creator, strict=True)
-            is_person = True
-        except pydantic.ValidationError:
-            pass
-            # not a person
-        try:
-            organisation = Organization.model_validate(creator, strict=True)
-            is_organisation = True
-        except pydantic.ValidationError:
-            # not an organisation
-            pass
-        if is_person and is_organisation:
-            return creator  # cannot distinguish between person and organisation
-        if is_person:
-            return person
-        if is_organisation:
-            return organisation
-        return creator
 
     @field_validator('identifier', mode='before')
     @classmethod
@@ -113,7 +112,7 @@ class Distribution(Resource):
     ----------
     downloadURL: Union[HttpUrl, FileUrl]
         Download URL of the distribution (dcat:downloadURL)
-    mediaType: HttpUrl = None
+    mediaType: ResourceType = None
         Media type of the distribution (dcat:mediaType).
         Should be defined by the [IANA Media Types registry](https://www.iana.org/assignments/media-types/media-types.xhtml)
     byteSize: int = None
@@ -123,7 +122,7 @@ class Distribution(Resource):
     """
     downloadURL: Union[HttpUrl, FileUrl, pathlib.Path] = Field(default=None, alias='download_URL')
     accessURL: Union[HttpUrl, FileUrl, pathlib.Path] = Field(default=None, alias='access_URL')
-    mediaType: HttpUrl = Field(default=None, alias='media_type')  # dcat:mediaType
+    mediaType: ResourceType = Field(default=None, alias='media_type')  # dcat:mediaType
     byteSize: int = Field(default=None, alias='byte_size')  # dcat:byteSize
     keyword: List[str] = None  # dcat:keyword
 
@@ -207,7 +206,6 @@ class DatasetSeries(Resource):
             prov="http://www.w3.org/ns/prov#",
             dcterms="http://purl.org/dc/terms/")
 @urirefs(Dataset='dcat:Dataset',
-         creator='dcterms:creator',
          distribution='dcat:distribution',
          modified='dcterms:modified',
          landingPage='dcat:landingPage',
@@ -226,8 +224,6 @@ class Dataset(Resource):
         Title of the resource (dcterms:title)
     description: str = None
         Description of the resource (dcterms:description)
-    creator: Agent = None
-        Creator of the resource (dcterms:creator)
     version: str = None
         Version of the resource (dcat:version)
     distribution: List[Distribution] = None
@@ -242,27 +238,11 @@ class Dataset(Resource):
         A main category of the resource. A resource can have multiple themes.
     """
     # http://www.w3.org/ns/prov#Person, see https://www.w3.org/TR/vocab-dcat-3/#ex-adms-identifier
-    creator: Union[Agent, HttpUrl, Person] = Field(default=None)
     distribution: Union[Distribution, List[Distribution]] = None  # dcat:Distribution
     modified: datetime = None  # dcterms:modified
     landingPage: HttpUrl = Field(default=None, alias='landing_page')  # dcat:landingPage
     inSeries: DatasetSeries = Field(default=None, alias='in_series')  # dcat:inSeries
     theme: Optional[Union[HttpUrl, Concept]] = Field(default=None)  # dcat:inSeries
-
-    @field_validator('distribution', mode='before')
-    @classmethod
-    def _distribution(cls, distribution):
-        if not isinstance(distribution, list):
-            return [distribution]
-        return distribution
-        # def _parse_dist(_dist):
-        #     if isinstance(_dist, str):
-        #         return Distribution(id=_dist)
-        #     return _dist
-        #
-        # if isinstance(distribution, list):
-        #     return [_parse_dist(_dist) for _dist in distribution]
-        # return _parse_dist(distribution)
 
     @field_validator('modified', mode='before')
     @classmethod
