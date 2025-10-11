@@ -1,43 +1,108 @@
-# ssnolib: Library for the simple standard name ontology SSNO
+# ssnolib: Library for the Simple Standard Name Ontology (SSNO)
 
 ![Tests](https://github.com/matthiasprobst/SSNOlib/actions/workflows/tests.yml/badge.svg)
-![DOCS](https://codecov.io/gh/matthiasprobst/SSNOlib/branch/main/graph/badge.svg)
-![pyvers](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue)
-![ssno](https://img.shields.io/badge/ssno-1.5.1-orange)
+![Coverage](https://codecov.io/gh/matthiasprobst/SSNOlib/branch/main/graph/badge.svg)
+![Python Versions](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue)
+![SSNO Version](https://img.shields.io/badge/ssno-1.5.1-orange)
+![License](https://img.shields.io/github/license/matthiasprobst/SSNOlib)
 
-A Python library to work with the [SSNO ontology](https://matthiasprobst.github.io/ssno/1.5.1). It provides Python classes
-for the ontology classes and facilitates the creation of JSON-LD files. JSON-LD files are both human- and machine-readable 
-and most importantly machine-actionable. The library can be integrated in you data (conversion) pipelines.
+A Python library to work with the [SSNO ontology](https://matthiasprobst.github.io/ssno/1.5.1). It provides Python classes for ontology concepts and facilitates the creation of RDF files (JSON-LD, TTL, XML). RDF files are both human- and machine-readable, and most importantly, machine-actionable. The library can be integrated into your data (conversion) pipelines.
 
-> **_NOTE:_** The version of the library corresponds to the version of the ontology it supports. Hence, 1.5.0.1 refers 
-> to the ontology version 1.5.0 and the last part (.1) is the patch version of this library.
+## Features
+- Python classes for all SSNO ontology concepts
+- Easy creation and export of JSON-LD, TTL, and XML files
+- Support for Standard Name Tables (SNT)
+- Extensible for HDF5, XML, and YAML formats
+- Local web apps (Streamlit, Flask) for management and enrichment
+- Compatible with Python 3.8–3.12
+- Comprehensive documentation and tutorials
 
+> **Note:** The library version matches the supported ontology version. For example, 1.5.0.1 refers to ontology version 1.5.0 and patch version .1 of the library.
 
-## Documentation
-Please find the online documentation [here](https://ssnolib.readthedocs.io/en/latest/). What you will find, is 
-effectively the rendered versions of the Jupyter Notebooks under `/docs/tutorials/`. 
+## Installation
 
+Install the core library:
+```bash
+pip install ssnolib
+```
 
-## Quickstart
-
-### Programmatically
-
-With `ssnolib` you can create Standard Names and their tables quickly and easily. You can find Jupyter Lab Notebooks
-explaining working with [Standard names here](docs/Standard%20Name.ipynb)
-or [Standard Name Tables here](docs/StandardNameTable.ipynb).
-
-### Graphically (locally run Web App)
-There are 2 apps:
-
-1. A `streamlit` app to semantically enrich HDF5 files. This app is available with the installation of the `hdf` extra.
-2. A `flask` app to create and manage Standard Name Tables. This app is available with the installation of the `app` extra.
-
-To install the web app, run the following command:
+### Optional Extras
+To use the local web app (Flask and/or HDF5):
 ```bash
 pip install ssnolib[app,hdf]
 ```
+To read Standard Name Tables in XML format:
+```bash
+pip install ssnolib[xml]
+```
+To read Standard Name Tables from YAML files:
+```bash
+pip install ssnolib[yaml]
+```
 
-To start the GUI, run the following command:
+## Quickstart
+
+### Programmatic Usage
+A Standard Name Table (SNT) defines Standard Names and exists as a RDF file 
+(usually in TTL, XML, or JSON-LD format). The SNT itself is modeled by `ssnolib.StandardNameTable`. To 
+reference it to the file (Distribution within a Dataset as per [DCAT](https://www.w3.org/TR/vocab-dcat-2/))
+, you can use the following code:
+```python
+import ssnolib
+from ssnolib.dcat import Dataset, Distribution
+
+distribution = Distribution(
+    title='TTL Table@en',
+    downloadURL='https://example.org/cf-standard-name-table.ttl',
+    mediaType='text/turtle'
+)
+snt_dataset = Dataset(
+    title='CF Standard Name Table Dataset@en',
+    description='The CF Standard Name Table is a controlled vocabulary for climate and forecast metadata.@en',
+    distribution=distribution
+)
+snt = ssnolib.StandardNameTable(
+    id="https://doi.org/10.5281/zenodo.12345678",
+    title='CF Standard Name Table (latest version)@en',
+    dataset=snt_dataset,
+    created="2023-10-10",
+)
+```
+
+The serialized version in TTL format can be obtained by:
+```python
+print(snt.serialize("ttl", base_uri="https://example.org#"))
+```
+
+which results in:
+```turtle
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix ssno: <https://matthiasprobst.github.io/ssno#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://doi.org/10.5281/zenodo.12345678> a ssno:StandardNameTable ;
+    dcterms:created "2023-10-10"^^xsd:date ;
+    dcterms:title "CF Standard Name Table (latest version)"@en ;
+    ssno:dataset <https://example.org/#N00bb20ac7339453ebfe8d06d9c1b6f02> .
+
+<https://example.org/#N00bb20ac7339453ebfe8d06d9c1b6f02> a dcat:Dataset ;
+    dcterms:description "The CF Standard Name Table is a controlled vocabulary for climate and forecast metadata."@en ;
+    dcterms:title "CF Standard Name Table Dataset"@en ;
+    dcat:distribution <https://example.org/#N7f2b8ed9c2fb4e34bdd26250db3a6da6> .
+
+<https://example.org/#N7f2b8ed9c2fb4e34bdd26250db3a6da6> a dcat:Distribution ;
+    dcterms:title "TTL Table"@en ;
+    dcat:downloadURL <https://example.org/cf-standard-name-table.ttl> ;
+    dcat:mediaType <https://www.iana.org/assignments/media-types/text/turtle> .
+   ```
+
+### Web App Usage
+There are two apps:
+1. A Streamlit app to semantically enrich HDF5 files (requires `hdf` extra)
+2. A Flask app to create and manage Standard Name Tables (requires `app` extra)
+
+To start the GUI:
 ```bash
 ssnolib --h5sn
 ```
@@ -45,188 +110,83 @@ or
 ```bash
 ssnolib --app
 ```
-This will start a local development server with the default port 5000 and the local host IP: `https://127.0.0.1:5000/`
-(see image below).
+This will start a local development server at `https://127.0.0.1:5000/`.
 
-**Note**: The web app is work in progress! Some errors might not be caught correctly. Also, you should not expose this 
-web app to the public. However, feel free to use it locally in your project. I am happy to receive feedback or 
-contributions to enhance the web interface! Thanks!
+**Note:** The web app is work in progress. Do not expose it to the public. Feedback and contributions are welcome!
 
 <img src="./docs/Screenshot_webapp.png" width="300" />
 
-## Example Codes
-
-The code below gives a quick insight using the *sSNOlib* classes:
-
-```python
-import ssnolib
-from ssnolib.dcat import Distribution
-
-distribution = Distribution(
-    title='XML Table',
-    download_URL='https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
-    media_type='application/xml'
-)
-snt = ssnolib.StandardNameTable(title='CF Standard Name Table (latest version)',
-                                distribution=distribution)
-print(snt.model_dump_jsonld(base_uri="https://local.org#"))
-```
-
-The last line dumps the object to a JSON-LD string:
-
-```json
-{
-    "@context": {
-        "owl": "https://www.w3.org/2002/07/owl#",
-        "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
-        "dcat": "http://www.w3.org/ns/dcat#",
-        "dcterms": "http://purl.org/dc/terms/",
-        "prov": "http://www.w3.org/ns/prov#",
-        "ssno": "https://matthiasprobst.github.io/ssno#"
-    },
-    "@type": "ssno:StandardNameTable",
-    "@id": "https://local.org#Ncbf5f941ea5447aa9ce212a2bb8d0be2",
-    "dcterms:title": "CF Standard Name Table (latest version)",
-    "dcat:distribution": [
-        {
-            "@type": "dcat:Distribution",
-            "@id": "https://local.org#Nce83c15ff61640e68ba4468ebf016787",
-            "dcterms:title": "XML Table",
-            "dcat:downloadURL": "https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml",
-            "dcat:mediaType": "https://www.iana.org/assignments/media-types/application/xml"
-        }
-    ]
-}
-```
-
-## Installation
-
-```bash
-pip install ssnolib
-```
-
-### Extras
-
-To be able to work with the local web app (using flask):
-    
-```bash
-pip install ssnolib[app]
-```
-
-To be able to read standard name tables in XML format (e.g. the cfconvetions.org standard name table), you need to add
-the `xml` extra:
-
-```bash
-pip installssnolib[xml]
-``` 
-
-To be able to read standard name table from YAML files, you need to add the `yaml` extra:
-
-```bash
-pip install ssnolib[yaml]
-``` 
-
-## Documentation
-
-A complete documentation is still under development. However, the docstrings of the classes and methods should be
-sufficient to get started. Also have a look at the [Tutorial Notebook](docs/Tutorial.ipynb) or following class diagram
-and the [examples](#examples) below.
-
 ## Examples
 
-Describe a Standard Name Table, e.g. the one from cfconventions.org:
-
+### Standard Name Table to JSON-LD
 ```python
 import ssnolib
 from ssnolib.dcat import Distribution
 
-# Create a distribution object (downloadable XML file containing the standard name table)
 distribution = Distribution(title='XML Table',
                             downloadURL='https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
                             mediaType='application/xml')
-
-# Create a standard name table object
 snt = ssnolib.StandardNameTable(
-    id="_:standard_name_table_v79",  # blank node ID for now, prefix will be added later (base_uri)
+    id="_:standard_name_table_v79",
     title='CF Standard Name Table v79',
-    distribution=[distribution, ])
-
-# To describe this standard name table, we can export the JSON-LD file:
+    distribution=[distribution]
+)
 with open('cf79.jsonld', 'w', encoding='utf-8') as f:
     f.write(snt.model_dump_jsonld(base_uri="https://local.org#"))
 ```
 
-The corresponding JSON-LD file looks like this (showing only 2 standard names for shortness):
-
-```json
-{
-    "@context": {
-        "owl": "https://www.w3.org/2002/07/owl#",
-        "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
-        "dcat": "http://www.w3.org/ns/dcat#",
-        "dcterms": "http://purl.org/dc/terms/",
-        "prov": "http://www.w3.org/ns/prov#",
-        "ssno": "https://matthiasprobst.github.io/ssno#"
-    },
-    "@type": "ssno:StandardNameTable",
-    "@id": "https://local.org#N82e22ada2da9427fba343d0f978e98e9",
-    "dcterms:title": "CF Standard Name Table v79",
-    "dcat:distribution": [
-        {
-            "@type": "dcat:Distribution",
-            "@id": "https://local.org#N8588e715cf1e4216ba142eea6f1b297d",
-            "dcterms:title": "XML Table",
-            "dcat:downloadURL": "https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml",
-            "dcat:mediaType": "https://www.iana.org/assignments/media-types/application/xml"
-        }
-    ]
-}
-```
-
-### Standard name to JSON-LD
-A standard name alone can be described like this:
-
+### Standard Name to JSON-LD
 ```python
 import ssnolib
 
 air_temp = ssnolib.StandardName(standardName='air_temperature',
                                 canonicalUnits='K',
                                 description='Air temperature is the bulk temperature of the air, not the surface (skin) temperature.')
-
-# write to JSON-LD
 with open('air_temperature.jsonld', 'w') as f:
     f.write(air_temp.model_dump_jsonld())
 ```
 
-The corresponding JSON-LD file:
+## Documentation
+Find the online documentation [here](https://ssnolib.readthedocs.io/en/latest/), including rendered Jupyter Notebooks under `/docs/tutorials/` and API reference. Docstrings are available for all classes and methods.
 
-```json
-{
-    "@context": {
-        "owl": "https://www.w3.org/2002/07/owl#",
-        "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
-        "skos": "http://www.w3.org/2004/02/skos/core#",
-        "ssno": "https://matthiasprobst.github.io/ssno#",
-        "dcat": "http://www.w3.org/ns/dcat#"
-    },
-    "@type": "ssno:StandardName",
-    "@id": "_:Naaf73045ffbe415f9ad28cc3daacd3e6",
-    "ssno:canonicalUnits": "http://qudt.org/vocab/unit/K",
-    "ssno:standardName": "air_temperature",
-    "ssno:description": "Air temperature is the bulk temperature of the air, not the surface (skin) temperature."
-}
+## Project Structure
+```
+ssnolib/
+    __init__.py
+    cli.py
+    dcat/
+    hdf5/
+    ssno/
+    ...
+docs/
+    tutorials/
+    ...
+tests/
+    ...
+README.md
+setup.py
+requirements.txt
 ```
 
-## Qualifications
-QUalification can modify standard names by adding phrases to existing standard names. A qualification defines valid 
-phrases (valid values) to be used in front of or after a standard name. Since multiple qualifications can be defined. 
-they may also lead or follow other qualifications. A qualification may also have a preposition like "at" for example. 
-
-The class `StandardNameTable` can generate a regex pattern from the qualification definitions.
-
-## And now?
-You can now take the JSON-LD file and use it with your data (place it next to it, upload it to a server, etc.).
+## Testing
+To run tests:
+```bash
+pytest tests
+```
 
 ## Contribution
+Contributions are welcome! Please open an issue or pull request. Guidelines:
+- Follow the [Code of Conduct](CODE_OF_CONDUCT.md) if available
+- Write clear commit messages
+- Add tests for new features
+- Document changes in CHANGELOG.md
 
-Contributions are welcome. Please open an issue or a pull request.
+## Citation
+Please cite this project using the [CITATION.cff](./CITATION.cff).
+
+## License
+This project is licensed under the [MIT License](./LICENSE).
+
+## Support & Contact
+- Report issues: [GitHub Issues](https://github.com/matthiasprobst/SSNOlib/issues)
+- Questions & feedback: [matthias.probst@protonmail.com](mailto:matthias.probst@protonmail.com)

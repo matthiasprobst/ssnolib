@@ -244,21 +244,6 @@ class Dataset(Resource):
     inSeries: DatasetSeries = Field(default=None, alias='in_series')  # dcat:inSeries
     theme: Optional[Union[HttpUrl, Concept]] = Field(default=None)  # dcat:inSeries
 
-    @field_validator('distribution', mode='before')
-    @classmethod
-    def _distribution(cls, distribution):
-        if not isinstance(distribution, list):
-            return [distribution]
-        return distribution
-        # def _parse_dist(_dist):
-        #     if isinstance(_dist, str):
-        #         return Distribution(id=_dist)
-        #     return _dist
-        #
-        # if isinstance(distribution, list):
-        #     return [_parse_dist(_dist) for _dist in distribution]
-        # return _parse_dist(distribution)
-
     @field_validator('modified', mode='before')
     @classmethod
     def _modified(cls, modified):

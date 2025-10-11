@@ -1129,9 +1129,28 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         self.assertEqual(new_unit, "1/s")
 
     def test_snt_relate_with_dataset(self):
-        ds = Dataset(label="my-snt-dataset")
-        snt = StandardNameTable(title="my-snt", dataset=ds)
-        self.assertEqual(snt.dataset.label, "my-snt-dataset")
+        distribution = Distribution(
+            title='TTL Table@en',
+            downloadURL='https://example.org/cf-standard-name-table.ttl',
+            mediaType='text/turtle'
+        )
+        snt_dataset = Dataset(
+            title='CF Standard Name Table Dataset@en',
+            description='The CF Standard Name Table is a controlled vocabulary for climate and forecast metadata.@en',
+            distribution=distribution
+        )
+        snt = ssnolib.StandardNameTable(
+            id="https://doi.org/10.5281/zenodo.12345678",
+            title='CF Standard Name Table (latest version)@en',
+            dataset=snt_dataset,
+            created="2023-10-10",
+        )
+        self.assertEqual(snt.dataset.title, "CF Standard Name Table Dataset")
+        self.assertEqual(snt.dataset.description,
+                         'The CF Standard Name Table is a controlled vocabulary for climate and forecast metadata.')
+        self.assertEqual(str(snt.dataset.distribution.downloadURL), 'https://example.org/cf-standard-name-table.ttl')
+        self.assertEqual(snt.dataset.distribution.mediaType, 'https://www.iana.org/assignments/media-types/text/turtle')
+        print(snt.serialize("ttl", base_uri="https://example.org#"))
 
     def test_snt_with_english_description(self):
         snt = StandardNameTable(
