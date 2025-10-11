@@ -1762,7 +1762,7 @@ def get_regex_from_transformation(transformation: Transformation) -> str:
     placeholders = {char.character for char in transformation.hasCharacter}
 
     # Split the transformation name into chunks
-    chunks = transformation.name.split("_")
+    chunks = str(transformation.name).split("_")
 
     # Replace chunks that match placeholders
     regex_chunks = ["([a-zA-Z_]+)" if chunk in placeholders else chunk for chunk in chunks]

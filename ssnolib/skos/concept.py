@@ -1,7 +1,9 @@
+from datetime import datetime
 from typing import Optional, List, Union
 
 from ontolutils import Thing, LangString, namespaces, urirefs
-from pydantic import field_validator, Field
+from ontolutils.typing import ResourceType
+from pydantic import Field
 
 
 @namespaces(skos="http://www.w3.org/2004/02/skos/core#",
@@ -14,9 +16,9 @@ from pydantic import field_validator, Field
          creator='dcterms:creator')
 class Note(Thing):
     value: LangString = Field(...)
-    created: Optional[str] = Field(default=None)
+    created: Optional[datetime] = Field(default=None)
     wasRevisionOf: Optional[Thing] = Field(default=None, alias="wasRevisionOf")
-    creator: Optional[Thing] = Field(default=None)
+    creator: Optional[Union[ResourceType, List[ResourceType]]] = Field(default=None)
 
 
 @namespaces(skos="http://www.w3.org/2004/02/skos/core#")
@@ -38,7 +40,10 @@ class Concept(Thing):
     hiddenLabel: Optional[Union[LangString, List[LangString]]] = Field(default=None, alias="hidden_label")
     definition: Optional[Union[LangString, List[LangString]]] = Field(default=None)
     note: Optional[Union[LangString, Note, List[Union[LangString, Note]]]] = Field(default=None)
-    scopeNote: Optional[Union[LangString, Note, List[Union[LangString, Note]]]] = Field(default=None, alias="scope_note")
-    editorialNote: Optional[Union[LangString, Note, List[Union[LangString, Note]]]] = Field(default=None, alias="editorial_note")
-    changeNote: Optional[Union[LangString, Note, List[Union[LangString, Note]]]] = Field(default=None, alias="change_note")
+    scopeNote: Optional[Union[LangString, Note, List[Union[LangString, Note]]]] = Field(default=None,
+                                                                                        alias="scope_note")
+    editorialNote: Optional[Union[LangString, Note, List[Union[LangString, Note]]]] = Field(default=None,
+                                                                                            alias="editorial_note")
+    changeNote: Optional[Union[LangString, Note, List[Union[LangString, Note]]]] = Field(default=None,
+                                                                                         alias="change_note")
     example: Optional[Union[LangString, List[LangString]]] = Field(default=None)

@@ -21,8 +21,16 @@ class TestSSNOStandardName(unittest.TestCase):
 
     def test_date_literal_for_note(self):
         note = Note(value="note", created="2025-01-04")
-        print(note)
-        print(note.model_dump_ttl())
+        self.assertEqual(note.model_dump_ttl(), """@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix ns1: <rdf:> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+[] a skos:Note ;
+    dcterms:created "2025-01-04"^^xsd:date ;
+    ns1:value "note" .
+
+""")
 
     def test_standard_name_and_table(self):
         snt = StandardNameTable(title="my snt")
