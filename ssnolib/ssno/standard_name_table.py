@@ -11,6 +11,7 @@ import rdflib
 from dateutil.parser import parse
 from ontolutils import LangString, set_config, namespaces, urirefs, Thing, as_id
 from ontolutils.namespacelib.m4i import M4I
+from ontolutils.typing import ResourceType
 from pydantic import field_validator, Field, HttpUrl, ValidationError, model_validator, AnyUrl
 from rdflib import URIRef
 
@@ -137,8 +138,8 @@ class StandardNameModification(Concept):
          description='dcterms:description')
 class DomainConceptSet(Concept):
     """Implementation of ssno:Collection"""
-    name: str  # schema:name
-    description: LangString  # dcterms:description
+    name: Optional[Union[LangString, List[LangString]]]  # schema:name
+    description: Optional[Union[LangString, List[LangString]]]  # dcterms:description
     hasValidValues: List[Union[str, Dict, TextVariable]] = Field(default_factory=list,
                                                                  alias="has_valid_values")  # ssno:hasValidValues
 
@@ -267,6 +268,7 @@ class Transformation(StandardNameModification):
             schema="https://schema.org/")
 @urirefs(StandardNameTable='ssno:StandardNameTable',
          title='dcterms:title',
+         version='schema:version',
          hasVersion='dcterms:hasVersion',
          created='dcterms:created',
          modified='dcterms:modified',
@@ -287,8 +289,10 @@ class StandardNameTable(Concept):
     ----------
     title: str
         Title of the Standard Name Table (dcterms:title)
+    version: str
+        Version (as string) of the Standard Name Table (schema:version)
     hasVersion: str
-        Version of the Standard Name Table (dcterms:hasVersion)
+        Version (as resource) of the Standard Name Table (dcterms:hasVersion)
     created: datetime
         Creation date of the Standard Name Table (dcterms:created)
     modified: datetime
@@ -305,7 +309,8 @@ class StandardNameTable(Concept):
     relation: Relation to another Resource
     """
     title: Optional[Union[LangString, List[LangString]]] = None
-    hasVersion: Optional[str] = Field(default=None, alias="version")
+    version: Optional[str] = Field(default=None)
+    hasVersion: Optional[Union[ResourceType, List[ResourceType]]] = Field(default=None, alias="has_version")  # ResourceType is a http, url or a thing
     description: Optional[Union[LangString, List[LangString]]] = None
     identifier: Optional[str] = Field(default=None)
     created: Optional[datetime] = None
@@ -324,8 +329,8 @@ class StandardNameTable(Concept):
     hasDomainConceptSet: List[DomainConceptSet] = Field(default=None, alias="has_domain_concept_set")
     subject: Optional[Union[str, HttpUrl]] = Field(default=None)
     keywords: Optional[Union[LangString, List[LangString]]] = Field(default=None)
-    relation: Optional[Union[Thing, List[Thing]]] = Field(default=None)
-    dataset: Optional[Union[Thing, Dataset]] = Field(default=None)
+    relation: Optional[Union[ResourceType, List[ResourceType]]] = Field(default=None)
+    dataset: Optional[Union[ResourceType, Dataset]] = Field(default=None)
 
     def __str__(self) -> str:
         if self.identifier:
@@ -884,6 +889,8 @@ class StandardNameTable(Concept):
                 yaml_data['name'] = self.title
             if self.version:
                 yaml_data['version'] = self.version
+            if self.hasVersion:
+                yaml_data['hasVersion'] = self.hasVersion
             if self.description:
                 yaml_data['description'] = self.description
             if self.identifier:
@@ -1425,7 +1432,8 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
         prefixes=prefixes,
         wheres=[WHERE("?id", "a", "ssno:StandardNameTable"),
                 WHERE("?id", "dcterms:title", "?title", is_optional=True),
-                WHERE("?id", "dcterms:hasVersion", "?version", is_optional=True),
+                WHERE("?id", "schema:version", "?version", is_optional=True),
+                WHERE("?id", "dcterms:hasVersion", "?hasVersion", is_optional=True),
                 WHERE("?id", "dcterms:description", "?description", is_optional=True)]
     )
 
@@ -1433,7 +1441,7 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
     for row in sparql.query(g):
         # for stn_id, title, version, description in res:
         snt_id = _parse_id(row['id'])
-        snt_dict = dict(id=snt_id, title=row['title'], version=row['version'], description=row['description'])
+        snt_dict = dict(id=snt_id, title=row['title'], version=row['version'], hasVersion=row['hasVersion'], description=row['description'])
         snts.append(StandardNameTable(**parse_and_exclude_none(snt_dict)))
 
     for snt in snts:

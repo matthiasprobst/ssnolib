@@ -14,7 +14,7 @@
     },
     "@type": "ssno:StandardNameTable",
     "dcterms:title": "Standard Name Table for the openCeFaDB",
-    "dcterms:hasVersion": "1.0.0",
+    "schema:version": "1.0.0",
     "dcterms:description": "This table provides standardized names for the opencefadb (open centrifugal fan database).",
     "dcterms:created": "2025-05-18",
     "dcterms:modified": "2025-05-18",
