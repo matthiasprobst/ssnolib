@@ -25,7 +25,7 @@ from ssnolib.m4i import TextVariable
 from ssnolib.namespace import SSNO
 from ssnolib.prov import Attribution
 from ssnolib.prov import Organization, Person
-from ssnolib.skos import Concept
+from ssnolib.skos import ConceptScheme
 from ssnolib.ssno.standard_name import ScalarStandardName
 from ssnolib.ssno.standard_name_table import _compute_new_unit, get_regex_from_transformation
 from ssnolib.ssno.standard_name_table import check_if_standard_name_can_be_build_with_transformation
@@ -331,7 +331,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
     def test_standard_name_table_types(self):
         snt = StandardNameTable()
         self.assertIsInstance(snt, StandardNameTable)
-        self.assertIsInstance(snt, Concept)
+        self.assertIsInstance(snt, ConceptScheme)
         self.assertIsInstance(snt, Thing)
 
     def test_describe_table_in_zenodo(self):
@@ -1133,7 +1133,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
             standardName='air_temperature',
             unit='K',
             description='Air temperature is the bulk temperature of the air, not the surface (skin) temperature.@en')
-        
+
         distribution = Distribution(
             title='TTL Table@en',
             downloadURL='https://example.org/cf-standard-name-table.ttl',
@@ -1149,7 +1149,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
             title='CF Standard Name Table (latest version)@en',
             dataset=snt_dataset,
             created="2023-10-10",
-            standardNames=[air_temp,]
+            standardNames=[air_temp, ]
         )
         self.assertEqual(snt.dataset.title, "CF Standard Name Table Dataset")
         self.assertEqual(snt.dataset.description,

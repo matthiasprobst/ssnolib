@@ -21,7 +21,7 @@ from ssnolib.m4i import TextVariable
 from ssnolib.namespace import SSNO
 from ssnolib.prov import Person, Organization, Attribution
 from ssnolib.qudt.utils import iri2str
-from ssnolib.skos import Concept
+from ssnolib.skos import Concept, ConceptScheme
 from ssnolib.sparql_utils import build_simple_sparql_query, WHERE
 from ssnolib.utils import parse_and_exclude_none, download_file
 from . import plugins
@@ -282,7 +282,7 @@ class Transformation(StandardNameModification):
          relation='dcterms:relation',
          dataset='ssno:dataset'
          )
-class StandardNameTable(Concept):
+class StandardNameTable(ConceptScheme):
     """Implementation of ssno:StandardNameTable
 
     Parameters
@@ -310,7 +310,8 @@ class StandardNameTable(Concept):
     """
     title: Optional[Union[LangString, List[LangString]]] = None
     version: Optional[str] = Field(default=None)
-    hasVersion: Optional[Union[ResourceType, List[ResourceType]]] = Field(default=None, alias="has_version")  # ResourceType is a http, url or a thing
+    hasVersion: Optional[Union[ResourceType, List[ResourceType]]] = Field(default=None,
+                                                                          alias="has_version")  # ResourceType is a http, url or a thing
     description: Optional[Union[LangString, List[LangString]]] = None
     identifier: Optional[str] = Field(default=None)
     created: Optional[datetime] = None
@@ -1441,7 +1442,8 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
     for row in sparql.query(g):
         # for stn_id, title, version, description in res:
         snt_id = _parse_id(row['id'])
-        snt_dict = dict(id=snt_id, title=row['title'], version=row['version'], hasVersion=row['hasVersion'], description=row['description'])
+        snt_dict = dict(id=snt_id, title=row['title'], version=row['version'], hasVersion=row['hasVersion'],
+                        description=row['description'])
         snts.append(StandardNameTable(**parse_and_exclude_none(snt_dict)))
 
     for snt in snts:

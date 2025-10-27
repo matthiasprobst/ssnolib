@@ -4,7 +4,7 @@
   "license": "https://spdx.org/licenses/MIT",
   "codeRepository": "git+https://github.com/matthiasprobst/ssnolib",
   "name": "ssnolib",
-  "version": "1.5.1.4",
+  "version": "2.0.0.0",
   "description": "Python library for working with the SSNO ontology. ",
   "applicationCategory": "Engineering",
   "programmingLanguage": [

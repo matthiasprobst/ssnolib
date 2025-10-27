@@ -1,4 +1,5 @@
 import pathlib
+import sys
 import unittest
 
 import requests.exceptions
@@ -6,14 +7,16 @@ import requests.exceptions
 import ssnolib
 import utils
 from ssnolib import dcat, prov, foaf
-import sys
+
 __this_dir__ = pathlib.Path(__file__).parent
 
 CACHE_DIR = ssnolib.utils.get_cache_dir()
 
+
 def get_python_version():
     """Get the current Python version as a tuple."""
     return sys.version_info.major, sys.version_info.minor, sys.version_info.micro
+
 
 class TestDcat(utils.ClassTest):
 
@@ -34,8 +37,98 @@ class TestDcat(utils.ClassTest):
         self.assertEqual(resource1.version, '1.0')
         self.assertEqual(str(resource1.identifier), 'https://example.com/resource')
 
+    def test_License(self):
+        license1 = "https://creativecommons.org/licenses/by/4.0/"
+        resource = dcat.Resource(
+            title='Resource title',
+            description='Resource description',
+            license=license1
+        )
+        self.assertEqual(str(resource.license), license1)
+        self.assertEqual("""@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+[] a dcat:Resource ;
+    dcterms:description "Resource description" ;
+    dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
+    dcterms:title "Resource title" .
+
+""",
+                         resource.serialize("ttl"))
+
+        dist = dcat.Distribution(
+            title='Distribution title',
+            description='Distribution description',
+            license=license1
+        )
+        self.assertEqual(str(dist.license), license1, "https://opensource.org/licenses/MIT")
+
+        dataset = dcat.Dataset(
+            title='Distribution title',
+            description='Distribution description',
+            license=license1,
+            distribution=dist
+        )
+        self.assertEqual(str(dataset.license), license1)
+        self.assertEqual(str(dataset.distribution.license), license1)
+        print(dataset.serialize("ttl"))
+        print(dataset.model_dump_jsonld())
+
+        multi_lic = dcat.Resource(
+            title='Resource title',
+            description='Resource description',
+            license=[license1, "https://opensource.org/licenses/MIT"]
+        )
+        self.assertEqual(multi_lic.license, [license1, "https://opensource.org/licenses/MIT"])
+
+    def test_has_part(self):
+        r1 = dcat.Resource(
+            title='Resource 1',
+            description='Resource 1 description',
+            identifier='https://example.com/resource1'
+        )
+        r2 = dcat.Resource(
+            title='Resource 2',
+            description='Resource 2 description',
+            identifier='https://example.com/resource2',
+            has_part=r1
+        )
+        self.assertEqual(r2.hasPart.id, r1.id)
+
+        r3 = dcat.Resource(
+            title='Resource 3',
+            description='Resource 3 description',
+            identifier='https://example.com/resource3',
+            has_part=[r1, r2]
+        )
+        self.assertEqual(len(r3.hasPart), 2)
+        self.assertEqual(r3.hasPart[0].id, r1.id)
+        self.assertEqual(r3.hasPart[1].id, r2.id)
+        self.assertEqual("""@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://example.com/resource3> a dcat:Resource ;
+    dcterms:description "Resource 3 description" ;
+    dcterms:hasPart <https://example.com/resource1>,
+        <https://example.com/resource2> ;
+    dcterms:identifier <https://example.com/resource3> ;
+    dcterms:title "Resource 3" .
+
+<https://example.com/resource2> a dcat:Resource ;
+    dcterms:description "Resource 2 description" ;
+    dcterms:hasPart <https://example.com/resource1> ;
+    dcterms:identifier <https://example.com/resource2> ;
+    dcterms:title "Resource 2" .
+
+<https://example.com/resource1> a dcat:Resource ;
+    dcterms:description "Resource 1 description" ;
+    dcterms:identifier <https://example.com/resource1> ;
+    dcterms:title "Resource 1" .
+
+""", r3.serialize("ttl"))
+
     @unittest.skipIf(condition=9 < get_python_version()[1] < 13,
-                         reason="Only testing on min and max python version")
+                     reason="Only testing on min and max python version")
     def test_Distribution(self):
         distribution_none_downloadURL = dcat.Distribution(
             id='_:b2',

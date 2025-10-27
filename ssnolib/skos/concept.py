@@ -22,6 +22,15 @@ class Note(Thing):
 
 
 @namespaces(skos="http://www.w3.org/2004/02/skos/core#")
+@urirefs(ConceptScheme='skos:ConceptScheme',
+         hasTopConcept='skos:hasTopConcept'
+         )
+class ConceptScheme(Thing):
+    """Implementation of skos:ConceptScheme"""
+    hasTopConcept: Optional[Union['Concept', List['Concept']]] = Field(default=None, alias="has_top_concept")
+
+
+@namespaces(skos="http://www.w3.org/2004/02/skos/core#")
 @urirefs(Concept='skos:Concept',
          prefLabel='skos:prefLabel',
          altLabel='skos:altLabel',
@@ -31,6 +40,7 @@ class Note(Thing):
          scopeNote='skos:scopeNote',
          editorialNote='skos:editorialNote',
          changeNote='skos:changeNote',
+         inScheme='skos:inScheme',
          example='skos:example')
 class Concept(Thing):
     """Implementation of skos:Concept"""
@@ -46,4 +56,8 @@ class Concept(Thing):
                                                                                             alias="editorial_note")
     changeNote: Optional[Union[LangString, Note, List[Union[LangString, Note]]]] = Field(default=None,
                                                                                          alias="change_note")
+    inScheme: Optional[Union[ConceptScheme, List[ConceptScheme]]] = Field(default=None, alias="in_scheme")
     example: Optional[Union[LangString, List[LangString]]] = Field(default=None)
+
+
+ConceptScheme.model_rebuild()
