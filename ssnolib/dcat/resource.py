@@ -27,8 +27,10 @@ from ..skos import Concept
          title='dcterms:title',
          description='dcterms:description',
          creator='dcterms:creator',
+         license='dcterms:license',
          version='dcat:version',
-         identifier='dcterms:identifier')
+         identifier='dcterms:identifier',
+         hasPart='dcterms:hasPart')
 class Resource(Thing):
     """Pydantic implementation of dcat:Resource
 
@@ -49,9 +51,15 @@ class Resource(Thing):
         List[Union[foaf.Agent, foaf.Organization, foaf.Person, prov.Person, prov.Agent, prov.Organization, HttpUrl]]
     ] = None
         Creator of the resource (dcterms:creator)
+    license: ResourceType = None
+        License of the resource (dcat:license)
     version: str = None
         Version of the resource (dcat:version),
         best following semantic versioning (https://semver.org/lang/de/)
+    identifier: str = None
+        Identifier of the resource (dcterms:identifier)
+    hasPart: ResourceType = None
+        A related resource that is included either physically or logically in the described resource. (dcterms:hasPart)
     """
     title: Optional[Union[LangString, List[LangString]]] = None  # dcterms:title
     description: Optional[Union[LangString, List[LangString]]] = None  # dcterms:description
@@ -77,8 +85,10 @@ class Resource(Thing):
             ]
         ]
     ] = None  # dcterms:creator
+    license: Optional[Union[ResourceType, List[ResourceType]]] = None  # dcat:license
     version: str = None  # dcat:version
     identifier: str = None  # dcterms:identifier
+    hasPart: Optional[Union[ResourceType, List[ResourceType]]] = Field(default=None, alias='has_part')
 
     @model_validator(mode="before")
     def change_id(self):
@@ -242,7 +252,7 @@ class Dataset(Resource):
     modified: datetime = None  # dcterms:modified
     landingPage: HttpUrl = Field(default=None, alias='landing_page')  # dcat:landingPage
     inSeries: DatasetSeries = Field(default=None, alias='in_series')  # dcat:inSeries
-    theme: Optional[Union[HttpUrl, Concept]] = Field(default=None)  # dcat:inSeries
+    theme: Optional[Union[HttpUrl, Concept]] = Field(default=None)  # dcat:theme
 
     @field_validator('modified', mode='before')
     @classmethod

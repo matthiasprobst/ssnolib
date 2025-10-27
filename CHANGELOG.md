@@ -2,6 +2,11 @@
 
 Log of changes in the versions
 
+## v2.0.0.0
+
+- update to ssno v2.0.0.0. Major change is, that StandardNameTable is subclass of skos:ConceptScheme and not skos:Concept.
+- add `license` and `hasPart` to `dcat:Resource`
+
 ## v1.5.1.4
 
 - update `to_xml`
