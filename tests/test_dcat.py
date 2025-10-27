@@ -61,7 +61,7 @@ class TestDcat(utils.ClassTest):
             description='Distribution description',
             license=license1
         )
-        self.assertEqual(str(dist.license), license1, "https://opensource.org/licenses/MIT")
+        self.assertEqual(str(dist.license), license1)
 
         dataset = dcat.Dataset(
             title='Distribution title',
