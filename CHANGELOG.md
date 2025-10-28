@@ -2,6 +2,9 @@
 
 Log of changes in the versions
 
+## v2.1.0.0
+- update to ssno v2.1.0
+
 ## v2.0.0.0
 
 - update to ssno v2.0.0

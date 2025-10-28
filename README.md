@@ -3,10 +3,10 @@
 ![Tests](https://github.com/matthiasprobst/SSNOlib/actions/workflows/tests.yml/badge.svg)
 ![Coverage](https://codecov.io/gh/matthiasprobst/SSNOlib/branch/main/graph/badge.svg)
 ![Python Versions](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue)
-![SSNO Version](https://img.shields.io/badge/ssno-2.0.0-orange)
+![SSNO Version](https://img.shields.io/badge/ssno-2.1.0-orange)
 ![License](https://img.shields.io/github/license/matthiasprobst/SSNOlib)
 
-A Python library to work with the [SSNO ontology](https://matthiasprobst.github.io/ssno/2.0.0). It provides Python classes for ontology concepts and facilitates the creation of RDF files (JSON-LD, TTL, XML). RDF files are both human- and machine-readable, and most importantly, machine-actionable. The library can be integrated into your data (conversion) pipelines.
+A Python library to work with the [SSNO ontology](https://matthiasprobst.github.io/ssno/2.1.0). It provides Python classes for ontology concepts and facilitates the creation of RDF files (JSON-LD, TTL, XML). RDF files are both human- and machine-readable, and most importantly, machine-actionable. The library can be integrated into your data (conversion) pipelines.
 
 ## Features
 - Python classes for all SSNO ontology concepts

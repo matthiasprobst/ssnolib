@@ -1,12 +1,12 @@
 from typing import Optional, Union, List, Tuple, Any
 
 from ontolutils import Thing, namespaces, urirefs
-from pydantic import Field
-from pydantic import field_validator
+from ontolutils.typing import ResourceType
+from pydantic import Field, field_validator
 from pydantic.functional_validators import WrapValidator
 from typing_extensions import Annotated
 
-from .. import StandardNameTable
+from .. import StandardNameTable, StandardName
 from ..dcat import Dataset as DcatDataset
 
 
@@ -26,12 +26,19 @@ HDF5Path = Annotated[str, WrapValidator(is_internal_hdf5_path)]
 HDF5RootPath = Annotated[str, WrapValidator(is_internal_hdf5_path)]
 
 
-@namespaces(hdf5="http://purl.allotrope.org/ontologies/hdf5/1.8#")
+@namespaces(
+    ssno="https://matthiasprobst.github.io/ssno#",
+    hdf5="http://purl.allotrope.org/ontologies/hdf5/1.8#"
+)
 @urirefs(Dataset='hdf5:Dataset',
-         name='hdf5:name')
+         name='hdf5:name',
+         standardName="ssno:standardName",
+         hasStandardName="ssno:hasStandardName")
 class Dataset(Thing):
     """Dataset"""
     name: HDF5Path
+    standardName: Optional[str] = Field(default=None, alias="standard_name")
+    hasStandardName: Optional[Union[ResourceType, StandardName]] = Field(alias="has_standard_name", default=None)
 
 
 @namespaces(hdf5="http://purl.allotrope.org/ontologies/hdf5/1.8#")

@@ -2,6 +2,7 @@ import warnings
 from typing import Optional, Union, List
 
 from ontolutils import namespaces, urirefs, parse_unit, LangString
+from ontolutils.typing import ResourceType
 from pydantic import Field, field_validator
 
 from ssnolib.pimsii import Variable
@@ -38,7 +39,7 @@ class NumericalVariable(Variable):
     hasUnit: Optional[str] = Field(alias="has_unit", default=None)
     hasNumericalValue: Optional[Union[float, List[float]]] = Field(alias="has_numerical_value", default=None)
     hasMaximumValue: Optional[float] = Field(alias="has_maximum_value", default=None)
-    hasStandardName: Optional[StandardName] = Field(alias="has_standard_name", default=None)
+    hasStandardName: Optional[Union[ResourceType, StandardName]] = Field(alias="has_standard_name", default=None)
 
     @field_validator("hasUnit", mode='before')
     @classmethod
