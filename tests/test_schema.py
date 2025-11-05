@@ -6,6 +6,7 @@ import ssnolib
 import utils
 from ssnolib import StandardNameTable
 from ssnolib.schema import Project, ResearchProject
+from ontolutils.ex import dcat
 
 __this_dir__ = pathlib.Path(__file__).parent
 
@@ -15,12 +16,12 @@ CACHE_DIR = ssnolib.utils.get_cache_dir()
 class TestSchema(utils.ClassTest):
 
     def test_project(self):
-        snt_dist = ssnolib.dcat.Distribution(
+        snt_dist = dcat.Distribution(
             downloadURL="https://sandbox.zenodo.org/records/123202/files/Standard_Name_Table_for_the_Property_Descriptions_of_Centrifugal_Fans.jsonld",
             media_type="application/json+ld"
         )
 
-        dataset = ssnolib.dcat.Dataset(
+        dataset = dcat.Dataset(
             identifier="https://sandbox.zenodo.org/uploads/123202",
             distribution=snt_dist
         )

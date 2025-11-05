@@ -18,8 +18,8 @@ from pydantic import field_validator, Field, HttpUrl, ValidationError, model_val
 from rdflib import URIRef
 
 from ssnolib import config
-from ssnolib.dcat import Distribution, Dataset
-from ssnolib.m4i import TextVariable
+from ontolutils.ex.dcat import Distribution, Dataset
+from ontolutils.ex.m4i import TextVariable
 from ssnolib.namespace import SSNO
 from ssnolib.qudt.utils import iri2str
 from ssnolib.sparql_utils import build_simple_sparql_query, WHERE

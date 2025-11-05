@@ -1,7 +1,11 @@
 import pathlib
 import unittest
 
+from ontolutils.ex.dcat import Distribution
 from ontolutils.namespacelib import IANA
+
+import ssnolib
+
 
 class TestReadme(unittest.TestCase):
 
@@ -10,9 +14,6 @@ class TestReadme(unittest.TestCase):
         pathlib.Path('air_temperature.jsonld').unlink(missing_ok=True)
 
     def test_code1(self):
-        import ssnolib
-        from ssnolib.dcat import Distribution
-
         distribution = Distribution(
             title='XML Table',
             downloadURL='https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
@@ -33,7 +34,7 @@ class TestReadme(unittest.TestCase):
 
     def test_code2(self):
         import ssnolib
-        from ssnolib.dcat import Distribution
+        from ontolutils.ex.dcat import Distribution
 
         # Create a distribution object (downloadable XML file containing the standard name table)
         distribution = Distribution(title='XML Table',

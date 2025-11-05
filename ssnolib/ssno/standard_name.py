@@ -10,7 +10,7 @@ from pydantic import ValidationError
 from pydantic_core import InitErrorDetails
 
 from ssnolib import config
-from ssnolib.dcat import Dataset
+from ontolutils.ex.dcat import Dataset
 from ontolutils.ex.skos import Concept
 from .unit_utils import _parse_unit, _format_unit
 

@@ -5,7 +5,7 @@ from ontolutils.ex.schema import Project as BaseProject
 from pydantic import Field
 
 from ssnolib import StandardNameTable
-from ssnolib.dcat import Dataset
+from ontolutils.ex.dcat import Dataset
 
 
 @namespaces(schema="https://schema.org/",

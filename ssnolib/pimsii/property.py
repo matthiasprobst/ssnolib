@@ -3,7 +3,6 @@ from typing import Union, Optional
 from ontolutils import namespaces, urirefs
 from ontolutils.typing import ResourceType
 from pydantic import Field, HttpUrl, field_validator
-
 from ssnolib.ssno import StandardName
 from .variable import Variable
 

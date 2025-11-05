@@ -1,18 +1,10 @@
 import unittest
 
 from ssnolib import StandardName
-from ssnolib.m4i import TextVariable, NumericalVariable
+from ssnolib.m4i import NumericalVariable
 
 
 class TestM4i(unittest.TestCase):
-
-    def testTextVariable(self):
-        text_variable = TextVariable(
-            hasStringValue='String value',
-            hasVariableDescription='Variable description'
-        )
-        self.assertEqual(text_variable.hasStringValue, 'String value')
-        self.assertEqual(text_variable.hasVariableDescription, 'Variable description')
 
     def testNumericalVariableWithoutStandardName(self):
         numerical_variable = NumericalVariable(
