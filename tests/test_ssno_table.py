@@ -23,9 +23,8 @@ from ssnolib import parse_table
 from ssnolib.dcat import Distribution, Dataset
 from ssnolib.m4i import TextVariable
 from ssnolib.namespace import SSNO
-from ssnolib.prov import Attribution
-from ssnolib.prov import Organization, Person
-from ssnolib.skos import ConceptScheme
+from ontolutils.ex.prov import Organization, Person, Attribution
+from ontolutils.ex.skos import ConceptScheme
 from ssnolib.ssno.standard_name import ScalarStandardName
 from ssnolib.ssno.standard_name_table import _compute_new_unit, get_regex_from_transformation
 from ssnolib.ssno.standard_name_table import check_if_standard_name_can_be_build_with_transformation

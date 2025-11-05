@@ -1,12 +1,13 @@
 import pathlib
 
+from ontolutils.ex import prov
+
 import ssnolib
 import utils
-from ssnolib import prov, StandardNameTable
+from ssnolib import StandardNameTable
+from ssnolib.schema import Project, ResearchProject
 
 __this_dir__ = pathlib.Path(__file__).parent
-
-from ssnolib.schema import Project, ResearchProject
 
 CACHE_DIR = ssnolib.utils.get_cache_dir()
 
@@ -45,3 +46,4 @@ class TestSchema(utils.ClassTest):
         self.assertEqual(proj.usesStandardnameTable.title, 'My SNT')
         self.assertEqual(proj.id, 'https://example.com/research_project')
 
+        print(proj.serialize("ttl"))

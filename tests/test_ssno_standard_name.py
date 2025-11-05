@@ -4,13 +4,13 @@ import unittest
 import ontolutils
 import pydantic
 from ontolutils import QUDT_UNIT
+from ontolutils.ex.prov import Person
+from ontolutils.ex.skos import Note
 from ontolutils.utils.qudt_units import parse_unit
 from pydantic import ValidationError
 
 import ssnolib
 from ssnolib import StandardName, StandardNameTable
-from ssnolib.prov import Person
-from ssnolib.skos import Note
 
 __this_dir__ = pathlib.Path(__file__).parent
 

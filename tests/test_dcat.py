@@ -3,10 +3,12 @@ import sys
 import unittest
 
 import requests.exceptions
+from ontolutils.ex.spdx import Checksum
+from ontolutils.namespacelib.spdx import SPDX
 
 import ssnolib
 import utils
-from ssnolib import dcat, prov, foaf
+from ontolutils.ex import dcat, prov, foaf
 
 __this_dir__ = pathlib.Path(__file__).parent
 
@@ -36,6 +38,25 @@ class TestDcat(utils.ClassTest):
         self.assertEqual(resource1.creator.lastName, 'Doe')
         self.assertEqual(resource1.version, '1.0')
         self.assertEqual(str(resource1.identifier), 'https://example.com/resource')
+        resource1.contributor = foaf.Organization(name='Example Org')
+        self.assertIsInstance(resource1.contributor, foaf.Organization)
+        self.assertEqual(resource1.serialize("ttl"), """@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+
+<https://example.com/resource> a dcat:Resource ;
+    dcterms:contributor [ a foaf:Organization ;
+            foaf:name "Example Org" ] ;
+    dcterms:creator [ a prov:Person ;
+            foaf:firstName "John" ;
+            foaf:lastName "Doe" ] ;
+    dcterms:description "Resource description" ;
+    dcterms:identifier <https://example.com/resource> ;
+    dcterms:title "Resource title" ;
+    dcat:version "1.0" .
+
+""")
 
     def test_License(self):
         license1 = "https://creativecommons.org/licenses/by/4.0/"
@@ -59,9 +80,14 @@ class TestDcat(utils.ClassTest):
         dist = dcat.Distribution(
             title='Distribution title',
             description='Distribution description',
-            license=license1
+            license=license1,
+            checksum=Checksum(
+                algorithm='SHA256',
+                value='d2d2d2d2d2d2d2d2d2d2'
+            )
         )
         self.assertEqual(str(dist.license), license1)
+        self.assertEqual(dist.checksum.algorithm, str(SPDX.checksumAlgorithm_sha256))
 
         dataset = dcat.Dataset(
             title='Distribution title',

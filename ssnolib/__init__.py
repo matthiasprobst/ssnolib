@@ -1,7 +1,7 @@
 from ._version import __version__
 from .namespace import SSNO
-from .prov import Person, Organization
-from .prov.attribution import Attribution
+from ontolutils.ex.prov import Person, Organization
+from ontolutils.ex.prov.attribution import Attribution
 from .ssno import StandardNameTable, Qualification, VectorQualification, Transformation, Character, AgentRole, \
     VectorStandardName, StandardName, ScalarStandardName, DomainConceptSet
 from .utils import get_cache_dir

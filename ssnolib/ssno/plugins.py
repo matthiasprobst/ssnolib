@@ -4,7 +4,7 @@ import pathlib
 import warnings
 from typing import Dict, Union
 
-from ssnolib.prov import Attribution
+from ontolutils.ex.prov import Attribution
 from . import ScalarStandardName, VectorStandardName
 
 logger = logging.getLogger("ssnolib")
@@ -66,7 +66,7 @@ class XMLReader(TableReader):
         institution = xmldata.get('institution', None)
         if "@" in contact and institution is not None:
             # it is an email address
-            from ssnolib.prov import Organization
+            from ontolutils.ex.prov import Organization
             org = Organization(mbox=contact, name=institution)
             agent = Attribution(agent=org)
             if org.hasRorId:

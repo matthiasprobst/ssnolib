@@ -11,7 +11,7 @@ from pydantic_core import InitErrorDetails
 
 from ssnolib import config
 from ssnolib.dcat import Dataset
-from ssnolib.skos import Concept
+from ontolutils.ex.skos import Concept
 from .unit_utils import _parse_unit, _format_unit
 
 

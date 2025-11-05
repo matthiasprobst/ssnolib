@@ -11,14 +11,13 @@ from typing import Union, List, Optional
 
 from dateutil import parser
 from ontolutils import Thing, as_id, urirefs, namespaces, LangString
-from ontolutils.typing import BlankNodeType
-from ontolutils.typing import ResourceType
+from ontolutils.ex import foaf, prov
+from ontolutils.ex.skos import Concept
+from ontolutils.ex.spdx import Checksum
+from ontolutils.typing import BlankNodeType, ResourceType
 from pydantic import HttpUrl, FileUrl, field_validator, Field, model_validator
 
 from ssnolib.utils import download_file
-from .. import foaf
-from .. import prov
-from ..skos import Concept
 
 
 @namespaces(dcat="http://www.w3.org/ns/dcat#",
@@ -27,10 +26,13 @@ from ..skos import Concept
          title='dcterms:title',
          description='dcterms:description',
          creator='dcterms:creator',
+         publisher='dcterms:publisher',
+         contributor='dcterms:contributor',
          license='dcterms:license',
          version='dcat:version',
          identifier='dcterms:identifier',
-         hasPart='dcterms:hasPart')
+         hasPart='dcterms:hasPart',
+         keyword='dcat:keyword')
 class Resource(Thing):
     """Pydantic implementation of dcat:Resource
 
@@ -51,6 +53,10 @@ class Resource(Thing):
         List[Union[foaf.Agent, foaf.Organization, foaf.Person, prov.Person, prov.Agent, prov.Organization, HttpUrl]]
     ] = None
         Creator of the resource (dcterms:creator)
+    publisher: Union[Agent, List[Agent]] = None
+        Publisher of the resource (dcterms:publisher)
+    contributor: Union[Agent, List[Agent]] = None
+        Contributor of the resource (dcterms:contributor)
     license: ResourceType = None
         License of the resource (dcat:license)
     version: str = None
@@ -60,6 +66,8 @@ class Resource(Thing):
         Identifier of the resource (dcterms:identifier)
     hasPart: ResourceType = None
         A related resource that is included either physically or logically in the described resource. (dcterms:hasPart)
+    keyword: List[str]
+        Keywords for the distribution.
     """
     title: Optional[Union[LangString, List[LangString]]] = None  # dcterms:title
     description: Optional[Union[LangString, List[LangString]]] = None  # dcterms:description
@@ -70,7 +78,7 @@ class Resource(Thing):
         prov.Person,
         prov.Agent,
         prov.Organization,
-        HttpUrl,
+        ResourceType,
         BlankNodeType,
         List[
             Union[
@@ -80,15 +88,18 @@ class Resource(Thing):
                 prov.Person,
                 prov.Agent,
                 prov.Organization,
-                HttpUrl,
+                ResourceType,
                 BlankNodeType
             ]
         ]
     ] = None  # dcterms:creator
+    publisher: Union[foaf.Agent, List[foaf.Agent]] = None  # dcterms:publisher
+    contributor: Union[foaf.Agent, List[foaf.Agent]] = None  # dcterms:contributor
     license: Optional[Union[ResourceType, List[ResourceType]]] = None  # dcat:license
     version: str = None  # dcat:version
     identifier: str = None  # dcterms:identifier
     hasPart: Optional[Union[ResourceType, List[ResourceType]]] = Field(default=None, alias='has_part')
+    keyword: Optional[Union[str, List[str]]] = None  # dcat:keyword
 
     @model_validator(mode="before")
     def change_id(self):
@@ -104,13 +115,14 @@ class Resource(Thing):
         return identifier
 
 
-@namespaces(dcat="http://www.w3.org/ns/dcat#")
+@namespaces(dcat="http://www.w3.org/ns/dcat#",
+            spdx="http://spdx.org/rdf/terms#")
 @urirefs(Distribution='dcat:Distribution',
          downloadURL='dcat:downloadURL',
          accessURL='dcat:accessURL',
          mediaType='dcat:mediaType',
          byteSize='dcat:byteSize',
-         keyword='dcat:keyword')
+         checksum='spdx:checksum')
 class Distribution(Resource):
     """Implementation of dcat:Distribution
 
@@ -127,14 +139,12 @@ class Distribution(Resource):
         Should be defined by the [IANA Media Types registry](https://www.iana.org/assignments/media-types/media-types.xhtml)
     byteSize: int = None
         Size of the distribution in bytes (dcat:byteSize)
-    keyword: List[str]
-        Keywords for the distribution.
     """
     downloadURL: Union[HttpUrl, FileUrl, pathlib.Path] = Field(default=None, alias='download_URL')
     accessURL: Union[HttpUrl, FileUrl, pathlib.Path] = Field(default=None, alias='access_URL')
     mediaType: ResourceType = Field(default=None, alias='media_type')  # dcat:mediaType
     byteSize: int = Field(default=None, alias='byte_size')  # dcat:byteSize
-    keyword: List[str] = None  # dcat:keyword
+    checksum: Union[ResourceType, Checksum] = None  # spdx:checksum
 
     def _repr_html_(self):
         """Returns the HTML representation of the class"""
@@ -178,7 +188,6 @@ class Distribution(Resource):
         return download_file(
             self.downloadURL,
             dest_filename,
-            exist_ok=exist_ok,
             **kwargs)
 
     @field_validator('mediaType', mode='before')
@@ -250,9 +259,9 @@ class Dataset(Resource):
     # http://www.w3.org/ns/prov#Person, see https://www.w3.org/TR/vocab-dcat-3/#ex-adms-identifier
     distribution: Union[Distribution, List[Distribution]] = None  # dcat:Distribution
     modified: datetime = None  # dcterms:modified
-    landingPage: HttpUrl = Field(default=None, alias='landing_page')  # dcat:landingPage
+    landingPage: ResourceType = Field(default=None, alias='landing_page')  # dcat:landingPage
     inSeries: DatasetSeries = Field(default=None, alias='in_series')  # dcat:inSeries
-    theme: Optional[Union[HttpUrl, Concept]] = Field(default=None)  # dcat:theme
+    theme: Optional[Union[ResourceType, Concept]] = Field(default=None)  # dcat:theme
 
     @field_validator('modified', mode='before')
     @classmethod
