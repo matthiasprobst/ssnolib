@@ -67,7 +67,7 @@ class TestClasses(unittest.TestCase):
     @unittest.skipIf(condition=9 < get_python_version()[1] < 13,
                      reason="Only testing on min and max python version")
     def test_ssnolib_Distribution(self):
-        distribution = ontolutils.ex.dcat.Distribution(
+        distribution = dcat.Distribution(
             title='XML Table',
             downloadURL='https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
             mediaType='text/csv'
@@ -75,7 +75,7 @@ class TestClasses(unittest.TestCase):
         self.assertEqual(str(distribution.mediaType),
                          "https://www.iana.org/assignments/media-types/text/csv")
 
-        distribution = ontolutils.ex.dcat.Distribution(
+        distribution = dcat.Distribution(
             title='XML Table',
             downloadURL='https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
             mediaType='application/xml'
@@ -103,7 +103,7 @@ class TestClasses(unittest.TestCase):
             f'StandardNameTable(id={snt.id}, title=CF Standard Name Table v79, standardNames=[])'
         )
 
-        distribution = ontolutils.ex.dcat.Distribution(title='XML Table',
+        distribution = dcat.Distribution(title='XML Table',
                                                        downloadURL='https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
                                                        mediaType='application/xml')
         self.assertEqual(distribution.title, 'XML Table')
