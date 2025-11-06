@@ -33,9 +33,6 @@ class TestReadme(unittest.TestCase):
         print(snt.model_dump_jsonld(base_uri="https://local.org#"))
 
     def test_code2(self):
-        import ssnolib
-        from ontolutils.ex.dcat import Distribution
-
         # Create a distribution object (downloadable XML file containing the standard name table)
         distribution = Distribution(title='XML Table',
                                     downloadURL='https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
