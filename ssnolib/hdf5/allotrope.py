@@ -28,6 +28,6 @@ class Dataset(BaseHdfDataset):
 @urirefs(File='hdf5:File',
          usesStandardNameTable='ssno:usesStandardNameTable')
 class File(BaseHdfFile):
-    """Dataset"""
+    """File"""
     usesStandardNameTable: Optional[Union[StandardNameTable, DcatDataset, ResourceType]] = Field(default=None,
                                                                                    alias="uses_standard_name_table")
