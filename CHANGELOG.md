@@ -2,11 +2,10 @@
 
 Log of changes in the versions
 
-## v2.1.0.2
-- use the ontology class defined by ontolutils 0.22.0
 
 ## v2.1.0.1
 
+- use the ontology class defined by ontolutils 0.22.0
 - minor fixes
 
 ## v2.1.0.0
