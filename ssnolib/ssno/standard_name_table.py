@@ -21,7 +21,7 @@ from ssnolib import config
 from ontolutils.ex.dcat import Distribution, Dataset
 from ontolutils.ex.m4i import TextVariable
 from ssnolib.namespace import SSNO
-from ssnolib.qudt.utils import iri2str
+from ontolutils.ex.qudt.utils import iri2str
 from ssnolib.sparql_utils import build_simple_sparql_query, WHERE
 from ssnolib.utils import parse_and_exclude_none, download_file
 from . import plugins

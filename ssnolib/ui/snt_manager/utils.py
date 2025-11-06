@@ -5,8 +5,8 @@ import pydantic
 import ssnolib
 from ssnolib import StandardNameTable
 from ssnolib import VectorStandardName
-from ssnolib.m4i import TextVariable
-from ssnolib.qudt.utils import iri2str
+from ontolutils.ex.m4i import TextVariable
+from ontolutils.ex.qudt.utils import iri2str
 from ssnolib.ssno.standard_name_table import ROLE2IRI
 
 
