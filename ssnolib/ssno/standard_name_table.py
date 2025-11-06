@@ -10,18 +10,18 @@ from typing import List, Union, Dict, Optional, Tuple
 import rdflib
 from dateutil.parser import parse
 from ontolutils import LangString, set_config, namespaces, urirefs, Thing, as_id
+from ontolutils.ex.prov import Person, Organization, Attribution
+from ontolutils.ex.skos import Concept, ConceptScheme
 from ontolutils.namespacelib.m4i import M4I
 from ontolutils.typing import ResourceType
 from pydantic import field_validator, Field, HttpUrl, ValidationError, model_validator, AnyUrl
 from rdflib import URIRef
 
 from ssnolib import config
-from ssnolib.dcat import Distribution, Dataset
-from ssnolib.m4i import TextVariable
+from ontolutils.ex.dcat import Distribution, Dataset
+from ontolutils.ex.m4i import TextVariable
 from ssnolib.namespace import SSNO
-from ssnolib.prov import Person, Organization, Attribution
-from ssnolib.qudt.utils import iri2str
-from ssnolib.skos import Concept, ConceptScheme
+from ontolutils.ex.qudt.utils import iri2str
 from ssnolib.sparql_utils import build_simple_sparql_query, WHERE
 from ssnolib.utils import parse_and_exclude_none, download_file
 from . import plugins

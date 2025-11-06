@@ -6,21 +6,23 @@ import warnings
 
 import pydantic
 import rdflib
+from ontolutils.ex import dcat
 
 import ssnolib
-from ssnolib import dcat
 
 __this_dir__ = pathlib.Path(__file__).parent
 CACHE_DIR = ssnolib.utils.get_cache_dir()
 
 
 def _delete_test_data():
-    for _filename_to_delete in (CACHE_DIR / 'cf-standard-name-table.xml',
-                                CACHE_DIR / 'cfsnt.json',
-                                CACHE_DIR / 'cf_table.json',
-                                CACHE_DIR / 'cfsnt.json',
-                                CACHE_DIR / 'test_snt.yaml',
-                                CACHE_DIR / 'cf-standard-name-table.xml',):
+    for _filename_to_delete in (
+            CACHE_DIR / 'cf-standard-name-table.xml',
+            CACHE_DIR / 'cfsnt.json',
+            CACHE_DIR / 'cf_table.json',
+            CACHE_DIR / 'cfsnt.json',
+            CACHE_DIR / 'test_snt.yaml',
+            CACHE_DIR / 'cf-standard-name-table.xml',
+    ):
         _filename_to_delete.unlink(missing_ok=True)
 
 
@@ -65,7 +67,7 @@ class TestClasses(unittest.TestCase):
     @unittest.skipIf(condition=9 < get_python_version()[1] < 13,
                      reason="Only testing on min and max python version")
     def test_ssnolib_Distribution(self):
-        distribution = ssnolib.dcat.Distribution(
+        distribution = dcat.Distribution(
             title='XML Table',
             downloadURL='https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
             mediaType='text/csv'
@@ -73,7 +75,7 @@ class TestClasses(unittest.TestCase):
         self.assertEqual(str(distribution.mediaType),
                          "https://www.iana.org/assignments/media-types/text/csv")
 
-        distribution = ssnolib.dcat.Distribution(
+        distribution = dcat.Distribution(
             title='XML Table',
             downloadURL='https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
             mediaType='application/xml'
@@ -101,9 +103,9 @@ class TestClasses(unittest.TestCase):
             f'StandardNameTable(id={snt.id}, title=CF Standard Name Table v79, standardNames=[])'
         )
 
-        distribution = ssnolib.dcat.Distribution(title='XML Table',
-                                                 downloadURL='https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
-                                                 mediaType='application/xml')
+        distribution = dcat.Distribution(title='XML Table',
+                                                       downloadURL='https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml',
+                                                       mediaType='application/xml')
         self.assertEqual(distribution.title, 'XML Table')
         self.assertEqual(str(distribution.downloadURL),
                          'https://cfconventions.org/Data/cf-standard-names/current/src/cf-standard-name-table.xml')

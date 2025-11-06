@@ -1,40 +1,37 @@
-from typing import Union, Optional, List
+from typing import Union, Optional
 
 from ontolutils import Thing, namespaces, urirefs, as_id, LangString
-from pydantic import HttpUrl, field_validator, Field
-from pydantic import model_validator
+from ontolutils.ex.schema import Project as BaseProject
+from pydantic import Field
 
-from ssnolib import Organization, Person, StandardNameTable
-from ssnolib.dcat import Dataset
+from ssnolib import StandardNameTable
+from ontolutils.ex.dcat import Dataset
 
 
 @namespaces(schema="https://schema.org/",
             ssno="https://matthiasprobst.github.io/ssno#")
 @urirefs(Project='schema:Project',
-         name='schema:name',
-         identifier='schema:identifier',
-         funder='schema:funder',
          usesStandardnameTable='ssno:usesStandardnameTable'
          )
-class Project(Thing):
+class Project(BaseProject):
     """Implementation of schema:Project"""
-    name: Optional[Union[LangString, List[LangString]]] = Field(default=None)
-    identifier: Optional[Union[str, HttpUrl]] = Field(default=None)
-    funder: Optional[Union[Person, Organization]] = Field(default=None)
     usesStandardnameTable: Optional[Union[Dataset, StandardNameTable]] = Field(default=None)
 
-    @model_validator(mode="before")
-    def _change_id(self):
-        return as_id(self, "identifier")
 
-    @field_validator('identifier', mode='before')
-    @classmethod
-    def _identifier(cls, identifier):
-        HttpUrl(identifier)
-        return str(identifier)
-
-
-@namespaces(schema="https://schema.org/")
 @urirefs(ResearchProject='schema:ResearchProject')
 class ResearchProject(Project):
-    """https://schema.org/ResearchProject"""
+    """Pydantic Model for schema:ResearchProject
+
+    .. note::
+
+        More than the below parameters are possible but not explicitly defined here.
+
+
+    Parameters
+    ----------
+    tbd
+    """
+
+    def _repr_html_(self) -> str:
+        """Returns the HTML representation of the class"""
+        return f"{self.__class__.__name__}({self.identifier})"

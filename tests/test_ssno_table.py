@@ -13,6 +13,10 @@ import yaml
 from ontolutils import Thing, QUDT_UNIT
 from ontolutils import set_config
 from ontolutils.classes import LangString
+from ontolutils.ex.dcat import Distribution, Dataset
+from ontolutils.ex.m4i import TextVariable
+from ontolutils.ex.prov import Organization, Person, Attribution
+from ontolutils.ex.skos import ConceptScheme
 from ontolutils.namespacelib.m4i import M4I
 from ontolutils.utils.qudt_units import parse_unit
 
@@ -20,12 +24,7 @@ import ssnolib
 from ssnolib import Qualification, Transformation, Character, DomainConceptSet
 from ssnolib import StandardNameTable, AgentRole, StandardName, VectorStandardName
 from ssnolib import parse_table
-from ssnolib.dcat import Distribution, Dataset
-from ssnolib.m4i import TextVariable
 from ssnolib.namespace import SSNO
-from ssnolib.prov import Attribution
-from ssnolib.prov import Organization, Person
-from ssnolib.skos import ConceptScheme
 from ssnolib.ssno.standard_name import ScalarStandardName
 from ssnolib.ssno.standard_name_table import _compute_new_unit, get_regex_from_transformation
 from ssnolib.ssno.standard_name_table import check_if_standard_name_can_be_build_with_transformation
@@ -1132,7 +1131,8 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         air_temp = ssnolib.StandardName(
             standardName='air_temperature',
             unit='K',
-            description='Air temperature is the bulk temperature of the air, not the surface (skin) temperature.@en')
+            description='Air temperature is the bulk temperature of the air, not the surface (skin) temperature.@en'
+        )
 
         distribution = Distribution(
             title='TTL Table@en',

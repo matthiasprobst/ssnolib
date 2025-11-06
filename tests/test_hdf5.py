@@ -1,9 +1,10 @@
 import unittest
 
 import pydantic
+from ontolutils.ex.hdf5 import Group
 
 from ssnolib import StandardName
-from ssnolib.hdf5 import File, Dataset, Group
+from ssnolib.hdf5 import File, Dataset
 
 
 class TestHDF5(unittest.TestCase):
@@ -11,12 +12,27 @@ class TestHDF5(unittest.TestCase):
     def testHDF5File(self):
         root_group = Group(name="/")
         self.assertEqual(root_group.name, "/")
-        file = File(rootGroup=root_group)
+        file = File(
+            rootGroup=root_group,
+            usesStandardNameTable="https://example.of/snt"
+        )
         self.assertEqual(file.rootGroup.name, "/")
+        self.assertEqual(file.usesStandardNameTable, "https://example.of/snt")
 
         group = Group(name="/grp")
         with self.assertRaises(pydantic.ValidationError):
             File(rootGroup=group)
+
+        self.assertEqual(file.serialize("ttl"),
+                         """@prefix hdf5: <http://purl.allotrope.org/ontologies/hdf5/1.8#> .
+@prefix ssno: <https://matthiasprobst.github.io/ssno#> .
+
+[] a hdf5:File ;
+    hdf5:rootGroup [ a hdf5:Group ;
+            hdf5:name "/" ] ;
+    ssno:usesStandardNameTable <https://example.of/snt> .
+
+""")
 
     def testDataset(self):
         with self.assertRaises(pydantic.ValidationError):
