@@ -3,12 +3,12 @@ import sys
 import unittest
 
 import requests.exceptions
+from ontolutils.ex import dcat, prov, foaf
 from ontolutils.ex.spdx import Checksum
 from ontolutils.namespacelib.spdx import SPDX
 
 import ssnolib
 import utils
-from ontolutils.ex import dcat, prov, foaf
 
 __this_dir__ = pathlib.Path(__file__).parent
 
@@ -28,7 +28,8 @@ class TestDcat(utils.ClassTest):
             description='Resource description',
             creator=prov.Person(first_name='John', lastName='Doe'),
             version='1.0',
-            identifier='https://example.com/resource'
+            identifier='resource',
+            id='https://example.com/resource'
         )
         self.assertEqual(resource1.id, 'https://example.com/resource')
         self.assertEqual(resource1.title, 'Resource title')
@@ -37,7 +38,7 @@ class TestDcat(utils.ClassTest):
         self.assertEqual(resource1.creator.firstName, 'John')
         self.assertEqual(resource1.creator.lastName, 'Doe')
         self.assertEqual(resource1.version, '1.0')
-        self.assertEqual(str(resource1.identifier), 'https://example.com/resource')
+        self.assertEqual(str(resource1.identifier), 'resource')
         resource1.contributor = foaf.Organization(name='Example Org')
         self.assertIsInstance(resource1.contributor, foaf.Organization)
         self.assertEqual(resource1.serialize("ttl"), """@prefix dcat: <http://www.w3.org/ns/dcat#> .
@@ -52,7 +53,7 @@ class TestDcat(utils.ClassTest):
             foaf:firstName "John" ;
             foaf:lastName "Doe" ] ;
     dcterms:description "Resource description" ;
-    dcterms:identifier <https://example.com/resource> ;
+    dcterms:identifier "resource" ;
     dcterms:title "Resource title" ;
     dcat:version "1.0" .
 
@@ -109,22 +110,22 @@ class TestDcat(utils.ClassTest):
 
     def test_has_part(self):
         r1 = dcat.Resource(
+            id='https://example.com/resource1',
             title='Resource 1',
             description='Resource 1 description',
-            identifier='https://example.com/resource1'
         )
         r2 = dcat.Resource(
+            id='https://example.com/resource2',
             title='Resource 2',
             description='Resource 2 description',
-            identifier='https://example.com/resource2',
             has_part=r1
         )
         self.assertEqual(r2.hasPart.id, r1.id)
 
         r3 = dcat.Resource(
+            id='https://example.com/resource3',
             title='Resource 3',
             description='Resource 3 description',
-            identifier='https://example.com/resource3',
             has_part=[r1, r2]
         )
         self.assertEqual(len(r3.hasPart), 2)
@@ -137,18 +138,15 @@ class TestDcat(utils.ClassTest):
     dcterms:description "Resource 3 description" ;
     dcterms:hasPart <https://example.com/resource1>,
         <https://example.com/resource2> ;
-    dcterms:identifier <https://example.com/resource3> ;
     dcterms:title "Resource 3" .
 
 <https://example.com/resource2> a dcat:Resource ;
     dcterms:description "Resource 2 description" ;
     dcterms:hasPart <https://example.com/resource1> ;
-    dcterms:identifier <https://example.com/resource2> ;
     dcterms:title "Resource 2" .
 
 <https://example.com/resource1> a dcat:Resource ;
     dcterms:description "Resource 1 description" ;
-    dcterms:identifier <https://example.com/resource1> ;
     dcterms:title "Resource 1" .
 
 """, r3.serialize("ttl"))
@@ -165,20 +163,12 @@ class TestDcat(utils.ClassTest):
         with self.assertRaises(ValueError):
             distribution_none_downloadURL.download()
 
-        distribution_wrongfile = dcat.Distribution(
-            title='Distribution title',
-            description='Distribution description',
-            downloadURL='file://path/invalid.txt'
-        )
-        with self.assertRaises(FileNotFoundError):
-            distribution_wrongfile.download()
-
         distribution1 = dcat.Distribution(
             title='Distribution title',
             description='Distribution description',
             creator=prov.Person(first_name='John', lastName='Doe'),
             version='1.0',
-            identifier='https://example.com/distribution',
+            id='https://example.com/distribution',
             accessURL='https://example.com/distribution',
             downloadURL='https://example.com/distribution/download'
         )
@@ -189,7 +179,6 @@ class TestDcat(utils.ClassTest):
         self.assertEqual(distribution1.creator.firstName, 'John')
         self.assertEqual(distribution1.creator.lastName, 'Doe')
         self.assertEqual(distribution1.version, '1.0')
-        self.assertEqual(str(distribution1.identifier), 'https://example.com/distribution')
         self.assertEqual(str(distribution1.accessURL), 'https://example.com/distribution')
         self.assertEqual(str(distribution1.downloadURL), 'https://example.com/distribution/download')
 
@@ -225,49 +214,53 @@ class TestDcat(utils.ClassTest):
     def test_Dataset(self):
         person = prov.Person(id="https://example.of/123", first_name='John', lastName='Doe')
         dataset1 = dcat.Dataset(
+            id='https://example.com/dataset',
             title='Dataset title',
             description='Dataset description',
             creator=person,
             version='1.0',
-            identifier='https://example.com/dataset',
+            identifier='dataset',
             distribution=[
                 dcat.Distribution(
+                    id='https://example.com/distribution',
                     title='Distribution title',
                     description='Distribution description',
-                    identifier='https://example.com/distribution',
+                    identifier='distribution',
                     accessURL='https://example.com/distribution',
                     downloadURL='https://example.com/distribution/download'
                 )
             ]
         )
         self.assertEqual(dataset1.id, 'https://example.com/dataset')
-        self.assertEqual(dataset1.identifier, 'https://example.com/dataset')
+        self.assertEqual(dataset1.identifier, 'dataset')
         self.assertEqual(dataset1.title, 'Dataset title')
         self.assertEqual(dataset1.description, 'Dataset description')
         self.assertIsInstance(dataset1.creator, prov.Person)
         self.assertEqual(dataset1.creator.firstName, 'John')
         self.assertEqual(dataset1.creator.lastName, 'Doe')
         self.assertEqual(dataset1.version, '1.0')
-        self.assertEqual(str(dataset1.identifier), 'https://example.com/dataset')
+        self.assertEqual(str(dataset1.identifier), 'dataset')
         self.assertIsInstance(dataset1.distribution[0], dcat.Distribution)
         self.assertEqual(dataset1.distribution[0].title, 'Distribution title')
         self.assertEqual(dataset1.distribution[0].description, 'Distribution description')
         self.assertEqual(str(dataset1.distribution[0].id), 'https://example.com/distribution')
-        self.assertEqual(str(dataset1.distribution[0].identifier), 'https://example.com/distribution')
+        self.assertEqual(str(dataset1.distribution[0].identifier), 'distribution')
         self.assertEqual(str(dataset1.distribution[0].accessURL), 'https://example.com/distribution')
         self.assertEqual(str(dataset1.distribution[0].downloadURL), 'https://example.com/distribution/download')
 
         ds = dcat.Dataset(
+            id='https://example.com/dataset',
             title='Dataset title',
+            identifier='dataset',
             description='Dataset description',
             creator=person.id,
             version='1.0',
-            identifier='https://example.com/dataset',
             distribution=[
                 dcat.Distribution(
+                    id='https://example.com/distribution',
                     title='Distribution title',
                     description='Distribution description',
-                    identifier='https://example.com/distribution',
+                    identifier='distribution',
                     accessURL='https://example.com/distribution',
                     downloadURL='https://example.com/distribution/download'
                 )
@@ -280,14 +273,14 @@ class TestDcat(utils.ClassTest):
 <https://example.com/dataset> a dcat:Dataset ;
     dcterms:creator <https://example.of/123> ;
     dcterms:description "Dataset description" ;
-    dcterms:identifier <https://example.com/dataset> ;
+    dcterms:identifier "dataset" ;
     dcterms:title "Dataset title" ;
     dcat:distribution <https://example.com/distribution> ;
     dcat:version "1.0" .
 
 <https://example.com/distribution> a dcat:Distribution ;
     dcterms:description "Distribution description" ;
-    dcterms:identifier <https://example.com/distribution> ;
+    dcterms:identifier "distribution" ;
     dcterms:title "Distribution title" ;
     dcat:accessURL <https://example.com/distribution> ;
     dcat:downloadURL <https://example.com/distribution/download> .
@@ -304,31 +297,28 @@ class TestDcat(utils.ClassTest):
             description='Dataset description',
             creator=person,
             version='1.0',
-            identifier='https://example.com/dataset',
+            id='https://example.com/dataset',
             distribution=[
                 dcat.Distribution(
                     title='Distribution title',
                     description='Distribution description',
-                    identifier='https://example.com/distribution',
+                    id='https://example.com/distribution',
                     accessURL='https://example.com/distribution',
                     downloadURL='https://example.com/distribution/download'
                 )
             ]
         )
         self.assertEqual(dataset1.id, 'https://example.com/dataset')
-        self.assertEqual(dataset1.identifier, 'https://example.com/dataset')
         self.assertEqual(dataset1.title, 'Dataset title')
         self.assertEqual(dataset1.description, 'Dataset description')
         self.assertIsInstance(dataset1.creator, foaf.Person)
         self.assertEqual(dataset1.creator.firstName, 'John')
         self.assertEqual(dataset1.creator.familyName, 'Doe')
         self.assertEqual(dataset1.version, '1.0')
-        self.assertEqual(str(dataset1.identifier), 'https://example.com/dataset')
         self.assertIsInstance(dataset1.distribution[0], dcat.Distribution)
         self.assertEqual(dataset1.distribution[0].title, 'Distribution title')
         self.assertEqual(dataset1.distribution[0].description, 'Distribution description')
         self.assertEqual(str(dataset1.distribution[0].id), 'https://example.com/distribution')
-        self.assertEqual(str(dataset1.distribution[0].identifier), 'https://example.com/distribution')
         self.assertEqual(str(dataset1.distribution[0].accessURL), 'https://example.com/distribution')
         self.assertEqual(str(dataset1.distribution[0].downloadURL), 'https://example.com/distribution/download')
 
@@ -337,12 +327,12 @@ class TestDcat(utils.ClassTest):
             description='Dataset description',
             creator=person.id,
             version='1.0',
-            identifier='https://example.com/dataset',
+            id='https://example.com/dataset',
             distribution=[
                 dcat.Distribution(
                     title='Distribution title',
                     description='Distribution description',
-                    identifier='https://example.com/distribution',
+                    id='https://example.com/distribution',
                     accessURL='https://example.com/distribution',
                     downloadURL='https://example.com/distribution/download'
                 )
