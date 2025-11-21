@@ -2,6 +2,11 @@
 
 Log of changes in the versions
 
+## v2.1.0.2
+
+- hotfixes standard name table
+- at SOSA (sensor ontology)
+- upgrade to ontolutils 0.22.1
 
 ## v2.1.0.1
 

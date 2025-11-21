@@ -696,9 +696,14 @@ class StandardNameTable(ConceptScheme):
                                 for s in self.standardNames:
                                     if s.standardName == existing_standard_name.standardName:
                                         for tv in q.hasValidValues:
-                                            if tv.hasStringValue == g:
-                                                qualification_descriptions[g] = str(tv.hasVariableDescription)
-                                                break
+                                            if q.hasPreposition:
+                                                if f"{q.hasPreposition}_{str(tv.hasStringValue)}" == g:
+                                                    qualification_descriptions[g] = str(tv.hasVariableDescription)
+                                                    break
+                                            else:
+                                                if str(tv.hasStringValue) == g:
+                                                    qualification_descriptions[g] = str(tv.hasVariableDescription)
+                                                    break
                         if self.id.endswith("/"):
                             new_sn_id = self.id + "derived_standard_name/" + standard_name
                         else:
@@ -717,7 +722,7 @@ class StandardNameTable(ConceptScheme):
                             description=f"{core_standard_name.standardName}: {core_standard_name_description} {qualification_description_string}")
                         _cache_valid_standard_name(self, constructed_sn)
                         return constructed_sn
-            return
+            return None
 
     def model_dump_jsonld(
             self,

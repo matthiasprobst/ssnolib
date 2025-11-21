@@ -29,7 +29,7 @@ from ssnolib.ssno.standard_name import ScalarStandardName
 from ssnolib.ssno.standard_name_table import _compute_new_unit, get_regex_from_transformation
 from ssnolib.ssno.standard_name_table import check_if_standard_name_can_be_build_with_transformation
 from ssnolib.utils import download_file
-
+from ontolutils.ex.m4i import TextVariable
 try:
     import h5rdmtoolbox as h5tbx
 
@@ -595,7 +595,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
             surface = ssnolib.Qualification(
                 name="surface",
                 description='A surface is defined as a function of horizontal position. Surfaces which are defined using a coordinate value (e.g. height of 1.5 m) are indicated by a single-valued coordinate variable, not by the standard name. In the standard name, some surfaces are named by single words which are placed at the start: toa (top of atmosphere), tropopause, surface. Other surfaces are named by multi-word phrases put after at: at_adiabatic_condensation_level, at_cloud_top, at_convective_cloud_top, at_cloud_base, at_convective_cloud_base, at_freezing_level, at_ground_level, at_maximum_wind_speed_level, at_sea_floor, at_sea_ice_base, at_sea_level, at_top_of_atmosphere_boundary_layer, at_top_of_atmosphere_model, at_top_of_dry_convection. The surface called "surface" means the lower boundary of the atmosphere. sea_level means mean sea level, which is close to the geoid in sea areas. ground_level means the land surface (beneath the snow and surface water, if any). cloud_base refers to the base of the lowest cloud. cloud_top refers to the top of the highest cloud. Fluxes at the top_of_atmosphere_model differ from TOA fluxes only if the model TOA fluxes make some allowance for the atmosphere above the top of the model; if not, it is usual to give standard names with toa to the fluxes at the top of the model atmosphere.',
-                hasValidValues=["toa", "tropopause", "surface"]
+                hasValidValues=["toa", "tropopause", TextVariable(hasStringValue="surface", hasVariableDescription="a generic surface.@en") ]
             )
             component = ssnolib.VectorQualification(
                 name="component",
@@ -610,7 +610,9 @@ class TestSSNOStandardNameTable(unittest.TestCase):
                 name="surface",
                 description=surface.description,
                 hasPreposition='at',
-                hasValidValues=["adiabatic_condensation_level", "cloud_top", "convective_cloud_top",
+                hasValidValues=["adiabatic_condensation_level",
+                                TextVariable(hasStringValue="cloud_top", hasVariableDescription="Top of the cloud.@en"),
+                                "convective_cloud_top",
                                 "cloud_base",
                                 "convective_cloud_base", "freezing_level", "ground_level",
                                 "maximum_wind_speed_level",
@@ -700,8 +702,8 @@ class TestSSNOStandardNameTable(unittest.TestCase):
             #     "velocity: Velocity vector. x: The x-component of the vector."
             # )
             self.assertEqual(
-                str(snt.get_standard_name("surface_x_velocity").description),
-                "velocity: Velocity vector. surface: No description available. x: The x-component of the vector."
+                str(snt.get_standard_name("surface_x_velocity_at_cloud_top").description),
+                "velocity: Velocity vector. surface: a generic surface. x: The x-component of the vector. at_cloud_top: Top of the cloud."
             )
             self.assertTrue(snt.verify_name("air_density"))  # equals "air_density"
             self.assertTrue(snt.verify_name("tropopause_air_pressure"))  # using regex
