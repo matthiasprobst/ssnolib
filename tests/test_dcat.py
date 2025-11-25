@@ -3,12 +3,13 @@ import sys
 import unittest
 
 import requests.exceptions
-from ontolutils.ex import dcat, prov, foaf
+from ontolutils.ex import prov, foaf
 from ontolutils.ex.spdx import Checksum
 from ontolutils.namespacelib.spdx import SPDX
 
 import ssnolib
 import utils
+from ssnolib import dcat
 
 __this_dir__ = pathlib.Path(__file__).parent
 
@@ -29,8 +30,11 @@ class TestDcat(utils.ClassTest):
             creator=prov.Person(first_name='John', lastName='Doe'),
             version='1.0',
             identifier='resource',
-            id='https://example.com/resource'
+            id='https://example.com/resource',
+            usesStandardNameTable="https://example.of/snt"
         )
+
+        self.assertEqual(resource1.usesStandardNameTable, "https://example.of/snt")
         self.assertEqual(resource1.id, 'https://example.com/resource')
         self.assertEqual(resource1.title, 'Resource title')
         self.assertEqual(resource1.description, 'Resource description')
@@ -45,6 +49,7 @@ class TestDcat(utils.ClassTest):
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix foaf: <http://xmlns.com/foaf/0.1/> .
 @prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix ssno: <https://matthiasprobst.github.io/ssno#> .
 
 <https://example.com/resource> a dcat:Resource ;
     dcterms:contributor [ a foaf:Organization ;
@@ -55,7 +60,8 @@ class TestDcat(utils.ClassTest):
     dcterms:description "Resource description" ;
     dcterms:identifier "resource" ;
     dcterms:title "Resource title" ;
-    dcat:version "1.0" .
+    dcat:version "1.0" ;
+    ssno:usesStandardNameTable <https://example.of/snt> .
 
 """)
 
@@ -264,11 +270,13 @@ class TestDcat(utils.ClassTest):
                     accessURL='https://example.com/distribution',
                     downloadURL='https://example.com/distribution/download'
                 )
-            ]
+            ],
+            uses_standard_name_table="https://example.of/snt"
         )
         ttl = ds.serialize("ttl")
         self.assertEqual(ttl, """@prefix dcat: <http://www.w3.org/ns/dcat#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix ssno: <https://matthiasprobst.github.io/ssno#> .
 
 <https://example.com/dataset> a dcat:Dataset ;
     dcterms:creator <https://example.of/123> ;
@@ -276,7 +284,8 @@ class TestDcat(utils.ClassTest):
     dcterms:identifier "dataset" ;
     dcterms:title "Dataset title" ;
     dcat:distribution <https://example.com/distribution> ;
-    dcat:version "1.0" .
+    dcat:version "1.0" ;
+    ssno:usesStandardNameTable <https://example.of/snt> .
 
 <https://example.com/distribution> a dcat:Distribution ;
     dcterms:description "Distribution description" ;
@@ -284,6 +293,22 @@ class TestDcat(utils.ClassTest):
     dcterms:title "Distribution title" ;
     dcat:accessURL <https://example.com/distribution> ;
     dcat:downloadURL <https://example.com/distribution/download> .
+
+""")
+
+    def test_Distribution_with_snt(self):
+        dist = dcat.Distribution(
+            title='Distribution title',
+            uses_standard_name_table="https://example.of/snt",
+        )
+        ttl = dist.serialize("ttl")
+        self.assertEqual(ttl, """@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix ssno: <https://matthiasprobst.github.io/ssno#> .
+
+[] a dcat:Distribution ;
+    dcterms:title "Distribution title" ;
+    ssno:usesStandardNameTable <https://example.of/snt> .
 
 """)
 

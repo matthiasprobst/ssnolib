@@ -10,7 +10,10 @@ from typing import List, Union, Dict, Optional, Tuple
 import rdflib
 from dateutil.parser import parse
 from ontolutils import LangString, set_config, namespaces, urirefs, Thing, as_id
+from ontolutils.ex.dcat import Distribution, Dataset
+from ontolutils.ex.m4i import TextVariable
 from ontolutils.ex.prov import Person, Organization, Attribution
+from ontolutils.ex.qudt.utils import iri2str
 from ontolutils.ex.skos import Concept, ConceptScheme
 from ontolutils.namespacelib.m4i import M4I
 from ontolutils.typing import ResourceType
@@ -18,10 +21,7 @@ from pydantic import field_validator, Field, HttpUrl, ValidationError, model_val
 from rdflib import URIRef
 
 from ssnolib import config
-from ontolutils.ex.dcat import Distribution, Dataset
-from ontolutils.ex.m4i import TextVariable
 from ssnolib.namespace import SSNO
-from ontolutils.ex.qudt.utils import iri2str
 from ssnolib.sparql_utils import build_simple_sparql_query, WHERE
 from ssnolib.utils import parse_and_exclude_none, download_file
 from . import plugins
@@ -280,7 +280,8 @@ class Transformation(StandardNameModification):
          subject='dcterms:subject',
          keywords='schema:keywords',
          relation='dcterms:relation',
-         dataset='ssno:dataset'
+         dataset='ssno:dataset',
+         standardNameTableUsedBy='ssno:standardNameTableUsedBy'
          )
 class StandardNameTable(ConceptScheme):
     """Implementation of ssno:StandardNameTable
@@ -332,6 +333,10 @@ class StandardNameTable(ConceptScheme):
     keywords: Optional[Union[LangString, List[LangString]]] = Field(default=None)
     relation: Optional[Union[ResourceType, List[ResourceType]]] = Field(default=None)
     dataset: Optional[Union[ResourceType, Dataset]] = Field(default=None)
+    standardNameTableUsedBy: Optional[Union[ResourceType, List[ResourceType]]] = Field(
+        default=None,
+        alias="standard_name_table_used_by"
+    )
 
     def __str__(self) -> str:
         if self.identifier:

@@ -1,11 +1,11 @@
 from typing import Union, Optional
 
-from ontolutils import Thing, namespaces, urirefs, as_id, LangString
+from ontolutils import namespaces, urirefs
 from ontolutils.ex.schema import Project as BaseProject
+from ontolutils.typing import ResourceType
 from pydantic import Field
 
 from ssnolib import StandardNameTable
-from ontolutils.ex.dcat import Dataset
 
 
 @namespaces(schema="https://schema.org/",
@@ -15,7 +15,7 @@ from ontolutils.ex.dcat import Dataset
          )
 class Project(BaseProject):
     """Implementation of schema:Project"""
-    usesStandardnameTable: Optional[Union[Dataset, StandardNameTable]] = Field(default=None)
+    usesStandardnameTable: Optional[Union[StandardNameTable, ResourceType]] = Field(default=None)
 
 
 @urirefs(ResearchProject='schema:ResearchProject')
