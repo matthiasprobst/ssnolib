@@ -13,10 +13,10 @@ import yaml
 from ontolutils import Thing, QUDT_UNIT
 from ontolutils import set_config
 from ontolutils.classes import LangString
-from ontolutils.ex.dcat import Distribution, Dataset
 from ontolutils.ex.m4i import TextVariable
 from ontolutils.ex.prov import Organization, Person, Attribution
 from ontolutils.ex.skos import ConceptScheme
+from ssnolib.schema import Project
 from ontolutils.namespacelib.m4i import M4I
 from ontolutils.utils.qudt_units import parse_unit
 
@@ -24,12 +24,13 @@ import ssnolib
 from ssnolib import Qualification, Transformation, Character, DomainConceptSet
 from ssnolib import StandardNameTable, AgentRole, StandardName, VectorStandardName
 from ssnolib import parse_table
+from ssnolib.dcat import Distribution, Dataset
 from ssnolib.namespace import SSNO
 from ssnolib.ssno.standard_name import ScalarStandardName
 from ssnolib.ssno.standard_name_table import _compute_new_unit, get_regex_from_transformation
 from ssnolib.ssno.standard_name_table import check_if_standard_name_can_be_build_with_transformation
 from ssnolib.utils import download_file
-from ontolutils.ex.m4i import TextVariable
+
 try:
     import h5rdmtoolbox as h5tbx
 
@@ -595,7 +596,8 @@ class TestSSNOStandardNameTable(unittest.TestCase):
             surface = ssnolib.Qualification(
                 name="surface",
                 description='A surface is defined as a function of horizontal position. Surfaces which are defined using a coordinate value (e.g. height of 1.5 m) are indicated by a single-valued coordinate variable, not by the standard name. In the standard name, some surfaces are named by single words which are placed at the start: toa (top of atmosphere), tropopause, surface. Other surfaces are named by multi-word phrases put after at: at_adiabatic_condensation_level, at_cloud_top, at_convective_cloud_top, at_cloud_base, at_convective_cloud_base, at_freezing_level, at_ground_level, at_maximum_wind_speed_level, at_sea_floor, at_sea_ice_base, at_sea_level, at_top_of_atmosphere_boundary_layer, at_top_of_atmosphere_model, at_top_of_dry_convection. The surface called "surface" means the lower boundary of the atmosphere. sea_level means mean sea level, which is close to the geoid in sea areas. ground_level means the land surface (beneath the snow and surface water, if any). cloud_base refers to the base of the lowest cloud. cloud_top refers to the top of the highest cloud. Fluxes at the top_of_atmosphere_model differ from TOA fluxes only if the model TOA fluxes make some allowance for the atmosphere above the top of the model; if not, it is usual to give standard names with toa to the fluxes at the top of the model atmosphere.',
-                hasValidValues=["toa", "tropopause", TextVariable(hasStringValue="surface", hasVariableDescription="a generic surface.@en") ]
+                hasValidValues=["toa", "tropopause",
+                                TextVariable(hasStringValue="surface", hasVariableDescription="a generic surface.@en")]
             )
             component = ssnolib.VectorQualification(
                 name="component",
@@ -1194,4 +1196,88 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         self.assertEqual(
             len(snt.hasDomainConceptSet),
             1
+        )
+
+    def test_standardNameTableUsedBy(self):
+        snt = StandardNameTable(
+            id="https://doi.org/10.5281/zenodo.1234567#Nbf746565999b4531a3547a862fa070c7",
+            title="Test SNT",
+            standardNameTableUsedBy=[
+                Dataset(
+                    id="https://doi.org/10.5281/zenodo.7654321",
+                    title="Dataset using the SNT"
+                )
+            ]
+        )
+        ttl = snt.serialize("ttl")
+        self.assertEqual(
+            """@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix ssno: <https://matthiasprobst.github.io/ssno#> .
+
+<https://doi.org/10.5281/zenodo.1234567#Nbf746565999b4531a3547a862fa070c7> a ssno:StandardNameTable ;
+    dcterms:title "Test SNT" ;
+    ssno:standardNameTableUsedBy <https://doi.org/10.5281/zenodo.7654321> .
+
+<https://doi.org/10.5281/zenodo.7654321> a dcat:Dataset ;
+    dcterms:title "Dataset using the SNT" .
+
+""",
+            ttl
+        )
+
+        # Distribution
+        snt = StandardNameTable(
+            id="https://doi.org/10.5281/zenodo.1234567#Nbf746565999b4531a3547a862fa070c7",
+            title="Test SNT",
+            standardNameTableUsedBy=[
+                Distribution(
+                    id="https://doi.org/10.5281/zenodo.7654321",
+                    title="Distribution using the SNT"
+                )
+            ]
+        )
+        ttl = snt.serialize("ttl")
+        self.assertEqual(
+            """@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix ssno: <https://matthiasprobst.github.io/ssno#> .
+
+<https://doi.org/10.5281/zenodo.1234567#Nbf746565999b4531a3547a862fa070c7> a ssno:StandardNameTable ;
+    dcterms:title "Test SNT" ;
+    ssno:standardNameTableUsedBy <https://doi.org/10.5281/zenodo.7654321> .
+
+<https://doi.org/10.5281/zenodo.7654321> a dcat:Distribution ;
+    dcterms:title "Distribution using the SNT" .
+
+""",
+            ttl
+        )
+
+        # schema.Project
+        snt = StandardNameTable(
+            id="https://doi.org/10.5281/zenodo.1234567#Nbf746565999b4531a3547a862fa070c7",
+            title="Test SNT",
+            standardNameTableUsedBy=[
+                Project(
+                    id="https://doi.org/10.5281/zenodo.7654321/Project",
+                    name="Project using the SNT"
+                )
+            ]
+        )
+        ttl = snt.serialize("ttl")
+        self.assertEqual(
+            """@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema: <https://schema.org/> .
+@prefix ssno: <https://matthiasprobst.github.io/ssno#> .
+
+<https://doi.org/10.5281/zenodo.1234567#Nbf746565999b4531a3547a862fa070c7> a ssno:StandardNameTable ;
+    dcterms:title "Test SNT" ;
+    ssno:standardNameTableUsedBy <https://doi.org/10.5281/zenodo.7654321/Project> .
+
+<https://doi.org/10.5281/zenodo.7654321/Project> a schema:Project ;
+    schema:name "Project using the SNT" .
+
+""",
+            ttl
         )

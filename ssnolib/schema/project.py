@@ -11,11 +11,11 @@ from ssnolib import StandardNameTable
 @namespaces(schema="https://schema.org/",
             ssno="https://matthiasprobst.github.io/ssno#")
 @urirefs(Project='schema:Project',
-         usesStandardnameTable='ssno:usesStandardnameTable'
+         usesStandardNameTable='ssno:usesStandardNameTable'
          )
 class Project(BaseProject):
     """Implementation of schema:Project"""
-    usesStandardnameTable: Optional[Union[StandardNameTable, ResourceType]] = Field(default=None)
+    usesStandardNameTable: Optional[Union[StandardNameTable, ResourceType]] = Field(default=None)
 
 
 @urirefs(ResearchProject='schema:ResearchProject')

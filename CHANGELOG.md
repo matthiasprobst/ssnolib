@@ -5,6 +5,7 @@ Log of changes in the versions
 ## v2.2.0.0
 
 - loosen domain of usesStandardNameTable to dcat:Resource
+- add `standardNameTableUsedBy`
 
 ## v2.1.0.2
 

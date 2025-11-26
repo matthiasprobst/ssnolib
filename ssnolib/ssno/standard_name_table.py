@@ -357,6 +357,25 @@ class StandardNameTable(ConceptScheme):
             return parse(created)
         return created
 
+    @field_validator('standardNameTableUsedBy', mode='before')
+    @classmethod
+    def _standardNameTableUsedBy(cls, standardNameTableUsedBy):
+        if isinstance(standardNameTableUsedBy, (str, rdflib.URIRef, rdflib.BNode)):
+            return standardNameTableUsedBy
+        from ..dcat import Resource, Distribution, Dataset
+        from ..hdf5 import Dataset as HDF5Dataset
+        from ..schema import Project
+        if isinstance(standardNameTableUsedBy, list):
+            for sntub in standardNameTableUsedBy:
+                if not isinstance(sntub, (Resource, Distribution, Dataset, Project, HDF5Dataset)):
+                    raise TypeError(
+                        "standardNameTableUsedBy must be of type Resource, Distribution, Dataset, Project or HDF5Dataset")
+            return standardNameTableUsedBy
+        if not isinstance(standardNameTableUsedBy(Resource, Distribution, Dataset, Project, HDF5Dataset)):
+            raise TypeError(
+                "standardNameTableUsedBy must be of type Resource, Distribution, Dataset, Project or HDF5Dataset")
+        return standardNameTableUsedBy
+
     @field_validator('modified', mode='before')
     @classmethod
     def _modified(cls, modified):
@@ -739,9 +758,12 @@ class StandardNameTable(ConceptScheme):
             base_uri: Optional[Union[str, AnyUrl]] = None
     ):
         """Dump the Standard Name Table to a JSON-LD string and enforce the use of base URI."""
+
+
         if base_uri is None:
-            raise ValueError("A base URI must be provided for the JSON-LD serialization. "
-                             "This is typically the DOI of the Standard Name Table.")
+            if self.id is None or isinstance(self.id, rdflib.BNode):
+                raise ValueError("A base URI must be provided for the JSON-LD serialization. "
+                                 "This is typically the DOI of the Standard Name Table.")
         return super().model_dump_jsonld(
             base_uri=base_uri,
             context=context,
@@ -757,9 +779,11 @@ class StandardNameTable(ConceptScheme):
                        resolve_keys: bool = True,
                        base_uri: Optional[Union[str, AnyUrl]] = None):
         """Dump the Standard Name Table to a Turtle string and enforce the use of base URI."""
+
         if base_uri is None:
-            raise ValueError("A base URI must be provided for the TTL serialization. "
-                             "This is typically the DOI of the Standard Name Table.")
+            if self.id is None or isinstance(self.id, rdflib.BNode):
+                raise ValueError("A base URI must be provided for the TTL serialization. "
+                                 "This is typically the DOI of the Standard Name Table.")
         return super().model_dump_ttl(
             base_uri=base_uri,
             context=context,
@@ -776,8 +800,9 @@ class StandardNameTable(ConceptScheme):
                   **kwargs) -> str:
         """Serialize the Standard Name Table to a string in the given format."""
         if base_uri is None:
-            raise ValueError("A base URI must be provided for the serialization. "
-                             "This is typically the DOI of the Standard Name Table.")
+            if self.id is None or isinstance(self.id, rdflib.BNode):
+                raise ValueError("A base URI must be provided for the serialization. "
+                                 "This is typically the DOI of the Standard Name Table.")
         return super().serialize(
             format=format,
             base_uri=base_uri,
