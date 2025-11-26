@@ -29,7 +29,7 @@ class TestSchema(utils.ClassTest):
         proj = Project(
             identifier='https://example.com/project',
             funder=prov.Organization(name='Funder'),
-            usesStandardnameTable=dataset
+            usesStandardNameTable=dataset
         )
 
         self.assertEqual(str(proj.identifier), 'https://example.com/project')
@@ -42,9 +42,9 @@ class TestSchema(utils.ClassTest):
         proj = ResearchProject(
             identifier='https://example.com/research_project',
             funder=prov.Organization(name='Funder'),
-            usesStandardnameTable=snt
+            usesStandardNameTable=snt
         )
-        self.assertEqual(proj.usesStandardnameTable.title, 'My SNT')
+        self.assertEqual(proj.usesStandardNameTable.title, 'My SNT')
         self.assertEqual(proj.id, 'https://example.com/research_project')
 
         print(proj.serialize("ttl"))

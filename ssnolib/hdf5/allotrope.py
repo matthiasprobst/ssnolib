@@ -1,7 +1,6 @@
 from typing import Optional, Union
 
-from ontolutils import Thing, namespaces, urirefs
-from ontolutils.ex.dcat import Dataset as DcatDataset
+from ontolutils import namespaces, urirefs
 from ontolutils.ex.hdf5 import Dataset as BaseHdfDataset
 from ontolutils.ex.hdf5 import File as BaseHdfFile
 from ontolutils.typing import ResourceType
@@ -29,5 +28,5 @@ class Dataset(BaseHdfDataset):
          usesStandardNameTable='ssno:usesStandardNameTable')
 class File(BaseHdfFile):
     """File"""
-    usesStandardNameTable: Optional[Union[StandardNameTable, DcatDataset, ResourceType]] = Field(default=None,
-                                                                                   alias="uses_standard_name_table")
+    usesStandardNameTable: Optional[Union[StandardNameTable, ResourceType]] = Field(default=None,
+                                                                                    alias="uses_standard_name_table")

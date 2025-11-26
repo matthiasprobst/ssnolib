@@ -4,16 +4,16 @@
   "license": "https://spdx.org/licenses/MIT",
   "codeRepository": "git+https://github.com/matthiasprobst/ssnolib",
   "name": "ssnolib",
-  "version": "2.1.0.2",
+  "version": "2.2.0.0",
   "description": "Python library for working with the SSNO ontology. ",
   "applicationCategory": "Engineering",
   "programmingLanguage": [
     "Python 3",
-    "Python 3.8",
     "Python 3.9",
     "Python 3.10",
     "Python 3.11",
-    "Python 3.12"
+    "Python 3.12",
+    "Python 3.13"
   ],
   "operatingSystem": [
     "Linux",
