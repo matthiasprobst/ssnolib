@@ -16,8 +16,8 @@ from ontolutils.ex.prov import Person, Organization, Attribution
 from ontolutils.ex.qudt.utils import iri2str
 from ontolutils.ex.skos import Concept, ConceptScheme
 from ontolutils.namespacelib.m4i import M4I
-from ontolutils.typing import ResourceType
-from pydantic import field_validator, Field, HttpUrl, ValidationError, model_validator, AnyUrl
+from ontolutils.typing import ResourceType, NoneBlankNodeType
+from pydantic import field_validator, Field, HttpUrl, ValidationError, AnyUrl
 from rdflib import URIRef
 
 from ssnolib import config
@@ -345,10 +345,6 @@ class StandardNameTable(ConceptScheme):
             return str(self.title)
         return ''
 
-    @model_validator(mode="before")
-    def change_id(self):
-        return as_id(self, "identifier")
-
     @field_validator('created', mode='before')
     @classmethod
     def _created(cls, created):
@@ -657,10 +653,13 @@ class StandardNameTable(ConceptScheme):
                 new_sn_id = self.id + "derived_standard_name/" + standard_name
             else:
                 new_sn_id = self.id + "/derived_standard_name/" + standard_name
-            valid_standard_name = StandardName(id=new_sn_id,
-                                               standardName=standard_name,
-                                               unit=alter_unit(matches_standard_names, found_transformation),
-                                               description=new_description.strip(".") + ". " + match_descriptions)
+            valid_standard_name = StandardName(
+                id=new_sn_id,
+                standardName=standard_name,
+                unit=alter_unit(matches_standard_names, found_transformation),
+                description=new_description.strip(".") + ". " + match_descriptions,
+                standard_name_table=self.id
+            )
 
             _cache_valid_standard_name(self, valid_standard_name)
             return valid_standard_name
@@ -743,7 +742,9 @@ class StandardNameTable(ConceptScheme):
                             id=new_sn_id,
                             standardName=standard_name,
                             unit=core_standard_name.unit,
-                            description=f"{core_standard_name.standardName}: {core_standard_name_description} {qualification_description_string}")
+                            description=f"{core_standard_name.standardName}: {core_standard_name_description} {qualification_description_string}",
+                            standard_name_table=self.id
+                        )
                         _cache_valid_standard_name(self, constructed_sn)
                         return constructed_sn
             return None
@@ -758,7 +759,6 @@ class StandardNameTable(ConceptScheme):
             base_uri: Optional[Union[str, AnyUrl]] = None
     ):
         """Dump the Standard Name Table to a JSON-LD string and enforce the use of base URI."""
-
 
         if base_uri is None:
             if self.id is None or isinstance(self.id, rdflib.BNode):
@@ -921,6 +921,8 @@ class StandardNameTable(ConceptScheme):
 
         yaml_data = {}
         with open(filename, 'w', encoding='utf-8') as f:
+            if self.id:
+                yaml_data['id'] = str(self.id)
             if self.title:
                 yaml_data['name'] = self.title
             if self.version:
@@ -1477,7 +1479,10 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
     for row in sparql.query(g):
         # for stn_id, title, version, description in res:
         snt_id = _parse_id(row['id'])
-        snt_dict = dict(id=snt_id, title=row['title'], version=row['version'], hasVersion=row['hasVersion'],
+        snt_dict = dict(id=snt_id,
+                        title=row['title'],
+                        version=row['version'],
+                        hasVersion=row['hasVersion'],
                         description=row['description'])
         snts.append(StandardNameTable(**parse_and_exclude_none(snt_dict)))
 
@@ -1729,12 +1734,13 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
         # """
         resVectorStandardnames = sparql_get_vector_standard_names.query(g)
         for row in resVectorStandardnames:
-            standard_names.append(VectorStandardName(
-                id=_parse_id(row["snid"]),
-                standardName=str(row["standardname"]),
-                unit=str(row["unit"]),
-                description=str(row["description"])
-            )
+            standard_names.append(
+                VectorStandardName(
+                    id=_parse_id(row["snid"]),
+                    standardName=str(row["standardname"]),
+                    unit=str(row["unit"]),
+                    description=str(row["description"])
+                )
             )
 
         sparql_get_scalar_standard_names = build_simple_sparql_query(
@@ -1751,12 +1757,13 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
 
         resScalarStandardnames = sparql_get_scalar_standard_names.query(g)
         for row in resScalarStandardnames:
-            standard_names.append(StandardName(
-                id=_parse_id(row["snid"]),
-                standardName=str(row["standardname"]),
-                unit=str(row["unit"]),
-                description=str(row["description"])
-            )
+            standard_names.append(
+                StandardName(
+                    id=_parse_id(row["snid"]),
+                    standardName=str(row["standardname"]),
+                    unit=str(row["unit"]),
+                    description=str(row["description"])
+                )
             )
 
         sparql_get_normal_standard_names = build_simple_sparql_query(
@@ -1772,12 +1779,13 @@ def parse_table(source=None, data=None, fmt: Optional[str] = None):
         )
         resNormalStandardnames = sparql_get_normal_standard_names.query(g)
         for row in resNormalStandardnames:
-            standard_names.append(StandardName(
-                id=_parse_id(row["snid"]),
-                standardName=str(row["standardname"]),
-                unit=str(row["unit"]),
-                description=str(row["description"])
-            )
+            standard_names.append(
+                StandardName(
+                    id=_parse_id(row["snid"]),
+                    standardName=str(row["standardname"]),
+                    unit=str(row["unit"]),
+                    description=str(row["description"])
+                )
             )
         snt.standardNames = standard_names
 

@@ -77,6 +77,8 @@ class StandardName(Concept):
         elif isinstance(standardNameTable, StandardNameTable):
             return standardNameTable
         elif isinstance(standardNameTable, str):
+            if standardNameTable.startswith("_:"):
+                return str(standardNameTable)
             assert standardNameTable.startswith('http'), f"Expected a URL, got {standardNameTable}"
             return str(HttpUrl(standardNameTable))
             # from .standard_name_table import StandardNameTable

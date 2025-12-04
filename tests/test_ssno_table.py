@@ -16,7 +16,6 @@ from ontolutils.classes import LangString
 from ontolutils.ex.m4i import TextVariable
 from ontolutils.ex.prov import Organization, Person, Attribution
 from ontolutils.ex.skos import ConceptScheme
-from ssnolib.schema import Project
 from ontolutils.namespacelib.m4i import M4I
 from ontolutils.utils.qudt_units import parse_unit
 
@@ -26,6 +25,7 @@ from ssnolib import StandardNameTable, AgentRole, StandardName, VectorStandardNa
 from ssnolib import parse_table
 from ssnolib.dcat import Distribution, Dataset
 from ssnolib.namespace import SSNO
+from ssnolib.schema import Project
 from ssnolib.ssno.standard_name import ScalarStandardName
 from ssnolib.ssno.standard_name_table import _compute_new_unit, get_regex_from_transformation
 from ssnolib.ssno.standard_name_table import check_if_standard_name_can_be_build_with_transformation
@@ -55,6 +55,7 @@ SNT_JSONLD = """{
     "schema": "https://schema.org/",
     "local": "https://local.org/"
   },
+  "@id": "https://example.org#snt",
   "@type": "ssno:StandardNameTable",
   "dct:title": "OpenCeFaDB Fan Standard Name Table",
     "prov:qualifiedAttribution": [
@@ -127,7 +128,7 @@ def get_python_version():
 
 
 def base_uri_generator():
-    return f"https://example.org/#agents/{rdflib.BNode()}"
+    return f"https://example.org/agents#{rdflib.BNode()}"
 
 
 class TestSSNOStandardNameTable(unittest.TestCase):
@@ -143,7 +144,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
 
     def test_qualification(self):
         qloc = Qualification(
-            id=f"https://example.org/#location",
+            id=f"https://example.org/snt#location",
             name="location",
             description="Specific location in the problem domain.",
             hasPreposition="at",
@@ -172,7 +173,9 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         medium.after = SSNO.AnyStandardName
         comp.before = SSNO.AnyStandardName
 
-        snt = StandardNameTable()
+        snt = StandardNameTable(
+            id="https://example.org#snt_from_scratch",
+        )
         snt.hasModifier = [qloc, comp]
 
         pathlib.Path("minimal_snt.jsonld").unlink(missing_ok=True)
@@ -233,7 +236,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
             hasCharacter=[AnySNX, AnySNY, AnyLocA, AnyLocB],
             description="Difference of two standard names between two locations."
         )
-        snt = StandardNameTable()
+        snt = StandardNameTable(id="https://example.org#snt", )
         snt.hasModifier = [qloc, difference_of_X_and_Y_between_A_and_B, component, C_derivative_of_X]
 
         pathlib.Path("minimal_snt.jsonld").unlink(missing_ok=True)
@@ -256,6 +259,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
 
     def test_add_author(self):
         snt = StandardNameTable.parse(__this_dir__ / 'data/test_snt.yaml')
+        self.assertEqual("https://example.org/snt", snt.id)
         KIT = Organization(id="https://ror.org/04t3en479",
                            name="Karlsruhe Institute of Technology, Institute of Thermal Turbomachinery",
                            ror_id="https://ror.org/04t3en479")
@@ -273,7 +277,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         self.assertEqual(2, sum([isinstance(sn, ScalarStandardName) for sn in snt.standardNames]))
 
     def test_to_jsonld(self):
-        snt = StandardNameTable(title="minimal snt")
+        snt = StandardNameTable(id="https://example.org#snt", title="minimal snt")
         with self.assertRaises(ValueError):
             snt.to_jsonld("minimal_snt.json", base_uri="https://doi.org/10.5281/zenodo.1234567")
         filename = snt.to_jsonld("minimal_snt.jsonld", base_uri="https://doi.org/10.5281/zenodo.1234567")
@@ -289,6 +293,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         agent2 = ssnolib.Person(
             firstName="John", lastName="Doe")
         snt = ssnolib.StandardNameTable(
+            id="https://example.org#snt_from_scratch",
             title='SNT from scratch',
             version='v1',
             qualifiedAttribution=[
@@ -312,6 +317,15 @@ class TestSSNOStandardNameTable(unittest.TestCase):
             str(M4I.Supervisor),
             str(snt.qualifiedAttribution[1].hadRole)
         )
+        snt_filename = pathlib.Path("test_multiple_agents_snt.jsonld")
+        with open(snt_filename, "w") as f:
+            snt_jsonld = snt.serialize(format="json-ld")
+            f.write(snt_jsonld)
+        parsed_snt = parse_table(source=snt_filename)
+        self.assertEqual(
+            "https://orcid.org/0000-0001-8729-0482",
+            parsed_snt.qualifiedAttribution[0].agent.id)
+        snt_filename.unlink(missing_ok=True)
 
     def test_from_jsonld_file(self):
         # snt = StandardNameTable.from_jsonld(__this_dir__ / 'data/simpleSNT.jsonld', limit=1)
@@ -329,13 +343,14 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         self.assertEqual("x_velocity", sn.standardName)
 
     def test_standard_name_table_types(self):
-        snt = StandardNameTable()
+        snt = StandardNameTable(id="https://example.org#snt", )
         self.assertIsInstance(snt, StandardNameTable)
         self.assertIsInstance(snt, ConceptScheme)
         self.assertIsInstance(snt, Thing)
 
     def test_describe_table_in_zenodo(self):
         snt = StandardNameTable(
+            id="https://example.org/snt",
             prefLabel="My fancy standard name table",
             altLabel="My standard name table",
             created=datetime.today().strftime("%Y-%m-%d"),
@@ -355,14 +370,14 @@ class TestSSNOStandardNameTable(unittest.TestCase):
                            description='y component of velocity',
                            unit='m s-1')
 
-        snt = StandardNameTable()
+        snt = StandardNameTable(id="https://example.org/snt", )
         self.assertEqual(0, len(snt.standardNames))
         snt.add_new_standard_name(
             StandardName(standard_name='z_velocity', description='z component of velocity', unit='m s-1')
         )
         self.assertEqual(1, len(snt.standardNames))
 
-        snt = StandardNameTable(standardNames=[sn1, sn2])
+        snt = StandardNameTable(id="https://example.org/snt", standardNames=[sn1, sn2])
         with open('snt.json', 'w') as f:
             f.write(snt.model_dump_jsonld(base_uri="https://example.org#"))
 
@@ -399,7 +414,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         sn2 = StandardName(standard_name='y_velocity',
                            description='y component of velocity',
                            unit='m s-1')
-        snt = ssnolib.StandardNameTable(standardNames=[sn1, sn2])
+        snt = ssnolib.StandardNameTable(id="https://example.org/snt", standardNames=[sn1, sn2])
         frz_dc = snt.get_standard_names_as_frozen_dataclass()
         self.assertIsInstance(frz_dc.x_velocity, StandardName)
         self.assertEqual(frz_dc.x_velocity.standardName, "x_velocity")
@@ -417,6 +432,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
 
     def test_standard_name_table_from_large_jsonld(self):
         snt = ssnolib.parse_table(__this_dir__ / "data/cf.jsonld", fmt='jsonld')
+        self.assertEqual("https://cfconventions.org/", snt.id)
         self.assertEqual("cf-standard-name-table", snt.title)
         self.assertEqual("86", snt.version)
         self.assertEqual(4828, len(snt.standardNames))
@@ -441,7 +457,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         with open(snt_jsonld_filename, 'w') as f:
             json.dump(json.loads(SNT_JSONLD), f)
         snt = StandardNameTable.parse(snt_jsonld_filename, fmt='jsonld')
-        self.assertTrue(snt.id.startswith("_:"))
+        self.assertEqual("https://example.org/#snt", str(snt.id))
 
         snt_jsonld_filename.unlink(missing_ok=True)
         self.assertEqual(snt.title, 'OpenCeFaDB Fan Standard Name Table')
@@ -461,18 +477,20 @@ class TestSSNOStandardNameTable(unittest.TestCase):
 
         dist = Distribution(downloadURL='https://local.example.org/#snt.yaml',
                             mediaType='application/yaml')
-        snt = StandardNameTable()
+        snt = StandardNameTable(id="https://example.org/snt", )
         with self.assertRaises(requests.exceptions.ConnectionError):
             snt.parse(dist)
 
-        snt_yaml_data = {'name': 'SNT',
-                         'description': 'A testing SNT@de',
-                         'version': 'abc123invalid',  # v1.0.0
-                         'identifier': 'https://example.org/#sntIdentifier',
-                         'standardNames': {'x_velocity': {'description': 'x component of velocity',
-                                                          'unit': 'm s-1'},
-                                           'y_velocity': {'description': 'y component of velocity',
-                                                          'unit': 'm s-1'}}}
+        snt_yaml_data = {
+            'id': 'https://example.org/snt',
+            'name': 'SNT',
+            'description': 'A testing SNT@de',
+            'version': 'abc123invalid',  # v1.0.0
+            'identifier': 'https://example.org/#sntIdentifier',
+            'standardNames': {'x_velocity': {'description': 'x component of velocity',
+                                             'unit': 'm s-1'},
+                              'y_velocity': {'description': 'y component of velocity',
+                                             'unit': 'm s-1'}}}
         with open('snt.yaml', 'w') as f:
             yaml.dump(snt_yaml_data, f)
         snt = StandardNameTable.parse('snt.yaml', fmt='yaml')
@@ -551,6 +569,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
                                            hasValidValues=["air", "water"],
                                            before=ssnolib.SSNO.AnyStandardName)
             snt = ssnolib.StandardNameTable(
+                id="https://example.org/snt",
                 standard_names=[ssnolib.ScalarStandardName(standard_name="density", description="", unit="kg/m^3")])
             snt.hasModifier = [medium, ]
             self.assertTrue(snt.verify_name("density"))
@@ -564,7 +583,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
         medium.after = SSNO.AnyStandardName
         comp.before = SSNO.AnyStandardName
 
-        snt = StandardNameTable(title='SNT with modifications')
+        snt = StandardNameTable(id="https://example.org#snt", title='SNT with modifications')
         snt.hasModifier = [comp, medium]
         self.assertEqual("[component] standard_name [in medium]", snt.get_qualification_rule_as_string())
 
@@ -655,6 +674,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
             condition.after = process
 
             snt = StandardNameTable(
+                id="https://example.org/snt",
                 title='CF Rebuilt'
             )
             snt.hasModifier = [surface, component, at_surface]
@@ -725,7 +745,9 @@ class TestSSNOStandardNameTable(unittest.TestCase):
     def test_cf_qualifications2(self):
 
         with set_config(blank_id_generator=base_uri_generator):
-            snt = StandardNameTable()
+            snt = StandardNameTable(
+                id="https://example.org/snt",
+            )
             surface = ssnolib.Qualification(
                 name="surface",
                 description="My surface",
@@ -916,7 +938,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
             c.after = SSNO.AnyStandardName
             d.after = c
 
-            snt = StandardNameTable(name='CF Rebuilt')
+            snt = StandardNameTable(id="https://example.org/snt", name='CF Rebuilt')
             snt.hasModifier = [a, b, c, d]
 
             core_standard_names = [
@@ -954,7 +976,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
                 altersUnit="[X]/[Y]",
                 hasCharacter=[X, Y],
                 description="dX/dY (keeping any other independent variables constant, i.e. the partial derivative if appropriate).")
-            snt = StandardNameTable(name='CF Rebuilt')
+            snt = StandardNameTable(id="https://example.org/snt", name='CF Rebuilt')
             snt.hasModifier = [t]
             self.assertEqual(t.altersUnit, "[X]/[Y]")
             self.assertEqual(
@@ -987,7 +1009,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
                     Character(character="DEVICE", associatedWith=devices), ],
                 description="Difference of a quantity across a device."
             )
-            test_snt = StandardNameTable(title="Test SNT")
+            test_snt = StandardNameTable(id="https://example.org/test_snt", title="Test SNT")
             test_snt.standardNames = [
                 StandardName(standardName="velocity", description="velocity", unit="m/s")
             ]
@@ -1003,6 +1025,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
                 vel_across_fan.description
             )
             self.assertEqual("http://qudt.org/vocab/unit/M-PER-SEC", vel_across_fan.unit)
+            self.assertEqual(test_snt.id, vel_across_fan.standardNameTable)
 
             # test parsing domain concept set
             test_snt.to_jsonld(
@@ -1017,7 +1040,7 @@ class TestSSNOStandardNameTable(unittest.TestCase):
             pathlib.Path('snt_with_domain_concept.jsonld').unlink(missing_ok=True)
 
     def test_get_transformed_standard_name(self):
-        snt = StandardNameTable(name="Fluid SNT")
+        snt = StandardNameTable(id="https://example.org/snt", name="Fluid SNT")
         velocity = StandardName(standardName="velocity", description="velocity", unit="m/s")
         X = ssnolib.Character(character="X", associatedWith=ssnolib.namespace.SSNO.AnyStandardName)
         Y = ssnolib.Character(character="Y", associatedWith=ssnolib.namespace.SSNO.AnyStandardName)

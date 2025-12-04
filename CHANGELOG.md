@@ -2,6 +2,11 @@
 
 Log of changes in the versions
 
+## v2.2.0.1
+
+- Derived standard names get automatically the reference to the table they were derived from.
+- update to ontolutils 0.22.2
+
 ## v2.2.0.0
 
 - loosen domain of usesStandardNameTable to dcat:Resource

@@ -5,6 +5,7 @@ import warnings
 from typing import Dict, Union
 
 from ontolutils.ex.prov import Attribution
+
 from . import ScalarStandardName, VectorStandardName
 
 logger = logging.getLogger("ssnolib")
@@ -79,10 +80,12 @@ class XMLReader(TableReader):
         sn_data = xmldata.get('entry', None)
         if sn_data is None:
             raise KeyError('Expected key "entry" in the XML file.')
-        data = {'standard_name': [_parse_standard_name(sn) for sn in sn_data],
-                'version': version,
-                # 'modified': last_modified,
-                'qualifiedAttribution': agent}
+        data = {
+            'standard_name': [_parse_standard_name(sn) for sn in sn_data],
+            'version': version,
+            # 'modified': last_modified,
+            'qualifiedAttribution': agent
+        }
 
         if 'title' not in xmldata:
             data['title'] = self.filename.stem
@@ -178,16 +181,17 @@ class YAMLReader(TableReader):
                 # [component] standard_name [in_medium]
                 # -1, 0, 1
 
-        data_dict = {'title': data.get('name', data.get('title', None)),
-                     'qualifiedAttribution': qualifiedAttribution,
-                     'version': data.get('version', None),
-                     'description': data.get('description', None),
-                     'identifier': data.get('identifier', None),
-                     'standardNames': [_parse_standard_names(k, v) for k, v in standardNames.items()]}
+        data_dict = {
+            'id': data.get('id', None),
+            'title': data.get('name', data.get('title', None)),
+            'qualifiedAttribution': qualifiedAttribution,
+            'version': data.get('version', None),
+            'description': data.get('description', None),
+            'identifier': data.get('identifier', None),
+            'standardNames': [_parse_standard_names(k, v) for k, v in standardNames.items()]
+        }
         if qualifications_dict:
             data_dict['hasModifier'] = list(qualifications_dict.values())
-        if data.get('identifier', None):
-            data_dict['id'] = data.get('identifier', None)
 
         return data_dict
 
