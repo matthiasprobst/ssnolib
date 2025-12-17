@@ -5,7 +5,7 @@ authors:
     given-names: "Matthias"
     orcid: "https://orcid.org/0000-0001-8729-0482"
 title: "ssnolib"
-version: 2.2.0.1
-doi: 10.5281/zenodo.17813958
-date-released: 2025-12-04
+version: 2.2.0.2
+doi: 10.5281/zenodo.17969845
+date-released: 2025-12-17
 url: "https://github.com/matthiasprobst/ssnolib"

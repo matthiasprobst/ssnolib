@@ -175,7 +175,7 @@ class TestClasses(unittest.TestCase):
             standardName='air_temperature',
             unit='K',
             description='Air temperature is the bulk temperature of the air, not the surface (skin) temperature.')
-
+        print(atemp.serialize("ttl"))
         self.assertEqual(str(atemp), 'air_temperature')
         self.assertEqual(atemp.standardName, 'air_temperature')
         self.assertEqual(atemp.unit, 'http://qudt.org/vocab/unit/K')

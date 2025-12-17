@@ -4,7 +4,8 @@ from ontolutils import serialize
 from ontolutils.ex.m4i import Tool
 
 from ssnolib import StandardName
-from ssnolib.sosa import ObservableProperty, Sensor, Platform
+from ssnolib.sosa import ObservableProperty
+from ontolutils.ex.ssn import Sensor, Platform
 
 
 class TestSosa(unittest.TestCase):

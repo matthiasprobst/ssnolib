@@ -2,6 +2,10 @@
 
 Log of changes in the versions
 
+## v2.2.0.2
+
+- upgrade to ontolutils 0.25.0
+
 ## v2.2.0.1
 
 - Derived standard names get automatically the reference to the table they were derived from.
