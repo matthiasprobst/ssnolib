@@ -11,17 +11,15 @@ __this_dir__ = pathlib.Path(__file__).parent
 
 class TestVersion(unittest.TestCase):
 
-    def setUp(self):
-        self.this_version = 'x.x.x'
-        setupcfg_filename = __this_dir__ / '../setup.cfg'
-        with open(setupcfg_filename, 'r') as f:
+    def test_version(self):
+        this_version = "x.x.x"
+        pyproject_filename = __this_dir__ / "../pyproject.toml"
+        with open(pyproject_filename, "r") as f:
             lines = f.readlines()
             for line in lines:
-                if 'version' in line:
-                    self.this_version = line.split(' = ')[-1].strip()
-
-    def test_version(self):
-        self.assertEqual(ssnolib.__version__, self.this_version)
+                if "version" in line and line.strip().startswith("version"):
+                    this_version = line.split(" = ")[-1].strip().strip('"')
+        self.assertEqual(ssnolib.__version__.replace("rc", "-rc"), this_version)
 
     def test_codemeta(self):
         """checking if the version in codemeta.json is the same as the one of the toolbox"""
@@ -37,7 +35,7 @@ class TestVersion(unittest.TestCase):
         with open(__this_dir__ / '../README.md', 'r') as f:
             readme = f.read()
 
-        ssno_version_splitted = self.this_version.split('.')
+        ssno_version_splitted = ssnolib.__version__.split('.')
         ssno_version = '.'.join(ssno_version_splitted[:3])
         assert f"ssno-{ssno_version}-orange" in readme
         assert f"[SSNO ontology](https://matthiasprobst.github.io/ssno/{ssno_version})" in readme

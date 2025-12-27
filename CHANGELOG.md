@@ -2,6 +2,13 @@
 
 Log of changes in the versions
 
+## v2.2.0.3
+
+- upgrade to ontolutils 0.27.0
+- add `m4i.Tool` referencing to the `m4i.NumericalVariable` defined in this package adding the `hasStandardName`
+  property
+- upgrade to pure pyproject.toml build system
+
 ## v2.2.0.2
 
 - upgrade to ontolutils 0.25.0

@@ -1,8 +1,13 @@
+import json
+
 try:
     from h5rdmtoolbox.wrapper.accessor import Accessor, register_accessor
     from h5rdmtoolbox.wrapper.core import Group
 except ImportError:
     raise ImportError("h5rdmtoolbox is required for this function.")
+
+from ssnolib.ssno.standard_name import StandardName
+from ssnolib.dcat import Dataset
 
 
 @register_accessor("ssno", "group")
@@ -40,3 +45,19 @@ class SSNOAccessor(Accessor):
             standard_name_table_attribute] = "https://matthiasprobst.github.io/ssno#hasStandardNameTable"
         h5.rdf.object[standard_name_table_attribute] = "https://matthiasprobst.github.io/ssno#StandardNameTable"
         return h5
+
+
+@register_accessor("ssno", "dataset")
+class SSNODatasetAccessor(Accessor):
+    """Accessor to await selected data to be converted to a new units"""
+
+    def add(self, standard_name: StandardName):
+        self._obj.attrs['standard_name', Dataset.get_iri("hasStandardName")] = standard_name.standardName
+        self._obj.rdf.object["standard_name"] = standard_name
+
+    def get_standard_name(self) -> StandardName:
+        try:
+            data = self._obj.rdf.object['standard_name']
+        except KeyError as e:
+            raise KeyError("Dataset does not have a standard name assigned.") from e
+        return StandardName.from_jsonld(data=json.dumps(data), limit=1)

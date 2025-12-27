@@ -36,9 +36,12 @@ try:
 
     has_h5rdmtoolbox = True
 
-    from ssnolib.h5accessor import SSNOAccessor
 except ImportError:
     has_h5rdmtoolbox = False
+
+if has_h5rdmtoolbox:
+    # noinspection PyUnresolvedReferences
+    from ssnolib.h5accessor import SSNOAccessor
 
 __this_dir__ = pathlib.Path(__file__).parent
 
@@ -1149,6 +1152,27 @@ class TestSSNOStandardNameTable(unittest.TestCase):
                              'https://matthiasprobst.github.io/ssno#hasStandardName')
             self.assertEqual(h5.rdf.predicate['snt'],
                              'https://matthiasprobst.github.io/ssno#hasStandardNameTable')
+
+        sn = StandardName(
+            id="https://example.org/sn/x_velocity",
+            standardName="x_velocity",
+            description="x component of velocity",
+            unit="m/s"
+        )
+        with h5tbx.File() as h5:
+            ds = h5.create_dataset('u', data=4.3)
+            ds.ssno.add(sn)
+            self.assertEqual(h5.u.rdf.predicate['standard_name'],
+                             'https://matthiasprobst.github.io/ssno#hasStandardName')
+            self.assertIsInstance(h5.u.rdf.object['standard_name'], dict)
+            sn_loaded = StandardName.from_jsonld(
+                data=json.dumps(h5.u.rdf.object['standard_name']),
+                limit=1
+            )
+            self.assertEqual(sn_loaded, sn)
+
+            sn_loaded2 = ds.ssno.get_standard_name()
+            self.assertEqual(sn_loaded2, sn)
 
     def test_computing_new_unit(self):
         new_unit = _compute_new_unit({"X": "m/s", "Y": "m"}, operation="[X]/[Y]")

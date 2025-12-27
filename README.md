@@ -26,6 +26,12 @@ Install the core library:
 pip install ssnolib
 ```
 
+For development:
+```bash
+git clone https://github.com/matthiasprobst/ssnolib.git
+cd ssnolib
+pip install -e .[dev]
+```
 
 ## Quickstart
 

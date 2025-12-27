@@ -1,3 +1,3 @@
-from .variable import NumericalVariable
+from .variable import NumericalVariable, Tool
 
-__all__ = ("NumericalVariable",)
+__all__ = ("NumericalVariable", "Tool")

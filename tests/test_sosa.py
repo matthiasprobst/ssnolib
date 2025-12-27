@@ -5,7 +5,7 @@ from ontolutils.ex.m4i import Tool
 
 from ssnolib import StandardName
 from ssnolib.sosa import ObservableProperty
-from ontolutils.ex.ssn import Sensor, Platform
+from ontolutils.ex.sosa import Sensor, Platform
 
 
 class TestSosa(unittest.TestCase):

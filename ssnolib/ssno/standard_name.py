@@ -4,14 +4,14 @@ from typing import Union, List, Optional
 
 import pint.errors
 from ontolutils import namespaces, urirefs, LangString
+from ontolutils.ex.dcat import Dataset
+from ontolutils.ex.skos import Concept
 from ontolutils.utils.qudt_units import qudt_lookup
 from pydantic import HttpUrl, field_validator, Field, ConfigDict
 from pydantic import ValidationError
 from pydantic_core import InitErrorDetails
 
 from ssnolib import config
-from ontolutils.ex.dcat import Dataset
-from ontolutils.ex.skos import Concept
 from .unit_utils import _parse_unit, _format_unit
 
 
